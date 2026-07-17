@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Navbar from './components/Navbar'
 import CollectionPage from './pages/Collection/CollectionPage'
 import AddItemPage from './pages/Item/AddItemPage'
 import EditItemPage from './pages/Item/EditItemPage'
@@ -10,6 +11,7 @@ import RegisterPage from './pages/Auth/RegisterPage'
 function App() {
   return (
     <Router>
+      <Navbar />
       <Routes>
         <Route path="/" element={<CollectionPage />} />
         <Route path="/items/new" element={<AddItemPage />} />

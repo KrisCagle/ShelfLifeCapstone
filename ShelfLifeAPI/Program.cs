@@ -19,7 +19,8 @@ builder.Services.AddDbContext<ShelfLifeDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+// Add Identity
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
 {
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
@@ -28,6 +29,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ShelfLifeDbContext>()
 .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<UserManager<ApplicationUser>>();
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(options =>

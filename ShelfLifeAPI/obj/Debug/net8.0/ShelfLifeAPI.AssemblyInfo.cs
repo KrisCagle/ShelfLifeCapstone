@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ShelfLifeAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a27f1c5384250f3dc5f3945e930dd0f41c50015e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4a0395f67255dfd6fdcbe98720f425ee88e66c25")]
 [assembly: System.Reflection.AssemblyProductAttribute("ShelfLifeAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ShelfLifeAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
