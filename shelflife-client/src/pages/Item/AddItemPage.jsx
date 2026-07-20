@@ -1,57 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-
-const mockFormats = [
-  { id: 1, name: "VHS" },
-  { id: 2, name: "CD" },
-  { id: 3, name: "Vinyl" },
-  { id: 4, name: "NES" },
-  { id: 5, name: "SNES" },
-  { id: 6, name: "N64" },
-  { id: 7, name: "PS1" },
-  { id: 8, name: "PS2" },
-  { id: 9, name: "GameBoy" },
-  { id: 10, name: "GameBoy Advance" },
-  { id: 11, name: "GameCube" }
-]
-
-const mockConditions = [
-  { id: 1, name: "Sealed" },
-  { id: 2, name: "Good" },
-  { id: 3, name: "Fair" },
-  { id: 4, name: "Poor" }
-]
-
-const mockGenres = [
-  { id: 1, name: "Action" },
-  { id: 2, name: "Comedy" },
-  { id: 3, name: "Horror" },
-  { id: 4, name: "Drama" },
-  { id: 5, name: "Sci-Fi" },
-  { id: 6, name: "RPG" },
-  { id: 7, name: "Platformer" },
-  { id: 8, name: "Shooter" },
-  { id: 9, name: "Sports" },
-  { id: 10, name: "Thriller" },
-  { id: 11, name: "Animation" },
-  { id: 12, name: "Documentary" },
-  { id: 13, name: "Rock" },
-  { id: 14, name: "Hip Hop" },
-  { id: 15, name: "Jazz" },
-  { id: 16, name: "Electronic" },
-  { id: 17, name: "Classical" },
-  { id: 18, name: "Country" },
-  { id: 19, name: "R&B" },
-  { id: 20, name: "Pop" }
-]
+import { createItem } from '../../services/itemService'
 
 const AddItemPage = () => {
   const navigate = useNavigate()
+  const [formats, setFormats] = useState([])
+  const [conditions, setConditions] = useState([])
+  const [genres, setGenres] = useState([])
   const [formData, setFormData] = useState({
     title: '',
     formatId: '',
     conditionId: '',
-    purchasePrice: '',
+    purchasePrice: 0,
     dateAcquired: '',
     storeFound: '',
     notes: '',
@@ -59,6 +19,12 @@ const AddItemPage = () => {
     priority: 1,
     genreIds: []
   })
+
+  useEffect(() => {
+    fetch('/api/formats').then(r => r.json()).then(setFormats)
+    fetch('/api/conditions').then(r => r.json()).then(setConditions)
+    fetch('/api/genres').then(r => r.json()).then(setGenres)
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -74,55 +40,60 @@ const AddItemPage = () => {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // will wire up real POST later
-    console.log('Submitting:', formData)
+    await createItem({
+      ...formData,
+      formatId: parseInt(formData.formatId),
+      conditionId: parseInt(formData.conditionId),
+      purchasePrice: parseFloat(formData.purchasePrice),
+      priority: parseInt(formData.priority)
+    })
     navigate('/')
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="max-w-2xl mx-auto">
-        <Link to="/" className="text-amber-400 hover:underline text-sm mb-4 inline-block">
+        <Link to="/" className="text-blue-600 hover:underline text-sm mb-4 inline-block">
           ← Back to Collection
         </Link>
-        <h1 className="text-3xl font-bold text-amber-400 mb-6">Add New Item</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Add New Item</h1>
 
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg p-6 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-6 flex flex-col gap-4">
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Title</label>
+            <label className="block text-sm text-gray-600 mb-1">Title</label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Format</label>
+            <label className="block text-sm text-gray-600 mb-1">Format</label>
             <select
               name="formatId"
               value={formData.formatId}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
             >
               <option value="">Select a format</option>
-              {mockFormats.map(f => (
+              {formats.map(f => (
                 <option key={f.id} value={f.id}>{f.name}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Condition</label>
+            <label className="block text-sm text-gray-600 mb-1">Condition</label>
             <div className="flex gap-3 flex-wrap">
-              {mockConditions.map(c => (
+              {conditions.map(c => (
                 <label key={c.id} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
@@ -130,7 +101,6 @@ const AddItemPage = () => {
                     value={c.id}
                     checked={parseInt(formData.conditionId) === c.id}
                     onChange={handleChange}
-                    className="accent-amber-400"
                   />
                   {c.name}
                 </label>
@@ -139,7 +109,7 @@ const AddItemPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Purchase Price</label>
+            <label className="block text-sm text-gray-600 mb-1">Purchase Price</label>
             <input
               type="number"
               name="purchasePrice"
@@ -147,39 +117,39 @@ const AddItemPage = () => {
               onChange={handleChange}
               step="0.01"
               min="0"
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Date Acquired</label>
+            <label className="block text-sm text-gray-600 mb-1">Date Acquired</label>
             <input
               type="date"
               name="dateAcquired"
               value={formData.dateAcquired}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Store Found</label>
+            <label className="block text-sm text-gray-600 mb-1">Store Found</label>
             <input
               type="text"
               name="storeFound"
               value={formData.storeFound}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Priority</label>
+            <label className="block text-sm text-gray-600 mb-1">Priority</label>
             <select
               name="priority"
               value={formData.priority}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
             >
               <option value={1}>Low</option>
               <option value={2}>Medium</option>
@@ -188,17 +158,17 @@ const AddItemPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Genres</label>
+            <label className="block text-sm text-gray-600 mb-2">Genres</label>
             <div className="flex flex-wrap gap-2">
-              {mockGenres.map(g => (
+              {genres.map(g => (
                 <button
                   type="button"
                   key={g.id}
                   onClick={() => handleGenreToggle(g.id)}
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  className={`px-3 py-1 rounded text-sm font-medium border transition-colors ${
                     formData.genreIds.includes(g.id)
-                      ? 'bg-amber-400 text-gray-900'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'border-gray-300 text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   {g.name}
@@ -208,37 +178,37 @@ const AddItemPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Image URL (optional)</label>
+            <label className="block text-sm text-gray-600 mb-1">Image URL (optional)</label>
             <input
               type="text"
               name="imageUrl"
               value={formData.imageUrl}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Notes (optional)</label>
+            <label className="block text-sm text-gray-600 mb-1">Notes (optional)</label>
             <textarea
               name="notes"
               value={formData.notes}
               onChange={handleChange}
               rows={3}
-              className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
             />
           </div>
 
           <div className="flex gap-3 mt-2">
             <button
               type="submit"
-              className="bg-amber-400 text-gray-900 font-semibold px-6 py-2 rounded hover:bg-amber-300 transition-colors"
+              className="border border-gray-300 text-gray-700 font-semibold px-6 py-2 rounded hover:bg-gray-100 transition-colors"
             >
               Save Item
             </button>
             <Link
               to="/"
-              className="bg-gray-700 text-white font-semibold px-6 py-2 rounded hover:bg-gray-600 transition-colors"
+              className="border border-gray-300 text-gray-700 font-semibold px-6 py-2 rounded hover:bg-gray-100 transition-colors"
             >
               Cancel
             </Link>

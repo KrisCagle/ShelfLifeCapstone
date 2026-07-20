@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 
 const mockFormats = [
   { id: 1, name: "VHS" },
@@ -22,11 +21,6 @@ const mockWishlist = [
 ]
 
 const priorityLabels = { 1: "Low", 2: "Medium", 3: "High" }
-const priorityColors = {
-  1: "bg-gray-600",
-  2: "bg-yellow-600",
-  3: "bg-red-600"
-}
 
 const WishlistPage = () => {
   const [items, setItems] = useState(mockWishlist)
@@ -63,42 +57,42 @@ const WishlistPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-amber-400">My Wishlist</h1>
+          <h1 className="text-3xl font-bold text-gray-900">My Wishlist</h1>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-amber-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-amber-300 transition-colors"
+            className="border border-gray-300 text-gray-700 font-semibold px-4 py-2 rounded hover:bg-gray-100 transition-colors"
           >
             {showForm ? 'Cancel' : '+ Add to Wishlist'}
           </button>
         </div>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg p-6 mb-6 flex flex-col gap-4">
-            <h2 className="text-xl font-bold">New Wishlist Item</h2>
+          <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-6 mb-6 flex flex-col gap-4">
+            <h2 className="text-xl font-bold text-gray-900">New Wishlist Item</h2>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Title</label>
+              <label className="block text-sm text-gray-600 mb-1">Title</label>
               <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Format</label>
+              <label className="block text-sm text-gray-600 mb-1">Format</label>
               <select
                 name="formatId"
                 value={formData.formatId}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
               >
                 <option value="">Select a format</option>
                 {mockFormats.map(f => (
@@ -108,7 +102,7 @@ const WishlistPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Priority</label>
+              <label className="block text-sm text-gray-600 mb-1">Priority</label>
               <div className="flex gap-4">
                 {[1, 2, 3].map(p => (
                   <label key={p} className="flex items-center gap-2 cursor-pointer">
@@ -118,7 +112,6 @@ const WishlistPage = () => {
                       value={p}
                       checked={parseInt(formData.priority) === p}
                       onChange={handleChange}
-                      className="accent-amber-400"
                     />
                     {priorityLabels[p]}
                   </label>
@@ -127,19 +120,19 @@ const WishlistPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Notes (optional)</label>
+              <label className="block text-sm text-gray-600 mb-1">Notes (optional)</label>
               <textarea
                 name="notes"
                 value={formData.notes}
                 onChange={handleChange}
                 rows={2}
-                className="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-amber-400"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
               />
             </div>
 
             <button
               type="submit"
-              className="bg-amber-400 text-gray-900 font-semibold px-6 py-2 rounded hover:bg-amber-300 transition-colors w-fit"
+              className="border border-gray-300 text-gray-700 font-semibold px-6 py-2 rounded hover:bg-gray-100 transition-colors w-fit"
             >
               Save to Wishlist
             </button>
@@ -151,24 +144,24 @@ const WishlistPage = () => {
         ) : (
           <div className="flex flex-col gap-4">
             {items.map(item => (
-              <div key={item.id} className="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
+              <div key={item.id} className="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
-                    <h2 className="text-lg font-semibold">{item.title}</h2>
-                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                    <h2 className="text-lg font-semibold text-gray-900">{item.title}</h2>
+                    <span className="text-xs border border-gray-300 text-gray-600 px-2 py-1 rounded">
                       {item.format.name}
                     </span>
-                    <span className={`text-xs font-bold px-2 py-1 rounded text-white ${priorityColors[item.priority]}`}>
+                    <span className="text-xs border border-gray-300 text-gray-600 px-2 py-1 rounded">
                       {priorityLabels[item.priority]}
                     </span>
                   </div>
                   {item.notes && (
-                    <p className="text-gray-400 text-sm">{item.notes}</p>
+                    <p className="text-gray-500 text-sm">{item.notes}</p>
                   )}
                 </div>
                 <button
                   onClick={() => handleDelete(item.id)}
-                  className="ml-4 text-red-400 hover:text-red-300 text-sm font-semibold transition-colors"
+                  className="ml-4 text-red-500 hover:text-red-700 text-sm font-semibold transition-colors"
                 >
                   Remove
                 </button>

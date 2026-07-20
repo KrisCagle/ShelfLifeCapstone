@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using ShelfLifeAPI.Data;
 using ShelfLifeAPI.Models;
 using System.Security.Claims;
-
+using Microsoft.AspNetCore.Authentication.Cookies;
 namespace ShelfLifeAPI.Controllers
 {
     [ApiController]

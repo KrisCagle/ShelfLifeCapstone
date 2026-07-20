@@ -4,6 +4,6 @@ namespace ShelfLifeAPI.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        public List<Item> Items { get; set; }
+        public UserProfile UserProfile { get; set; }
     }
 }
