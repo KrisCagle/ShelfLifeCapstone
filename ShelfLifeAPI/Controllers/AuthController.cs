@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using ShelfLifeAPI.Data;
 using ShelfLifeAPI.Models;
 
 namespace ShelfLifeAPI.Controllers
@@ -12,79 +14,146 @@ namespace ShelfLifeAPI.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IConfiguration _configuration;
+        private ShelfLifeDbContext _dbContext;
+        private UserManager<ApplicationUser> _userManager;
 
-        public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public AuthController(ShelfLifeDbContext context, UserManager<ApplicationUser> userManager)
         {
+            _dbContext = context;
             _userManager = userManager;
-            _configuration = configuration;
-        }
-
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
-        {
-            var user = new ApplicationUser
-            {
-                UserName = dto.UserName,
-                Email = dto.Email
-            };
-
-            var result = await _userManager.CreateAsync(user, dto.Password);
-
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
-            return Ok(new { message = "User registered successfully" });
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        public IActionResult Login([FromHeader(Name = "Authorization")] string authHeader)
         {
-            var user = await _userManager.FindByEmailAsync(dto.Email);
+            try
+            {
+                string encodedCreds = authHeader.Substring(6).Trim();
+                string creds = Encoding
+                    .GetEncoding("iso-8859-1")
+                    .GetString(Convert.FromBase64String(encodedCreds));
 
-            if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-                return Unauthorized("Invalid email or password");
+                int separator = creds.IndexOf(':');
+                string email = creds.Substring(0, separator);
+                string password = creds.Substring(separator + 1);
 
-            var token = GenerateJwtToken(user);
+                var user = _dbContext.Users.Where(u => u.Email == email).FirstOrDefault();
+                var hasher = new PasswordHasher<ApplicationUser>();
+                var result = hasher.VerifyHashedPassword(user, user.PasswordHash, password);
 
-            return Ok(new { token, userId = user.Id, userName = user.UserName });
+                if (user != null && result == PasswordVerificationResult.Success)
+                {
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                        new Claim(ClaimTypes.Name, user.UserName.ToString()),
+                        new Claim(ClaimTypes.Email, user.Email)
+                    };
+
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                    HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity)).Wait();
+
+                    return Ok();
+                }
+
+                return new UnauthorizedResult();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500);
+            }
         }
 
-        private string GenerateJwtToken(ApplicationUser user)
+        [HttpGet("logout")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+        public IActionResult Logout()
         {
-            var claims = new[]
+            try
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Email, user.Email)
+                HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet("Me")]
+        [Authorize]
+        public IActionResult Me()
+        {
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var profile = _dbContext.UserProfiles.SingleOrDefault(up => up.IdentityUserId == identityUserId);
+            if (profile != null)
+            {
+                return Ok(new
+                {
+                    Id = profile.Id,
+                    FirstName = profile.FirstName,
+                    LastName = profile.LastName,
+                    IdentityUserId = identityUserId,
+                    UserName = User.FindFirstValue(ClaimTypes.Name),
+                    Email = User.FindFirstValue(ClaimTypes.Email)
+                });
+            }
+            return NotFound();
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegistrationDto registration)
+        {
+            var user = new ApplicationUser
+            {
+                UserName = registration.UserName,
+                Email = registration.Email
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var password = Encoding
+                .GetEncoding("iso-8859-1")
+                .GetString(Convert.FromBase64String(registration.Password));
 
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddDays(7),
-                signingCredentials: creds
-            );
+            var result = await _userManager.CreateAsync(user, password);
+            if (result.Succeeded)
+            {
+                _dbContext.UserProfiles.Add(new UserProfile
+                {
+                    FirstName = registration.FirstName,
+                    LastName = registration.LastName,
+                    Address = registration.Address,
+                    IdentityUserId = user.Id
+                });
+                _dbContext.SaveChanges();
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.UserName.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email)
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity)).Wait();
+
+                return Ok();
+            }
+            return StatusCode(500);
         }
     }
 
-    public class RegisterDto
+    public class RegistrationDto
     {
         public string UserName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-    }
-
-    public class LoginDto
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShelfLifeAPI.Data;
@@ -11,9 +12,11 @@ using ShelfLifeAPI.Data;
 namespace ShelfLifeAPI.Migrations
 {
     [DbContext(typeof(ShelfLifeDbContext))]
-    partial class ShelfLifeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260720160549_AddUserProfile")]
+    partial class AddUserProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -559,41 +562,6 @@ namespace ShelfLifeAPI.Migrations
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("ShelfLifeAPI.Models.WishlistItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("FormatId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Priority")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FormatId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("WishlistItems");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -700,25 +668,6 @@ namespace ShelfLifeAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("IdentityUser");
-                });
-
-            modelBuilder.Entity("ShelfLifeAPI.Models.WishlistItem", b =>
-                {
-                    b.HasOne("ShelfLifeAPI.Models.Format", "Format")
-                        .WithMany()
-                        .HasForeignKey("FormatId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ShelfLifeAPI.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Format");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ShelfLifeAPI.Models.ApplicationUser", b =>

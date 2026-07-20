@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using ShelfLifeAPI.Data;
 using ShelfLifeAPI.Models;
 using System.Security.Claims;
-
+using Microsoft.AspNetCore.Authentication.Cookies;
 namespace ShelfLifeAPI.Controllers
 {
     [ApiController]
@@ -76,7 +76,7 @@ namespace ShelfLifeAPI.Controllers
                 StoreFound = dto.StoreFound,
                 Notes = dto.Notes,
                 ImageUrl = dto.ImageUrl,
-                Priority = dto.Priority
+                Priority = 0
             };
 
             _context.Items.Add(item);
@@ -119,7 +119,7 @@ namespace ShelfLifeAPI.Controllers
             item.StoreFound = dto.StoreFound;
             item.Notes = dto.Notes;
             item.ImageUrl = dto.ImageUrl;
-            item.Priority = dto.Priority;
+            item.Priority = 0;
 
             // Update genres - remove old, add new
             _context.ItemGenres.RemoveRange(item.ItemGenres);
@@ -166,7 +166,7 @@ namespace ShelfLifeAPI.Controllers
         public string StoreFound { get; set; }
         public string Notes { get; set; }
         public string ImageUrl { get; set; }
-        public int Priority { get; set; }
+
         public List<int> GenreIds { get; set; }
     }
 }
