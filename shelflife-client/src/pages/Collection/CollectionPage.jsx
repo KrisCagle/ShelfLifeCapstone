@@ -49,13 +49,13 @@ const CollectionPage = () => {
           <div className="flex gap-3">
             <Link
               to="/items/new"
-              className="border border-gray-300 text-gray-700 font-semibold px-4 py-2 rounded hover:bg-gray-100 transition-colors"
+              className="border border-gray-300 text-gray-700 font-semibold px-4 py-2"
             >
               + Add Item
             </Link>
             <button
               onClick={handleLogout}
-              className="border border-gray-300 text-gray-700 font-semibold px-4 py-2 rounded hover:bg-gray-100 transition-colors"
+              className="border border-gray-300 text-gray-700 font-semibold px-4 py-2"
             >
               Logout
             </button>
@@ -78,7 +78,7 @@ const CollectionPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {filtered.map((item) => (
               <Link to={`/items/${item.id}`} key={item.id} className="flex">
-                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all cursor-pointer flex flex-col w-full">
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden  transition-all cursor-pointer flex flex-col w-full">
                   <div className="w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                     {item.imageUrl ? (
                       <img

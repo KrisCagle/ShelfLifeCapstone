@@ -24,3 +24,18 @@ export const deleteItem = (id) =>
   fetch(`${BASE_URL}/items/${id}`, {
     method: 'DELETE'
   })
+
+  export const getWishlist = () =>
+  fetch('/api/wishlist').then(r => r.json())
+
+export const createWishlistItem = (item) =>
+  fetch('/api/wishlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(item)
+  }).then(r => r.json())
+
+export const deleteWishlistItem = (id) =>
+  fetch(`/api/wishlist/${id}`, {
+    method: 'DELETE'
+  })

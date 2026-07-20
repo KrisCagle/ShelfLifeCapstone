@@ -12,6 +12,7 @@ namespace ShelfLifeAPI.Data
         public DbSet<Genre> Genres { get; set; }
         public DbSet<ItemGenre> ItemGenres { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
+        public DbSet<WishlistItem> WishlistItems { get; set; }
         public ShelfLifeDbContext(DbContextOptions<ShelfLifeDbContext> options) : base(options)
         {
         }
