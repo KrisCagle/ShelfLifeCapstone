@@ -34,6 +34,23 @@ namespace ShelfLifeAPI.Controllers
             return Ok(items);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var userId = GetUserId();
+            var item = await _context.WishlistItems
+                .Include(w => w.Format)
+                .FirstOrDefaultAsync(w => w.Id == id);
+
+            if (item == null)
+                return NotFound();
+
+            if (item.UserId != userId)
+                return Forbid();
+
+            return Ok(item);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] WishlistCreateDto dto)
         {
@@ -51,15 +68,40 @@ namespace ShelfLifeAPI.Controllers
             return CreatedAtAction(nameof(GetAll), new { id = item.Id }, item);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] WishlistCreateDto dto)
+        {
+            var userId = GetUserId();
+            var item = await _context.WishlistItems
+                .FirstOrDefaultAsync(w => w.Id == id);
+
+            if (item == null)
+                return NotFound();
+
+            if (item.UserId != userId)
+                return Forbid();
+
+            item.Title = dto.Title;
+            item.FormatId = dto.FormatId;
+            item.Notes = dto.Notes;
+            item.Priority = dto.Priority;
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var userId = GetUserId();
             var item = await _context.WishlistItems
-                .FirstOrDefaultAsync(w => w.Id == id && w.UserId == userId);
+                .FirstOrDefaultAsync(w => w.Id == id);
 
             if (item == null)
                 return NotFound();
+
+            if (item.UserId != userId)
+                return Forbid();
 
             _context.WishlistItems.Remove(item);
             await _context.SaveChangesAsync();

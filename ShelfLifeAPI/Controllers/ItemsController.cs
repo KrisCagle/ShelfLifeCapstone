@@ -6,11 +6,12 @@ using ShelfLifeAPI.Data;
 using ShelfLifeAPI.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
+
 namespace ShelfLifeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
     public class ItemsController : ControllerBase
     {
         private readonly ShelfLifeDbContext _context;
@@ -82,7 +83,6 @@ namespace ShelfLifeAPI.Controllers
             _context.Items.Add(item);
             await _context.SaveChangesAsync();
 
-            // Add genres
             if (dto.GenreIds != null && dto.GenreIds.Any())
             {
                 foreach (var genreId in dto.GenreIds)
@@ -106,10 +106,13 @@ namespace ShelfLifeAPI.Controllers
             var userId = GetUserId();
             var item = await _context.Items
                 .Include(i => i.ItemGenres)
-                .FirstOrDefaultAsync(i => i.Id == id && i.UserId == userId);
+                .FirstOrDefaultAsync(i => i.Id == id);
 
             if (item == null)
                 return NotFound();
+
+            if (item.UserId != userId)
+                return Forbid();
 
             item.Title = dto.Title;
             item.FormatId = dto.FormatId;
@@ -121,7 +124,6 @@ namespace ShelfLifeAPI.Controllers
             item.ImageUrl = dto.ImageUrl;
             item.Priority = 0;
 
-            // Update genres - remove old, add new
             _context.ItemGenres.RemoveRange(item.ItemGenres);
             if (dto.GenreIds != null && dto.GenreIds.Any())
             {
@@ -145,10 +147,13 @@ namespace ShelfLifeAPI.Controllers
         {
             var userId = GetUserId();
             var item = await _context.Items
-                .FirstOrDefaultAsync(i => i.Id == id && i.UserId == userId);
+                .FirstOrDefaultAsync(i => i.Id == id);
 
             if (item == null)
                 return NotFound();
+
+            if (item.UserId != userId)
+                return Forbid();
 
             _context.Items.Remove(item);
             await _context.SaveChangesAsync();
@@ -166,7 +171,6 @@ namespace ShelfLifeAPI.Controllers
         public string StoreFound { get; set; }
         public string Notes { get; set; }
         public string ImageUrl { get; set; }
-
         public List<int> GenreIds { get; set; }
     }
 }

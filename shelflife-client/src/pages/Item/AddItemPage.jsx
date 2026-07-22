@@ -18,6 +18,18 @@ const AddItemPage = () => {
     imageUrl: "",
     genreIds: [],
   });
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const title = params.get("title");
+    const formatId = params.get("formatId");
+    if (title || formatId) {
+      setFormData((prev) => ({
+        ...prev,
+        title: title || "",
+        formatId: formatId || "",
+      }));
+    }
+  }, []);
 
   useEffect(() => {
     fetch("/api/formats")
@@ -52,7 +64,7 @@ const AddItemPage = () => {
       formatId: parseInt(formData.formatId),
       conditionId: parseInt(formData.conditionId),
       purchasePrice: parseFloat(formData.purchasePrice),
-      priority: parseInt(formData.priority),
+      priority: 0,
     });
     navigate("/");
   };

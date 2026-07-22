@@ -123,7 +123,6 @@ namespace ShelfLifeAPI.Controllers
                 {
                     FirstName = registration.FirstName,
                     LastName = registration.LastName,
-                    Address = registration.Address,
                     IdentityUserId = user.Id
                 });
                 _dbContext.SaveChanges();
@@ -154,6 +153,5 @@ namespace ShelfLifeAPI.Controllers
         public string Password { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string Address { get; set; }
     }
 }

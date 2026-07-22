@@ -21,7 +21,6 @@ export const register = async (userData) => {
       password: passwordEncoded,
       firstName: userData.firstName,
       lastName: userData.lastName,
-      address: userData.address
     })
   })
   return response

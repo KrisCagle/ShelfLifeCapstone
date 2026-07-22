@@ -35,7 +35,8 @@ namespace ShelfLifeAPI.Data
                 new Format { Id = 8, Name = "PS2" },
                 new Format { Id = 9, Name = "GameBoy" },
                 new Format { Id = 10, Name = "GameBoy Advance" },
-                new Format { Id = 11, Name = "GameCube" }
+                new Format { Id = 11, Name = "GameCube" },
+                new Format { Id = 12, Name = "Sega Genesis" }
             );
 
             // Seed Conditions

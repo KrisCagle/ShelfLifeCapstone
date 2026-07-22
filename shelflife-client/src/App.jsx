@@ -7,11 +7,12 @@ import ItemDetailPage from './pages/Item/ItemDetailPage'
 import WishlistPage from './pages/Wishlist/WishlistPage'
 import LoginPage from './pages/Auth/LoginPage'
 import RegisterPage from './pages/Auth/RegisterPage'
+import EditWishlistPage from './pages/Wishlist/EditWishlistPage'
+import AddWishlistPage from './pages/Wishlist/AddWishlistPage'
 
 function App() {
   return (
     <Router>
-      <Navbar />
       <Routes>
         <Route path="/" element={<CollectionPage />} />
         <Route path="/items/new" element={<AddItemPage />} />
@@ -20,6 +21,9 @@ function App() {
         <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/wishlist/:id/edit" element={<EditWishlistPage />} />
+        <Route path="/wishlist/new" element={<AddWishlistPage />} />
+        
       </Routes>
     </Router>
   )
