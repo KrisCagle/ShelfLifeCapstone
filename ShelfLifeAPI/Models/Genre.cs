@@ -4,6 +4,5 @@ namespace ShelfLifeAPI.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public List<ItemGenre> ItemGenres { get; set; }
     }
 }

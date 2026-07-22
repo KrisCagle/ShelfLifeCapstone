@@ -10,7 +10,6 @@ const RegisterPage = () => {
     password: "",
     firstName: "",
     lastName: "",
-    address: "",
   });
   const [error, setError] = useState("");
 
@@ -102,26 +101,16 @@ const RegisterPage = () => {
               className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
             />
           </div>
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Address</label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
-            />
-          </div>
           <button
             type="submit"
-            className="border border-gray-300 text-gray-700 font-semibold px-6 py-2 rounded hover:bg-gray-100 transition-colors"
+            className="border border-gray-300 text-gray-700 font-semibold px-6 py-2 transition-colors"
           >
             Create Account
           </button>
         </form>
         <p className="text-gray-500 text-sm mt-4">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link to="/login" className="text-black-600 hover:underline">
             Sign In
           </Link>
         </p>

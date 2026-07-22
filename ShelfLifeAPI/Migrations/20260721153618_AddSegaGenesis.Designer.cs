@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShelfLifeAPI.Data;
@@ -11,9 +12,11 @@ using ShelfLifeAPI.Data;
 namespace ShelfLifeAPI.Migrations
 {
     [DbContext(typeof(ShelfLifeDbContext))]
-    partial class ShelfLifeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260721153618_AddSegaGenesis")]
+    partial class AddSegaGenesis
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -539,6 +542,10 @@ namespace ShelfLifeAPI.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("FirstName")
                         .IsRequired()

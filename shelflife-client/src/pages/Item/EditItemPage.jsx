@@ -51,14 +51,19 @@ const EditItemPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateItem(id, {
+    const response = await updateItem(id, {
       ...formData,
       formatId: parseInt(formData.formatId),
       conditionId: parseInt(formData.conditionId),
       purchasePrice: parseFloat(formData.purchasePrice),
-      priority: parseInt(formData.priority),
+      priority: 0,
     });
-    navigate(`/items/${id}`);
+    if (response.status === 403) {
+      alert("You do not have permission to edit this item.");
+      navigate("/");
+    } else {
+      navigate(`/items/${id}`);
+    }
   };
 
   if (!formData)

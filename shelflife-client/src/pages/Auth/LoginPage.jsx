@@ -58,14 +58,14 @@ const LoginPage = () => {
           </div>
           <button
             type="submit"
-            className="border border-gray-300 text-gray-700 font-semibold px-6 py-2 rounded hover:bg-gray-100 transition-colors"
+            className="border border-gray-300 text-gray-700 font-semibold px-6 py-2 rounded transition-colors"
           >
             Sign In
           </button>
         </form>
         <p className="text-gray-500 text-sm mt-4">
           Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
+          <Link to="/register" className="text-black-600 hover:underline">
             Register
           </Link>
         </p>
