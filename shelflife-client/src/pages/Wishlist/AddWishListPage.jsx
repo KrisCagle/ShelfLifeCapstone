@@ -62,40 +62,8 @@ const AddWishlistPage = () => {
       minHeight: '100vh',
       backgroundColor: '#000000',
       backgroundImage: `url("https://www.transparenttextures.com/patterns/retina-wood.png")`,
-      padding: '0 0 40px 0',
+      padding: '24px 0 40px 0',
     }}>
-      {/* Header */}
-      <div style={{
-        backgroundColor: '#050510',
-        borderBottom: '4px solid #00bfff',
-        padding: '16px 32px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <Link to="/" style={{
-          fontFamily: 'Bebas Neue, sans-serif',
-          fontSize: '3rem',
-          color: '#00bfff',
-          letterSpacing: '6px',
-          textDecoration: 'none',
-          textShadow: '0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4)',
-        }}>
-          SHELF LIFE
-        </Link>
-        <Link to="/wishlist" style={{
-          color: '#00bfff',
-          fontFamily: 'Oswald, sans-serif',
-          fontSize: '0.85rem',
-          letterSpacing: '2px',
-          textDecoration: 'none',
-          border: '1px solid #00bfff',
-          padding: '8px 16px',
-          borderRadius: '4px',
-        }}>
-          ← BACK TO WISHLIST
-        </Link>
-      </div>
 
       {/* Form */}
       <div style={{ maxWidth: '600px', margin: '40px auto', padding: '0 24px' }}>

@@ -103,6 +103,24 @@ const CollectionPage = () => {
       </div>
     );
 
+  const formatColors = {
+    VHS: "#01ccff",
+    CD: "#ffea00",
+    Vinyl: "#7722cc",
+    NES: "#768e0a",
+    SNES: "#00fff2",
+    N64: "#cc0000",
+    PS1: "#ff00f7",
+    PS2: "#0033cc",
+    GameBoy: "#008866",
+    "GameBoy Advance": "#008866",
+    GameCube: "#6600cc",
+    "Sega Genesis": "#0055aa",
+  };
+  const formatShortNames = {
+    "GameBoy Advance": "GBA",
+    "Sega Genesis": "GENESIS",
+  };
   return (
     <div
       style={{
@@ -113,92 +131,105 @@ const CollectionPage = () => {
       }}
     >
       {/* Store Header */}
-      <div style={{
-  backgroundColor: "#050510",
-  borderBottom: "4px solid #00bfff",
-  padding: windowWidth < 768 ? "12px 16px" : "16px 32px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-}}>
-  <div>
-    <h1 style={{
-      fontFamily: "Bebas Neue, sans-serif",
-      fontSize: windowWidth < 768 ? "2rem" : "3rem",
-      color: "#00bfff",
-      letterSpacing: "6px",
-      margin: 0,
-      textShadow: "0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4)",
-    }}>
-      SHELF LIFE
-    </h1>
-    <p style={{
-      color: "#666",
-      margin: 0,
-      fontSize: "0.75rem",
-      letterSpacing: "2px",
-    }}>
-      YOUR PERSONAL MEDIA VAULT
-    </p>
-    <p style={{
-      color: "#00bfff",
-      margin: "4px 0 0 0",
-      fontSize: "0.75rem",
-      letterSpacing: "2px",
-      fontFamily: "Oswald, sans-serif",
-    }}>
-      {items.length} TITLES · ${items.reduce((sum, item) => sum + (item.purchasePrice || 0), 0).toFixed(2)} INVESTED
-    </p>
-  </div>
-  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-    <Link
-      to="/items/new"
-      style={{
-        backgroundColor: "#00bfff",
-        color: "#050510",
-        padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-        fontFamily: "Bebas Neue, sans-serif",
-        fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
-        letterSpacing: "2px",
-        textDecoration: "none",
-        borderRadius: "4px",
-      }}
-    >
-      + ADD TITLE
-    </Link>
-    <Link
-      to="/wishlist"
-      style={{
-        color: "#00bfff",
-        padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-        fontFamily: "Bebas Neue, sans-serif",
-        fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
-        letterSpacing: "2px",
-        textDecoration: "none",
-        border: "1px solid #00bfff",
-        borderRadius: "4px",
-      }}
-    >
-      WISHLIST
-    </Link>
-    <button
-      onClick={handleLogout}
-      style={{
-        backgroundColor: "transparent",
-        color: "#888",
-        border: "1px solid #888",
-        padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-        fontFamily: "Bebas Neue, sans-serif",
-        fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
-        letterSpacing: "2px",
-        cursor: "pointer",
-        borderRadius: "4px",
-      }}
-    >
-      LOGOUT
-    </button>
-  </div>
-</div>
+      <div
+        style={{
+          backgroundColor: "#050510",
+          borderBottom: "4px solid #00bfff",
+          padding: windowWidth < 768 ? "8px 16px" : "8px 32px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div>
+          <Link to="/" style={{ textDecoration: "none" }}>
+            <img
+              src="/logo.png"
+              alt="Shelf Life"
+              style={{
+                height: windowWidth < 768 ? "100px" : "180px",
+                objectFit: "contain",
+                marginBottom: "-49px",
+                marginTop: "-53px",
+                marginLeft: "-39px",
+              }}
+            />
+          </Link>
+
+          <p
+            style={{
+              color: "#f5a623",
+              margin: "0 0 8px 0",
+              fontSize: ".99rem",
+              letterSpacing: "2px",
+              fontFamily: "Share Tech Mono, monospace",
+              textShadow: "0 0 10px rgba(245, 166, 35, 0.5)",
+            }}
+          >
+            {items.length} TITLES · $
+            {items
+              .reduce((sum, item) => sum + (item.purchasePrice || 0), 0)
+              .toFixed(2)}{" "}
+            INVESTED
+          </p>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <Link
+            to="/items/new"
+            style={{
+              backgroundColor: "#00bfff",
+              color: "#050510",
+              padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
+              fontFamily: "Bebas Neue, sans-serif",
+              fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
+              letterSpacing: "2px",
+              textDecoration: "none",
+              borderRadius: "4px",
+            }}
+          >
+            + ADD TITLE
+          </Link>
+          <Link
+            to="/wishlist"
+            style={{
+              color: "#00bfff",
+              padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
+              fontFamily: "Bebas Neue, sans-serif",
+              fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
+              letterSpacing: "2px",
+              textDecoration: "none",
+              border: "1px solid #00bfff",
+              borderRadius: "4px",
+            }}
+          >
+            WISHLIST
+          </Link>
+          <button
+            onClick={handleLogout}
+            style={{
+              backgroundColor: "transparent",
+              color: "#f5a623",
+              border: "1px solid #f5a623",
+              padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
+              fontFamily: "Bebas Neue, sans-serif",
+              fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
+              letterSpacing: "2px",
+              cursor: "pointer",
+              borderRadius: "4px",
+            }}
+          >
+            LOGOUT
+          </button>
+        </div>
+      </div>
+
       {/* Filter Bar */}
       <div
         style={{
@@ -206,6 +237,8 @@ const CollectionPage = () => {
           display: "flex",
           gap: "12px",
           flexWrap: "wrap",
+          borderBottom: "1px solid #1a1a2e",
+          backgroundColor: "#050510",
         }}
       >
         <select
@@ -217,7 +250,7 @@ const CollectionPage = () => {
             border: "1px solid #333",
             borderRadius: "4px",
             color: "#00bfff",
-            fontFamily: "Oswald, sans-serif",
+            fontFamily: "Share Tech Mono, monospace",
             fontSize: "0.85rem",
             letterSpacing: "1px",
             outline: "none",
@@ -243,7 +276,7 @@ const CollectionPage = () => {
             border: "1px solid #333",
             borderRadius: "4px",
             color: "#00bfff",
-            fontFamily: "Oswald, sans-serif",
+            fontFamily: "Share Tech Mono, monospace",
             fontSize: "0.85rem",
             letterSpacing: "1px",
             outline: "none",
@@ -276,10 +309,10 @@ const CollectionPage = () => {
             style={{
               padding: "8px 12px",
               backgroundColor: "transparent",
-              border: "1px solid #444",
+              border: "1px solid #f5a623",
               borderRadius: "4px",
-              color: "#666",
-              fontFamily: "Oswald, sans-serif",
+              color: "#f5a623",
+              fontFamily: "Share Tech Mono, monospace",
               fontSize: "0.85rem",
               letterSpacing: "1px",
               cursor: "pointer",
@@ -289,6 +322,7 @@ const CollectionPage = () => {
           </button>
         )}
       </div>
+
       {/* Shelves */}
       <div
         style={{
@@ -316,6 +350,7 @@ const CollectionPage = () => {
                 color: "#555",
                 letterSpacing: "2px",
                 fontSize: "0.85rem",
+                fontFamily: "Share Tech Mono, monospace",
               }}
             >
               ADD YOUR FIRST TITLE TO GET STARTED
@@ -355,7 +390,7 @@ const CollectionPage = () => {
                       style={{
                         backgroundColor: "#111",
                         border: "1px solid #1a1a2e",
-                        borderTop: "3px solid #00bfff",
+                        borderTop: `3px solid ${formatColors[item.format?.name] || "#00bfff"}`,
                         borderRadius: "4px 4px 0 0",
                         overflow: "hidden",
                         cursor: "pointer",
@@ -365,16 +400,15 @@ const CollectionPage = () => {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = "translateY(-10px)";
-                        e.currentTarget.style.boxShadow =
-                          "0 0 20px rgba(0, 191, 255, 0.4), 0 0 40px rgba(0, 191, 255, 0.2)";
-                        e.currentTarget.style.border = "1px solid #00bfff";
-                        e.currentTarget.style.borderTop = "3px solid #00bfff";
+                        e.currentTarget.style.boxShadow = `0 0 20px ${formatColors[item.format?.name] || "#00bfff"}66, 0 0 40px ${formatColors[item.format?.name] || "#00bfff"}33`;
+                        e.currentTarget.style.border = `1px solid ${formatColors[item.format?.name] || "#00bfff"}`;
+                        e.currentTarget.style.borderTop = `3px solid ${formatColors[item.format?.name] || "#00bfff"}`;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = "translateY(0)";
                         e.currentTarget.style.boxShadow = "none";
                         e.currentTarget.style.border = "1px solid #1a1a2e";
-                        e.currentTarget.style.borderTop = "3px solid #00bfff";
+                        e.currentTarget.style.borderTop = `3px solid ${formatColors[item.format?.name] || "#00bfff"}`;
                       }}
                     >
                       {/* Cover Image */}
@@ -420,19 +454,20 @@ const CollectionPage = () => {
                             <p
                               style={{
                                 fontFamily: "Bebas Neue, sans-serif",
-                                color: "#00bfff",
+                                color:
+                                  formatColors[item.format?.name] || "#00bfff",
                                 fontSize: windowWidth < 480 ? "1rem" : "1.4rem",
                                 letterSpacing: "3px",
                                 textAlign: "center",
                                 padding: "8px",
-                                textShadow: "0 0 10px rgba(0, 191, 255, 0.5)",
+                                textShadow: `0 0 10px ${formatColors[item.format?.name] || "#00bfff"}88`,
                               }}
                             >
                               {item.format?.name}
                             </p>
                             <p
                               style={{
-                                fontFamily: "Oswald, sans-serif",
+                                fontFamily: "Share Tech Mono, monospace",
                                 color: "#444",
                                 fontSize: "0.7rem",
                                 letterSpacing: "2px",
@@ -459,12 +494,13 @@ const CollectionPage = () => {
                           style={{
                             fontFamily: "Oswald, sans-serif",
                             color: "#f5f5f5",
-                            fontSize: windowWidth < 480 ? "0.7rem" : "0.85rem",
+                            fontSize: windowWidth < 480 ? "0.75rem" : "0.9rem",
                             margin: "0 0 6px",
                             letterSpacing: "1px",
                             whiteSpace: "nowrap",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
+                            fontWeight: "600",
                           }}
                         >
                           {item.title.toUpperCase()}
@@ -486,24 +522,26 @@ const CollectionPage = () => {
                           >
                             <span
                               style={{
-                                backgroundColor: "#00bfff",
-                                color: "#050510",
-                                padding: "2px 4px",
-                                fontSize: "0.55rem",
+                                backgroundColor:
+                                  formatColors[item.format?.name] || "#00bfff",
+                                color: "#fff",
+                                padding: "2px 5px",
+                                fontSize: "0.9rem",
                                 fontFamily: "Bebas Neue, sans-serif",
                                 letterSpacing: "1px",
                                 borderRadius: "2px",
                               }}
                             >
-                              {item.format?.name}
+                              {formatShortNames[item.format?.name] ||
+                                item.format?.name}
                             </span>
                             <span
                               style={{
                                 backgroundColor: "#1a1a2e",
-                                color: "#888",
-                                padding: "2px 4px",
-                                fontSize: "0.55rem",
-                                fontFamily: "Bebas Neue, sans-serif",
+                                color: "#aaa",
+                                padding: "2px 5px",
+                                fontSize: "0.8rem",
+                                fontFamily: "Share Tech Mono, monospace",
                                 letterSpacing: "1px",
                                 borderRadius: "2px",
                                 border: "1px solid #333",
@@ -514,9 +552,10 @@ const CollectionPage = () => {
                           </div>
                           <span
                             style={{
-                              color: "#00bfff",
-                              fontSize: "0.7rem",
-                              fontFamily: "Oswald, sans-serif",
+                              color: "#f5a623",
+                              fontSize: "0.75rem",
+                              fontFamily: "Share Tech Mono, monospace",
+                              textShadow: "0 0 8px rgba(245, 166, 35, 0.4)",
                             }}
                           >
                             ${item.purchasePrice?.toFixed(2)}
@@ -527,17 +566,18 @@ const CollectionPage = () => {
                             display: "flex",
                             flexWrap: "wrap",
                             gap: "4px",
+                            overflow: "hidden",
                           }}
                         >
                           {item.itemGenres?.slice(0, 2).map((ig, index) => (
                             <span
                               key={index}
                               style={{
-                                color: "#666",
-                                fontSize: "0.55rem",
-                                fontFamily: "Oswald, sans-serif",
+                                color: "#888",
+                                fontSize: "0.8rem",
+                                fontFamily: "Share Tech Mono, monospace",
                                 letterSpacing: "1px",
-                                border: "1px solid #1a1a2e",
+                                border: "1px solid #2a2a3e",
                                 padding: "1px 4px",
                                 borderRadius: "2px",
                               }}
