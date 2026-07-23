@@ -38,10 +38,13 @@ namespace ShelfLifeAPI.Controllers
                 string password = creds.Substring(separator + 1);
 
                 var user = _dbContext.Users.Where(u => u.Email == email).FirstOrDefault();
+                if (user == null)
+                    return Unauthorized("Invalid email or password");
+
                 var hasher = new PasswordHasher<ApplicationUser>();
                 var result = hasher.VerifyHashedPassword(user, user.PasswordHash, password);
 
-                if (user != null && result == PasswordVerificationResult.Success)
+                if (result == PasswordVerificationResult.Success)
                 {
                     var claims = new List<Claim>
                     {
@@ -59,11 +62,12 @@ namespace ShelfLifeAPI.Controllers
                     return Ok();
                 }
 
-                return new UnauthorizedResult();
+                return Unauthorized("Invalid email or password");
             }
             catch (Exception ex)
             {
-                return StatusCode(500);
+                Console.WriteLine($"Login error: {ex.Message}");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -78,7 +82,7 @@ namespace ShelfLifeAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500);
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -142,7 +146,7 @@ namespace ShelfLifeAPI.Controllers
 
                 return Ok();
             }
-            return StatusCode(500);
+            return StatusCode(500, result.Errors);
         }
     }
 

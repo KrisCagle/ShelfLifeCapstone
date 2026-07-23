@@ -19,10 +19,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:5173",
-            "https://shelf-life-capstone.vercel.app",
-            builder.Configuration["AllowedOrigin"] ?? ""
+        policy.SetIsOriginAllowed(origin =>
+            origin == "http://localhost:5173" ||
+            origin == "https://shelf-life-capstone.vercel.app" ||
+            origin.EndsWith(".vercel.app")
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
@@ -34,9 +34,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.Cookie.Name = "ShelfLifeLoginCookie";
-        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SameSite = SameSiteMode.Strict;
         options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.Cookie.MaxAge = new TimeSpan(7, 0, 0, 0);
         options.SlidingExpiration = true;
         options.ExpireTimeSpan = new TimeSpan(24, 0, 0);

@@ -553,7 +553,7 @@ const CollectionPage = () => {
                           <span
                             style={{
                               color: "#f5a623",
-                              fontSize: "0.75rem",
+                              fontSize: "0.99rem",
                               fontFamily: "Share Tech Mono, monospace",
                               textShadow: "0 0 8px rgba(245, 166, 35, 0.4)",
                             }}
