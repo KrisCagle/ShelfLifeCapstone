@@ -113,122 +113,92 @@ const CollectionPage = () => {
       }}
     >
       {/* Store Header */}
-      <div
-        style={{
-          backgroundColor: "#050510",
-          borderBottom: "4px solid #00bfff",
-          padding: windowWidth < 768 ? "12px 16px" : "16px 32px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "8px",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontFamily: "Bebas Neue, sans-serif",
-              fontSize: windowWidth < 768 ? "2rem" : "3rem",
-              color: "#00bfff",
-              letterSpacing: "6px",
-              margin: 0,
-              textShadow:
-                "0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4)",
-            }}
-          >
-            SHELF LIFE
-          </h1>
-          <p
-            style={{
-              color: "#666",
-              margin: 0,
-              fontSize: "0.75rem",
-              letterSpacing: "2px",
-            }}
-          >
-            YOUR PERSONAL MEDIA VAULT
-          </p>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <Link
-            to="/items/new"
-            style={{
-              backgroundColor: "#00bfff",
-              color: "#050510",
-              padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-              fontFamily: "Bebas Neue, sans-serif",
-              fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
-              letterSpacing: "2px",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
-            + ADD TITLE
-          </Link>
-          <Link
-            to="/wishlist"
-            style={{
-              color: "#00bfff",
-              padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-              fontFamily: "Bebas Neue, sans-serif",
-              fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
-              letterSpacing: "2px",
-              textDecoration: "none",
-              border: "1px solid #00bfff",
-              borderRadius: "4px",
-            }}
-          >
-            WISHLIST
-          </Link>
-          <button
-            onClick={handleLogout}
-            style={{
-              backgroundColor: "transparent",
-              color: "#888",
-              border: "1px solid #888",
-              padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-              fontFamily: "Bebas Neue, sans-serif",
-              fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
-              letterSpacing: "2px",
-              cursor: "pointer",
-              borderRadius: "4px",
-            }}
-          >
-            LOGOUT
-          </button>
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div style={{ padding: windowWidth < 768 ? "16px" : "24px 32px 8px" }}>
-        <input
-          type="text"
-          placeholder="🔍  SEARCH YOUR VAULT..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px 16px",
-            backgroundColor: "#0d0d1a",
-            border: "2px solid #00bfff",
-            borderRadius: "4px",
-            color: "#00bfff",
-            fontFamily: "Oswald, sans-serif",
-            fontSize: "1rem",
-            letterSpacing: "2px",
-            boxSizing: "border-box",
-            outline: "none",
-          }}
-        />
-      </div>
+      <div style={{
+  backgroundColor: "#050510",
+  borderBottom: "4px solid #00bfff",
+  padding: windowWidth < 768 ? "12px 16px" : "16px 32px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+}}>
+  <div>
+    <h1 style={{
+      fontFamily: "Bebas Neue, sans-serif",
+      fontSize: windowWidth < 768 ? "2rem" : "3rem",
+      color: "#00bfff",
+      letterSpacing: "6px",
+      margin: 0,
+      textShadow: "0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4)",
+    }}>
+      SHELF LIFE
+    </h1>
+    <p style={{
+      color: "#666",
+      margin: 0,
+      fontSize: "0.75rem",
+      letterSpacing: "2px",
+    }}>
+      YOUR PERSONAL MEDIA VAULT
+    </p>
+    <p style={{
+      color: "#00bfff",
+      margin: "4px 0 0 0",
+      fontSize: "0.75rem",
+      letterSpacing: "2px",
+      fontFamily: "Oswald, sans-serif",
+    }}>
+      {items.length} TITLES · ${items.reduce((sum, item) => sum + (item.purchasePrice || 0), 0).toFixed(2)} INVESTED
+    </p>
+  </div>
+  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+    <Link
+      to="/items/new"
+      style={{
+        backgroundColor: "#00bfff",
+        color: "#050510",
+        padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
+        fontFamily: "Bebas Neue, sans-serif",
+        fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
+        letterSpacing: "2px",
+        textDecoration: "none",
+        borderRadius: "4px",
+      }}
+    >
+      + ADD TITLE
+    </Link>
+    <Link
+      to="/wishlist"
+      style={{
+        color: "#00bfff",
+        padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
+        fontFamily: "Bebas Neue, sans-serif",
+        fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
+        letterSpacing: "2px",
+        textDecoration: "none",
+        border: "1px solid #00bfff",
+        borderRadius: "4px",
+      }}
+    >
+      WISHLIST
+    </Link>
+    <button
+      onClick={handleLogout}
+      style={{
+        backgroundColor: "transparent",
+        color: "#888",
+        border: "1px solid #888",
+        padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
+        fontFamily: "Bebas Neue, sans-serif",
+        fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
+        letterSpacing: "2px",
+        cursor: "pointer",
+        borderRadius: "4px",
+      }}
+    >
+      LOGOUT
+    </button>
+  </div>
+</div>
       {/* Filter Bar */}
       <div
         style={{
