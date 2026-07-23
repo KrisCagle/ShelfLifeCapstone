@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { createItem } from '../../services/itemService'
+ 
+const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 const AddItemPage = () => {
   const navigate = useNavigate()
   const [formats, setFormats] = useState([])
@@ -18,11 +20,13 @@ const AddItemPage = () => {
     genreIds: []
   })
 
-  useEffect(() => {
-    fetch('/api/formats').then(r => r.json()).then(setFormats)
-    fetch('/api/conditions').then(r => r.json()).then(setConditions)
-    fetch('/api/genres').then(r => r.json()).then(setGenres)
-  }, [])
+ 
+
+useEffect(() => {
+  fetch(`${BASE_URL}/formats`).then(r => r.json()).then(setFormats)
+  fetch(`${BASE_URL}/conditions`).then(r => r.json()).then(setConditions)
+  fetch(`${BASE_URL}/genres`).then(r => r.json()).then(setGenres)
+}, [])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
