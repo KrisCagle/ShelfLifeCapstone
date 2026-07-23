@@ -21,7 +21,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
             "http://localhost:5173",
-            builder.Configuration["AllowedOrigin"] ?? "https://placeholder.vercel.app"
+            "https://shelf-life-capstone.vercel.app",
+            builder.Configuration["AllowedOrigin"] ?? ""
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
