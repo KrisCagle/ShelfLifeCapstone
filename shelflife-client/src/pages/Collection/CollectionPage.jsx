@@ -391,6 +391,7 @@ const CollectionPage = () => {
                         cursor: "pointer",
                         transition: "transform 0.2s, box-shadow 0.2s",
                         width: `${cardWidth}px`,
+                        minHeight: `${cardHeight + 100}px`,
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = "translateY(-10px)";
@@ -443,6 +444,7 @@ const CollectionPage = () => {
                               alignItems: "center",
                               justifyContent: "center",
                               backgroundColor: "#0d0d1a",
+                              minHeight: `${cardHeight}px`,
                             }}
                           >
                             <p
