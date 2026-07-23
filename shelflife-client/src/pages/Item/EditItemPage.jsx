@@ -1,251 +1,292 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { getItemById, updateItem } from "../../services/itemService";
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams, Link } from 'react-router-dom'
+import { getItemById, updateItem } from '../../services/itemService'
 
 const EditItemPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [formats, setFormats] = useState([]);
-  const [conditions, setConditions] = useState([]);
-  const [genres, setGenres] = useState([]);
-  const [formData, setFormData] = useState(null);
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [formats, setFormats] = useState([])
+  const [conditions, setConditions] = useState([])
+  const [genres, setGenres] = useState([])
+  const [formData, setFormData] = useState(null)
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/formats").then((r) => r.json()),
-      fetch("/api/conditions").then((r) => r.json()),
-      fetch("/api/genres").then((r) => r.json()),
-      getItemById(id),
+      fetch('/api/formats').then(r => r.json()),
+      fetch('/api/conditions').then(r => r.json()),
+      fetch('/api/genres').then(r => r.json()),
+      getItemById(id)
     ]).then(([formatsData, conditionsData, genresData, itemData]) => {
-      setFormats(formatsData);
-      setConditions(conditionsData);
-      setGenres(genresData);
+      setFormats(formatsData)
+      setConditions(conditionsData)
+      setGenres(genresData)
       setFormData({
         title: itemData.title,
         formatId: itemData.formatId,
         conditionId: itemData.conditionId,
         purchasePrice: itemData.purchasePrice,
-        dateAcquired: itemData.dateAcquired?.split("T")[0] || "",
+        dateAcquired: itemData.dateAcquired?.split('T')[0] || '',
         storeFound: itemData.storeFound,
         notes: itemData.notes,
         imageUrl: itemData.imageUrl,
         priority: itemData.priority,
-        genreIds: itemData.itemGenres?.map((ig) => ig.genreId) || [],
-      });
-    });
-  }, [id]);
+        genreIds: itemData.itemGenres?.map(ig => ig.genreId) || []
+      })
+    })
+  }, [id])
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
   const handleGenreToggle = (genreId) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       genreIds: prev.genreIds.includes(genreId)
-        ? prev.genreIds.filter((g) => g !== genreId)
-        : [...prev.genreIds, genreId],
-    }));
-  };
+        ? prev.genreIds.filter(g => g !== genreId)
+        : [...prev.genreIds, genreId]
+    }))
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const response = await updateItem(id, {
+    e.preventDefault()
+    await updateItem(id, {
       ...formData,
       formatId: parseInt(formData.formatId),
       conditionId: parseInt(formData.conditionId),
       purchasePrice: parseFloat(formData.purchasePrice),
-      priority: 0,
-    });
-    if (response.status === 403) {
-      alert("You do not have permission to edit this item.");
-      navigate("/");
-    } else {
-      navigate(`/items/${id}`);
-    }
-  };
+      priority: 0
+    })
+    navigate(`/items/${id}`)
+  }
 
-  if (!formData)
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-400">Loading...</p>
-      </div>
-    );
+  const inputStyle = {
+    width: '100%',
+    padding: '10px 14px',
+    backgroundColor: '#0d0d1a',
+    border: '1px solid #333',
+    borderRadius: '4px',
+    color: '#f5f5f5',
+    fontFamily: 'Oswald, sans-serif',
+    fontSize: '0.95rem',
+    letterSpacing: '1px',
+    outline: 'none',
+    boxSizing: 'border-box',
+  }
+
+  const labelStyle = {
+    display: 'block',
+    color: '#888',
+    fontFamily: 'Oswald, sans-serif',
+    fontSize: '0.75rem',
+    letterSpacing: '2px',
+    marginBottom: '6px',
+  }
+
+  if (!formData) return (
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#000000',
+      backgroundImage: `url("https://www.transparenttextures.com/patterns/retina-wood.png")`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      <p style={{
+        color: '#00bfff',
+        fontFamily: 'Bebas Neue, sans-serif',
+        fontSize: '2rem',
+        letterSpacing: '4px',
+        textShadow: '0 0 20px rgba(0, 191, 255, 0.8)',
+      }}>
+        LOADING...
+      </p>
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-white p-6">
-      <div className="max-w-2xl mx-auto">
-        <Link
-          to={`/items/${id}`}
-          className="text-blue-600 hover:underline text-sm mb-4 inline-block"
-        >
-          ← Back to Item
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#000000',
+      backgroundImage: `url("https://www.transparenttextures.com/patterns/retina-wood.png")`,
+      padding: '0 0 40px 0',
+    }}>
+      {/* Header */}
+      <div style={{
+        backgroundColor: '#050510',
+        borderBottom: '4px solid #00bfff',
+        padding: '16px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <Link to="/" style={{
+          fontFamily: 'Bebas Neue, sans-serif',
+          fontSize: '3rem',
+          color: '#00bfff',
+          letterSpacing: '6px',
+          textDecoration: 'none',
+          textShadow: '0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4)',
+        }}>
+          SHELF LIFE
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Item</h1>
+        <Link to={`/items/${id}`} style={{
+          color: '#00bfff',
+          fontFamily: 'Oswald, sans-serif',
+          fontSize: '0.85rem',
+          letterSpacing: '2px',
+          textDecoration: 'none',
+          border: '1px solid #00bfff',
+          padding: '8px 16px',
+          borderRadius: '4px',
+        }}>
+          ← BACK TO ITEM
+        </Link>
+      </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="border border-gray-200 rounded-lg p-6 flex flex-col gap-4"
-        >
+      {/* Form */}
+      <div style={{ maxWidth: '600px', margin: '40px auto', padding: '0 24px' }}>
+        <h1 style={{
+          fontFamily: 'Bebas Neue, sans-serif',
+          fontSize: '2rem',
+          color: '#00bfff',
+          letterSpacing: '4px',
+          margin: '0 0 24px 0',
+          textShadow: '0 0 20px rgba(0, 191, 255, 0.5)',
+        }}>
+          EDIT TITLE
+        </h1>
+
+        <form onSubmit={handleSubmit} style={{
+          backgroundColor: '#050510',
+          border: '1px solid #1a1a2e',
+          borderTop: '3px solid #00bfff',
+          borderRadius: '4px',
+          padding: '32px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+        }}>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Title</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
-            />
+            <label style={labelStyle}>TITLE</label>
+            <input type="text" name="title" value={formData.title} onChange={handleChange} required style={inputStyle} />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Format</label>
-            <select
-              name="formatId"
-              value={formData.formatId}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
-            >
-              <option value="">Select a format</option>
-              {formats.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.name}
-                </option>
+            <label style={labelStyle}>FORMAT</label>
+            <select name="formatId" value={formData.formatId} onChange={handleChange} required style={{ ...inputStyle, cursor: 'pointer' }}>
+              <option value="">SELECT A FORMAT</option>
+              {formats.map(f => (
+                <option key={f.id} value={f.id}>{f.name}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Condition
-            </label>
-            <div className="flex gap-3 flex-wrap">
-              {conditions.map((c) => (
-                <label
-                  key={c.id}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
+            <label style={labelStyle}>CONDITION</label>
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              {conditions.map(c => (
+                <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#ccc', fontFamily: 'Oswald, sans-serif', fontSize: '0.9rem', letterSpacing: '1px' }}>
                   <input
                     type="radio"
                     name="conditionId"
                     value={c.id}
                     checked={parseInt(formData.conditionId) === c.id}
                     onChange={handleChange}
+                    style={{ accentColor: '#00bfff' }}
                   />
-                  {c.name}
+                  {c.name.toUpperCase()}
                 </label>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Purchase Price
-            </label>
-            <input
-              type="number"
-              name="purchasePrice"
-              value={formData.purchasePrice}
-              onChange={handleChange}
-              step="0.01"
-              min="0"
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
-            />
+            <label style={labelStyle}>PURCHASE PRICE</label>
+            <input type="number" name="purchasePrice" value={formData.purchasePrice} onChange={handleChange} step="0.01" min="0" style={inputStyle} />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Date Acquired
-            </label>
-            <input
-              type="date"
-              name="dateAcquired"
-              value={formData.dateAcquired}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
-            />
+            <label style={labelStyle}>DATE ACQUIRED</label>
+            <input type="date" name="dateAcquired" value={formData.dateAcquired} onChange={handleChange} style={inputStyle} />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Store Found
-            </label>
-            <input
-              type="text"
-              name="storeFound"
-              value={formData.storeFound}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
-            />
+            <label style={labelStyle}>STORE FOUND</label>
+            <input type="text" name="storeFound" value={formData.storeFound} onChange={handleChange} style={inputStyle} />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-2">Genres</label>
-            <div className="flex flex-wrap gap-2">
-              {genres.map((g) => (
+            <label style={labelStyle}>GENRES</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {genres.map(g => (
                 <button
                   type="button"
                   key={g.id}
                   onClick={() => handleGenreToggle(g.id)}
-                  className={`px-3 py-1 rounded text-sm font-medium border transition-colors ${
-                    formData.genreIds.includes(g.id)
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "border-gray-300 text-gray-600 hover:bg-gray-100"
-                  }`}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '2px',
+                    fontSize: '0.7rem',
+                    fontFamily: 'Oswald, sans-serif',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    border: formData.genreIds.includes(g.id) ? '1px solid #00bfff' : '1px solid #333',
+                    backgroundColor: formData.genreIds.includes(g.id) ? '#00bfff' : 'transparent',
+                    color: formData.genreIds.includes(g.id) ? '#050510' : '#666',
+                    transition: 'all 0.15s',
+                  }}
                 >
-                  {g.name}
+                  {g.name.toUpperCase()}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Image URL (optional)
-            </label>
-            <input
-              type="text"
-              name="imageUrl"
-              value={formData.imageUrl}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
-            />
+            <label style={labelStyle}>IMAGE URL (OPTIONAL)</label>
+            <input type="text" name="imageUrl" value={formData.imageUrl} onChange={handleChange} style={inputStyle} />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Notes (optional)
-            </label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-gray-500"
-            />
+            <label style={labelStyle}>NOTES (OPTIONAL)</label>
+            <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
           </div>
 
-          <div className="flex gap-3 mt-2">
-            <button
-              type="submit"
-              className="border border-gray-300 text-gray-700 font-semibold px-6 py-2 rounded hover:bg-gray-100 transition-colors"
-            >
-              Save Changes
+          <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+            <button type="submit" style={{
+              backgroundColor: '#00bfff',
+              color: '#050510',
+              padding: '12px 24px',
+              border: 'none',
+              borderRadius: '4px',
+              fontFamily: 'Bebas Neue, sans-serif',
+              fontSize: '1.1rem',
+              letterSpacing: '3px',
+              cursor: 'pointer',
+            }}>
+              SAVE CHANGES
             </button>
-            <Link
-              to={`/items/${id}`}
-              className="border border-gray-300 text-gray-700 font-semibold px-6 py-2 rounded hover:bg-gray-100 transition-colors"
-            >
-              Cancel
+            <Link to={`/items/${id}`} style={{
+              backgroundColor: 'transparent',
+              color: '#888',
+              padding: '12px 24px',
+              border: '1px solid #333',
+              borderRadius: '4px',
+              fontFamily: 'Bebas Neue, sans-serif',
+              fontSize: '1.1rem',
+              letterSpacing: '3px',
+              textDecoration: 'none',
+              display: 'inline-block',
+            }}>
+              CANCEL
             </Link>
           </div>
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default EditItemPage;
+export default EditItemPage

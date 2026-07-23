@@ -1,148 +1,437 @@
-import { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
-import { getItemById, deleteItem } from "../../services/itemService";
-
-const priorityLabels = { 1: "Low", 2: "Medium", 3: "High" };
+import { useState, useEffect } from 'react'
+import { Link, useParams, useNavigate } from 'react-router-dom'
+import { getItemById, deleteItem } from '../../services/itemService'
 
 const ItemDetailPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [item, setItem] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [item, setItem] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   useEffect(() => {
     getItemById(id)
-      .then((data) => {
-        setItem(data);
-        setLoading(false);
+      .then(data => {
+        setItem(data)
+        setLoading(false)
       })
-      .catch(() => setLoading(false));
-  }, [id]);
+      .catch(() => setLoading(false))
+  }, [id])
 
   const handleDelete = async () => {
-    await deleteItem(id);
-    navigate("/");
-  };
+    await deleteItem(id)
+    navigate('/')
+  }
 
-  if (loading)
-    return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <p className="text-gray-400">Loading...</p>
-      </div>
-    );
+  if (loading) return (
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#000000',
+      backgroundImage: `url("https://www.transparenttextures.com/patterns/retina-wood.png")`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      <p style={{
+        color: '#00bfff',
+        fontFamily: 'Bebas Neue, sans-serif',
+        fontSize: '2rem',
+        letterSpacing: '4px',
+        textShadow: '0 0 20px rgba(0, 191, 255, 0.8)',
+      }}>
+        LOADING...
+      </p>
+    </div>
+  )
 
-  if (!item)
-    return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <p className="text-gray-400">Item not found.</p>
-      </div>
-    );
+  if (!item) return (
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#000000',
+      backgroundImage: `url("https://www.transparenttextures.com/patterns/retina-wood.png")`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      <p style={{
+        color: '#ff4444',
+        fontFamily: 'Bebas Neue, sans-serif',
+        fontSize: '2rem',
+        letterSpacing: '4px',
+      }}>
+        ITEM NOT FOUND
+      </p>
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-white p-6">
-      <div className="max-w-2xl mx-auto">
-        <Link
-          to="/"
-          className="text-black-600 hover:underline text-sm mb-4 inline-block"
-        >
-          ← Back to Collection
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#000000',
+      backgroundImage: `url("https://www.transparenttextures.com/patterns/retina-wood.png")`,
+      padding: '0 0 40px 0',
+    }}>
+      {/* Header */}
+      <div style={{
+        backgroundColor: '#050510',
+        borderBottom: '4px solid #00bfff',
+        padding: '16px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <Link to="/" style={{
+          fontFamily: 'Bebas Neue, sans-serif',
+          fontSize: '3rem',
+          color: '#00bfff',
+          letterSpacing: '6px',
+          textDecoration: 'none',
+          textShadow: '0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4)',
+        }}>
+          SHELF LIFE
         </Link>
+        <Link to="/" style={{
+          color: '#00bfff',
+          fontFamily: 'Oswald, sans-serif',
+          fontSize: '0.85rem',
+          letterSpacing: '2px',
+          textDecoration: 'none',
+          border: '1px solid #00bfff',
+          padding: '8px 16px',
+          borderRadius: '4px',
+        }}>
+          ← BACK TO COLLECTION
+        </Link>
+      </div>
 
-        <div className="border border-gray-200 rounded-lg p-6 mt-2">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">{item.title}</h1>
-            <span className="text-sm font-bold px-3 py-1 rounded border border-gray-300 text-gray-600">
+      {/* Content */}
+      <div style={{
+        maxWidth: '900px',
+        margin: '40px auto',
+        padding: '0 24px',
+        display: 'flex',
+        gap: '40px',
+        flexWrap: 'wrap',
+      }}>
+        {/* Cover Image */}
+        <div style={{
+          width: '280px',
+          minWidth: '200px',
+          flexShrink: 0,
+        }}>
+          <div style={{
+            width: '100%',
+            aspectRatio: '2/3',
+            backgroundColor: '#0d0d1a',
+            border: '1px solid #1a1a2e',
+            borderTop: '3px solid #00bfff',
+            borderRadius: '4px',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            {item.imageUrl ? (
+              <img
+                src={item.imageUrl}
+                alt={item.title}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+              />
+            ) : (
+              <p style={{
+                fontFamily: 'Bebas Neue, sans-serif',
+                color: '#00bfff',
+                fontSize: '1.4rem',
+                letterSpacing: '3px',
+                textAlign: 'center',
+                padding: '8px',
+                textShadow: '0 0 10px rgba(0, 191, 255, 0.5)',
+              }}>
+                NO COVER
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Details */}
+        <div style={{ flex: 1, minWidth: '250px' }}>
+          <h1 style={{
+            fontFamily: 'Bebas Neue, sans-serif',
+            fontSize: '2.5rem',
+            color: '#f5f5f5',
+            letterSpacing: '3px',
+            margin: '0 0 8px 0',
+          }}>
+            {item.title.toUpperCase()}
+          </h1>
+
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+            <span style={{
+              backgroundColor: '#00bfff',
+              color: '#050510',
+              padding: '4px 10px',
+              fontSize: '0.75rem',
+              fontFamily: 'Bebas Neue, sans-serif',
+              letterSpacing: '2px',
+              borderRadius: '2px',
+            }}>
               {item.format?.name}
+            </span>
+            <span style={{
+              backgroundColor: '#1a1a2e',
+              color: '#888',
+              padding: '4px 10px',
+              fontSize: '0.75rem',
+              fontFamily: 'Bebas Neue, sans-serif',
+              letterSpacing: '2px',
+              borderRadius: '2px',
+              border: '1px solid #333',
+            }}>
+              {item.condition?.name}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '16px',
+            marginBottom: '24px',
+          }}>
             <div>
-              <p className="text-gray-500">Condition</p>
-              <p className="font-semibold">{item.condition?.name}</p>
+              <p style={{
+                color: '#888',
+                fontFamily: 'Oswald, sans-serif',
+                fontSize: '0.7rem',
+                letterSpacing: '2px',
+                margin: '0 0 4px 0',
+              }}>
+                PURCHASE PRICE
+              </p>
+              <p style={{
+                color: '#00bfff',
+                fontFamily: 'Bebas Neue, sans-serif',
+                fontSize: '1.5rem',
+                letterSpacing: '2px',
+                margin: 0,
+              }}>
+                ${item.purchasePrice?.toFixed(2)}
+              </p>
             </div>
             <div>
-              <p className="text-gray-500">Purchase Price</p>
-              <p className="font-semibold">${item.purchasePrice?.toFixed(2)}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Date Acquired</p>
-              <p className="font-semibold">
+              <p style={{
+                color: '#888',
+                fontFamily: 'Oswald, sans-serif',
+                fontSize: '0.7rem',
+                letterSpacing: '2px',
+                margin: '0 0 4px 0',
+              }}>
+                DATE ACQUIRED
+              </p>
+              <p style={{
+                color: '#f5f5f5',
+                fontFamily: 'Oswald, sans-serif',
+                fontSize: '1rem',
+                letterSpacing: '1px',
+                margin: 0,
+              }}>
                 {new Date(item.dateAcquired).toLocaleDateString()}
               </p>
             </div>
             <div>
-              <p className="text-gray-500">Store Found</p>
-              <p className="font-semibold">{item.storeFound}</p>
+              <p style={{
+                color: '#888',
+                fontFamily: 'Oswald, sans-serif',
+                fontSize: '0.7rem',
+                letterSpacing: '2px',
+                margin: '0 0 4px 0',
+              }}>
+                STORE FOUND
+              </p>
+              <p style={{
+                color: '#f5f5f5',
+                fontFamily: 'Oswald, sans-serif',
+                fontSize: '1rem',
+                letterSpacing: '1px',
+                margin: 0,
+              }}>
+                {item.storeFound || '—'}
+              </p>
             </div>
           </div>
 
           {item.notes && (
-            <div className="mb-6">
-              <p className="text-gray-500 text-sm">Notes</p>
-              <p className="mt-1">{item.notes}</p>
+            <div style={{ marginBottom: '24px' }}>
+              <p style={{
+                color: '#888',
+                fontFamily: 'Oswald, sans-serif',
+                fontSize: '0.7rem',
+                letterSpacing: '2px',
+                margin: '0 0 4px 0',
+              }}>
+                NOTES
+              </p>
+              <p style={{
+                color: '#f5f5f5',
+                fontFamily: 'Oswald, sans-serif',
+                fontSize: '0.9rem',
+                letterSpacing: '1px',
+                margin: 0,
+                lineHeight: '1.6',
+              }}>
+                {item.notes}
+              </p>
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2 mb-6">
-            {item.itemGenres?.map((ig, index) => (
-              <span
-                key={index}
-                className="text-xs border border-gray-300 text-gray-600 px-2 py-1 rounded"
-              >
-                {ig.genre?.name}
-              </span>
-            ))}
-          </div>
+          {item.itemGenres?.length > 0 && (
+            <div style={{ marginBottom: '32px' }}>
+              <p style={{
+                color: '#888',
+                fontFamily: 'Oswald, sans-serif',
+                fontSize: '0.7rem',
+                letterSpacing: '2px',
+                margin: '0 0 8px 0',
+              }}>
+                GENRES
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {item.itemGenres.map((ig, index) => (
+                  <span key={index} style={{
+                    color: '#aaa',
+                    fontSize: '0.7rem',
+                    fontFamily: 'Oswald, sans-serif',
+                    letterSpacing: '1px',
+                    border: '1px solid #1a1a2e',
+                    padding: '3px 8px',
+                    borderRadius: '2px',
+                  }}>
+                    {ig.genre?.name.toUpperCase()}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
-          <div className="flex gap-3">
+          <div style={{ display: 'flex', gap: '12px' }}>
             <Link
               to={`/items/${item.id}/edit`}
-              className="border border-gray-300 text-gray-700 font-semibold px-4 py-2 rounded transition-colors"
+              style={{
+                backgroundColor: '#00bfff',
+                color: '#050510',
+                padding: '10px 24px',
+                fontFamily: 'Bebas Neue, sans-serif',
+                fontSize: '1rem',
+                letterSpacing: '3px',
+                textDecoration: 'none',
+                borderRadius: '4px',
+              }}
             >
-              Edit
+              EDIT
             </Link>
             <button
               onClick={() => setShowConfirm(true)}
-              className="border border-red-300 text-red-600 font-semibold px-4 py-2  transition-colors"
+              style={{
+                backgroundColor: 'transparent',
+                color: '#ff4444',
+                border: '1px solid #ff4444',
+                padding: '10px 24px',
+                fontFamily: 'Bebas Neue, sans-serif',
+                fontSize: '1rem',
+                letterSpacing: '3px',
+                cursor: 'pointer',
+                borderRadius: '4px',
+              }}
             >
-              Delete
+              DELETE
             </button>
           </div>
         </div>
+      </div>
 
-        {showConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white border border-gray-200 rounded-lg p-6 max-w-sm w-full mx-4">
-              <h2 className="text-xl font-bold mb-2">Delete Item</h2>
-              <p className="text-gray-500 mb-6">
-                Are you sure you want to remove{" "}
-                <span className="text-gray-900 font-semibold">
-                  {item.title}
-                </span>{" "}
-                from your collection?
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDelete}
-                  className="border border-red-300 text-red-600 font-semibold px-4 py-2 rounded hover:bg-red-50 transition-colors flex-1"
-                >
-                  Confirm Delete
-                </button>
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  className="border border-gray-300 text-gray-700 font-semibold px-4 py-2 rounded hover:bg-gray-100 transition-colors flex-1"
-                >
-                  Cancel
-                </button>
-              </div>
+      {/* Delete Confirmation Modal */}
+      {showConfirm && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 50,
+        }}>
+          <div style={{
+            backgroundColor: '#050510',
+            border: '1px solid #1a1a2e',
+            borderTop: '4px solid #ff4444',
+            borderRadius: '4px',
+            padding: '32px',
+            maxWidth: '400px',
+            width: '90%',
+          }}>
+            <h2 style={{
+              fontFamily: 'Bebas Neue, sans-serif',
+              fontSize: '1.8rem',
+              color: '#ff4444',
+              letterSpacing: '3px',
+              margin: '0 0 12px 0',
+            }}>
+              DELETE ITEM
+            </h2>
+            <p style={{
+              color: '#888',
+              fontFamily: 'Oswald, sans-serif',
+              fontSize: '0.9rem',
+              letterSpacing: '1px',
+              margin: '0 0 24px 0',
+              lineHeight: '1.6',
+            }}>
+              Are you sure you want to remove <span style={{ color: '#f5f5f5' }}>{item.title}</span> from your collection?
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={handleDelete}
+                style={{
+                  backgroundColor: '#ff4444',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px 24px',
+                  fontFamily: 'Bebas Neue, sans-serif',
+                  fontSize: '1rem',
+                  letterSpacing: '3px',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  flex: 1,
+                }}
+              >
+                CONFIRM DELETE
+              </button>
+              <button
+                onClick={() => setShowConfirm(false)}
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#888',
+                  border: '1px solid #333',
+                  padding: '10px 24px',
+                  fontFamily: 'Bebas Neue, sans-serif',
+                  fontSize: '1rem',
+                  letterSpacing: '3px',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  flex: 1,
+                }}
+              >
+                CANCEL
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
-  );
-};
+  )
+}
 
-export default ItemDetailPage;
+export default ItemDetailPage
