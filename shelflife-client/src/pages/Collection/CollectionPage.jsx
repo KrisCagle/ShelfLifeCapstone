@@ -27,9 +27,9 @@ const CollectionPage = () => {
 
   const getCardSize = () => {
     if (windowWidth < 480)
-      return { cardWidth: 140, cardHeight: 196, cardsPerShelf: 2 };
+      return { cardWidth: 120, cardHeight: 168, cardsPerShelf: 3 };
     if (windowWidth < 768)
-      return { cardWidth: 160, cardHeight: 224, cardsPerShelf: 3 };
+      return { cardWidth: 140, cardHeight: 196, cardsPerShelf: 3 };
     if (windowWidth < 1100)
       return { cardWidth: 180, cardHeight: 252, cardsPerShelf: 4 };
     return { cardWidth: 200, cardHeight: 280, cardsPerShelf: 5 };
@@ -145,10 +145,12 @@ const CollectionPage = () => {
         style={{
           backgroundColor: "#050510",
           borderBottom: "4px solid #00bfff",
-          padding: windowWidth < 768 ? "8px 16px" : "8px 32px",
+          padding: windowWidth < 768 ? "8px 12px" : "8px 32px",
           display: "flex",
-          alignItems: "center",
+          flexDirection: windowWidth < 768 ? "column" : "row",
+          alignItems: windowWidth < 768 ? "flex-start" : "center",
           justifyContent: "space-between",
+          gap: "8px",
         }}
       >
         <div>
@@ -157,16 +159,23 @@ const CollectionPage = () => {
               src="/logo.png"
               alt="Shelf Life"
               style={{
-                height: windowWidth < 768 ? "100px" : "180px",
+                height: windowWidth < 768 ? "60px" : "180px",
                 objectFit: "contain",
-                marginBottom: "-49px",
-                marginTop: "-53px",
-                marginLeft: "-39px",
+                marginBottom: windowWidth < 768 ? "0" : "-49px",
+                marginTop: windowWidth < 768 ? "0" : "-53px",
+                marginLeft: windowWidth < 768 ? "0" : "-39px",
               }}
             />
           </Link>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: windowWidth < 768 ? "flex-start" : "center",
+              gap: "12px",
+              flexDirection: windowWidth < 768 ? "column" : "row",
+            }}
+          >
             <p
               style={{
                 color: "#f5a623",
@@ -225,7 +234,8 @@ const CollectionPage = () => {
             display: "flex",
             gap: "8px",
             alignItems: "center",
-            flexWrap: "nowrap",
+            flexWrap: "wrap",
+            justifyContent: windowWidth < 768 ? "flex-start" : "flex-end",
           }}
         >
           <Link
@@ -381,11 +391,13 @@ const CollectionPage = () => {
           flexDirection: "column",
           alignItems: "center",
           width: "fit-content",
+          maxWidth: "100%",
+          overflow: "hidden",
           background:
             "radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0) 100%)",
-          backdropFilter: "blur(.7px)",
+          backdropFilter: "blur(2px)",
           borderRadius: "8px",
-          margin: "10px auto",
+          margin: "8px auto",
         }}
       >
         {filtered.length === 0 ? (
