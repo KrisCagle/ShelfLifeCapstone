@@ -14,7 +14,7 @@ builder.Services.AddControllers().AddJsonOptions(opts =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddHttpClient();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>

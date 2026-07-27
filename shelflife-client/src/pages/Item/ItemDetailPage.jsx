@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { getItemById, deleteItem } from '../../services/itemService'
+import { getItemById, deleteItem, getEbayPrice } from '../../services/itemService'
 
 const ItemDetailPage = () => {
   const { id } = useParams()
@@ -8,6 +8,8 @@ const ItemDetailPage = () => {
   const [item, setItem] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [ebayData, setEbayData] = useState(null)
+  const [ebayLoading, setEbayLoading] = useState(false)
 
   useEffect(() => {
     getItemById(id)
@@ -21,6 +23,13 @@ const ItemDetailPage = () => {
   const handleDelete = async () => {
     await deleteItem(id)
     navigate('/')
+  }
+
+  const handlePriceCheck = async () => {
+    setEbayLoading(true)
+    const data = await getEbayPrice(item.title, item.format?.name)
+    setEbayData(data)
+    setEbayLoading(false)
   }
 
   if (loading) return (
@@ -71,7 +80,6 @@ const ItemDetailPage = () => {
       backgroundImage: `url("https://www.transparenttextures.com/patterns/retina-wood.png")`,
       padding: '24px 0 40px 0',
     }}>
-
       {/* Content */}
       <div style={{
         maxWidth: '900px',
@@ -106,7 +114,7 @@ const ItemDetailPage = () => {
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
+                  objectFit: 'cover',
                 }}
               />
             ) : (
@@ -151,7 +159,7 @@ const ItemDetailPage = () => {
             </span>
             <span style={{
               backgroundColor: '#1a1a2e',
-              color: '#888',
+              color: '#aaa',
               padding: '4px 10px',
               fontSize: '0.75rem',
               fontFamily: 'Bebas Neue, sans-serif',
@@ -180,7 +188,7 @@ const ItemDetailPage = () => {
                 PURCHASE PRICE
               </p>
               <p style={{
-                color: '#00bfff',
+                color: '#f5a623',
                 fontFamily: 'Bebas Neue, sans-serif',
                 fontSize: '1.5rem',
                 letterSpacing: '2px',
@@ -200,7 +208,7 @@ const ItemDetailPage = () => {
                 DATE ACQUIRED
               </p>
               <p style={{
-                color: '#f5f5f5',
+                color: '#ccc',
                 fontFamily: 'Oswald, sans-serif',
                 fontSize: '1rem',
                 letterSpacing: '1px',
@@ -220,7 +228,7 @@ const ItemDetailPage = () => {
                 STORE FOUND
               </p>
               <p style={{
-                color: '#f5f5f5',
+                color: '#ccc',
                 fontFamily: 'Oswald, sans-serif',
                 fontSize: '1rem',
                 letterSpacing: '1px',
@@ -243,7 +251,7 @@ const ItemDetailPage = () => {
                 NOTES
               </p>
               <p style={{
-                color: '#f5f5f5',
+                color: '#ccc',
                 fontFamily: 'Oswald, sans-serif',
                 fontSize: '0.9rem',
                 letterSpacing: '1px',
@@ -273,7 +281,7 @@ const ItemDetailPage = () => {
                     fontSize: '0.7rem',
                     fontFamily: 'Oswald, sans-serif',
                     letterSpacing: '1px',
-                    border: '1px solid #1a1a2e',
+                    border: '1px solid #444',
                     padding: '3px 8px',
                     borderRadius: '2px',
                   }}>
@@ -317,6 +325,88 @@ const ItemDetailPage = () => {
               DELETE
             </button>
           </div>
+
+         {/* eBay Price Check */}
+          <div style={{ marginTop: '24px', borderTop: '1px solid #1a1a2e', paddingTop: '24px' }}>
+            <button
+              onClick={handlePriceCheck}
+              style={{
+                backgroundColor: '#f5a623',
+                color: '#050510',
+                padding: '10px 24px',
+                border: 'none',
+                borderRadius: '4px',
+                fontFamily: 'Bebas Neue, sans-serif',
+                fontSize: '1rem',
+                letterSpacing: '3px',
+                cursor: 'pointer',
+              }}
+            >
+              {ebayLoading ? 'CHECKING...' : "WHAT'S IT WORTH?"}
+            </button>
+
+            {ebayData && (
+              <div style={{ marginTop: '16px' }}>
+                <p style={{
+                  color: '#888',
+                  fontFamily: 'Oswald, sans-serif',
+                  fontSize: '0.75rem',
+                  letterSpacing: '2px',
+                  margin: '0 0 12px 0',
+                }}>
+                  EBAY MARKET DATA — {ebayData.count} ACTIVE LISTINGS
+                </p>
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                  <div style={{
+                    backgroundColor: '#0d0d1a',
+                    border: '1px solid #1a1a2e',
+                    borderRadius: '4px',
+                    padding: '12px 16px',
+                    flex: 1,
+                    minWidth: '100px',
+                  }}>
+                    <p style={{ color: '#888', fontFamily: 'Oswald, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>LOW</p>
+                    <p style={{ color: '#00ff88', fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.5rem', margin: 0 }}>${ebayData.low}</p>
+                  </div>
+                  <div style={{
+                    backgroundColor: '#0d0d1a',
+                    border: '1px solid #1a1a2e',
+                    borderRadius: '4px',
+                    padding: '12px 16px',
+                    flex: 1,
+                    minWidth: '100px',
+                  }}>
+                    <p style={{ color: '#888', fontFamily: 'Oswald, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>AVERAGE</p>
+                    <p style={{ color: '#f5a623', fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.5rem', margin: 0 }}>${ebayData.average}</p>
+                  </div>
+                  <div style={{
+                    backgroundColor: '#0d0d1a',
+                    border: '1px solid #1a1a2e',
+                    borderRadius: '4px',
+                    padding: '12px 16px',
+                    flex: 1,
+                    minWidth: '100px',
+                  }}>
+                    <p style={{ color: '#888', fontFamily: 'Oswald, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>HIGH</p>
+                    <p style={{ color: '#ff4444', fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.5rem', margin: 0 }}>${ebayData.high}</p>
+                  </div>
+                </div>
+                <div style={{ marginTop: '12px', padding: '10px 14px', backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e', borderRadius: '4px' }}>
+                  <p style={{ color: '#888', fontFamily: 'Oswald, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>YOU PAID</p>
+                  <p style={{ color: '#ccc', fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.2rem', margin: '0 0 8px 0' }}>${item.purchasePrice?.toFixed(2)}</p>
+                  {ebayData.average > item.purchasePrice ? (
+                    <p style={{ color: '#00ff88', fontFamily: 'Share Tech Mono, monospace', fontSize: '0.8rem', margin: 0 }}>
+                      ↑ YOU SAVED ${(ebayData.average - item.purchasePrice).toFixed(2)} VS AVERAGE MARKET PRICE
+                    </p>
+                  ) : (
+                    <p style={{ color: '#f5a623', fontFamily: 'Share Tech Mono, monospace', fontSize: '0.8rem', margin: 0 }}>
+                      ↓ PAID ${(item.purchasePrice - ebayData.average).toFixed(2)} ABOVE AVERAGE MARKET PRICE
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -350,7 +440,7 @@ const ItemDetailPage = () => {
               DELETE ITEM
             </h2>
             <p style={{
-              color: '#888',
+              color: '#aaa',
               fontFamily: 'Oswald, sans-serif',
               fontSize: '0.9rem',
               letterSpacing: '1px',

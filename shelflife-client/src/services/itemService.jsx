@@ -39,3 +39,7 @@ export const deleteWishlistItem = (id) =>
   fetch(`/api/wishlist/${id}`, {
     method: 'DELETE'
   })
+
+  export const getEbayPrice = (title, format) =>
+  fetch(`/api/ebay/price?title=${encodeURIComponent(title)}&format=${encodeURIComponent(format)}`)
+    .then(r => r.json())
