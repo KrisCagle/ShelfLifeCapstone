@@ -29,7 +29,7 @@ const WishlistPage = () => {
       {/* Content */}
       <div style={{ maxWidth: '800px', margin: '40px auto', padding: '0 24px' }}>
         <h1 style={{
-          fontFamily: 'Bebas Neue, sans-serif',
+          fontFamily: 'Rajdhani, sans-serif',
           fontSize: '2rem',
           color: '#00bfff',
           letterSpacing: '4px',
@@ -42,7 +42,7 @@ const WishlistPage = () => {
         {items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <p style={{
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '2rem',
               color: '#333',
               letterSpacing: '4px',
@@ -51,7 +51,7 @@ const WishlistPage = () => {
             </p>
             <p style={{
               color: '#444',
-              fontFamily: 'Oswald, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '0.85rem',
               letterSpacing: '2px',
               marginTop: '8px',
@@ -75,7 +75,7 @@ const WishlistPage = () => {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
                     <h2 style={{
-                      fontFamily: 'Bebas Neue, sans-serif',
+                      fontFamily: 'Rajdhani, sans-serif',
                       fontSize: '1.3rem',
                       color: '#f5f5f5',
                       letterSpacing: '2px',
@@ -88,7 +88,7 @@ const WishlistPage = () => {
                       color: '#00bfff',
                       padding: '2px 8px',
                       fontSize: '0.65rem',
-                      fontFamily: 'Bebas Neue, sans-serif',
+                      fontFamily: 'Rajdhani, sans-serif',
                       letterSpacing: '1px',
                       borderRadius: '2px',
                       border: '1px solid #00bfff',
@@ -98,7 +98,7 @@ const WishlistPage = () => {
                     <span style={{
                       color: priorityColors[item.priority],
                       fontSize: '0.65rem',
-                      fontFamily: 'Bebas Neue, sans-serif',
+                      fontFamily: 'Rajdhani, sans-serif',
                       letterSpacing: '1px',
                     }}>
                       {priorityLabels[item.priority].toUpperCase()} PRIORITY
@@ -107,7 +107,7 @@ const WishlistPage = () => {
                   {item.notes && (
                     <p style={{
                       color: '#666',
-                      fontFamily: 'Oswald, sans-serif',
+                      fontFamily: 'Rajdhani, sans-serif',
                       fontSize: '0.85rem',
                       letterSpacing: '1px',
                       margin: 0,
@@ -121,7 +121,7 @@ const WishlistPage = () => {
                     to={`/items/new?title=${encodeURIComponent(item.title)}&formatId=${item.formatId}`}
                     style={{
                       color: '#00ff88',
-                      fontFamily: 'Bebas Neue, sans-serif',
+                      fontFamily: 'Rajdhani, sans-serif',
                       fontSize: '0.85rem',
                       letterSpacing: '1px',
                       textDecoration: 'none',
@@ -130,10 +130,10 @@ const WishlistPage = () => {
                     FOUND IT
                   </Link>
                   <Link
-                    to={`/wishlist/${item.id}/edit`}
+                    to={`/wishlist/${item.id}/edit`} className="btn-blue"
                     style={{
                       color: '#00bfff',
-                      fontFamily: 'Bebas Neue, sans-serif',
+                      fontFamily: 'Rajdhani, sans-serif',
                       fontSize: '0.85rem',
                       letterSpacing: '1px',
                       textDecoration: 'none',
@@ -142,12 +142,12 @@ const WishlistPage = () => {
                     EDIT
                   </Link>
                   <button
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => handleDelete(item.id)} className="btn-outline-blue"
                     style={{
                       backgroundColor: 'transparent',
                       border: 'none',
                       color: '#ff4444',
-                      fontFamily: 'Bebas Neue, sans-serif',
+                      fontFamily: 'Rajdhani, sans-serif',
                       fontSize: '0.85rem',
                       letterSpacing: '1px',
                       cursor: 'pointer',

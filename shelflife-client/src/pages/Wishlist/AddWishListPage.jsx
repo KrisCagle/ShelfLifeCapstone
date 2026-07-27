@@ -41,7 +41,7 @@ const AddWishlistPage = () => {
     border: '1px solid #333',
     borderRadius: '4px',
     color: '#f5f5f5',
-    fontFamily: 'Oswald, sans-serif',
+    fontFamily: 'Rajdhani, sans-serif',
     fontSize: '0.95rem',
     letterSpacing: '1px',
     outline: 'none',
@@ -51,7 +51,7 @@ const AddWishlistPage = () => {
   const labelStyle = {
     display: 'block',
     color: '#888',
-    fontFamily: 'Oswald, sans-serif',
+    fontFamily: 'Rajdhani, sans-serif',
     fontSize: '0.75rem',
     letterSpacing: '2px',
     marginBottom: '6px',
@@ -68,7 +68,7 @@ const AddWishlistPage = () => {
       {/* Form */}
       <div style={{ maxWidth: '600px', margin: '40px auto', padding: '0 24px' }}>
         <h1 style={{
-          fontFamily: 'Bebas Neue, sans-serif',
+          fontFamily: 'Rajdhani, sans-serif',
           fontSize: '2rem',
           color: '#00bfff',
           letterSpacing: '4px',
@@ -78,7 +78,7 @@ const AddWishlistPage = () => {
           ADD TO WISHLIST
         </h1>
 
-        <form onSubmit={handleSubmit} style={{
+        <form onSubmit={handleSubmit} className="btn-blue" style={{
           backgroundColor: '#050510',
           border: '1px solid #1a1a2e',
           borderTop: '3px solid #00bfff',
@@ -113,7 +113,7 @@ const AddWishlistPage = () => {
                   gap: '8px',
                   cursor: 'pointer',
                   color: '#ccc',
-                  fontFamily: 'Oswald, sans-serif',
+                  fontFamily: 'Rajdhani, sans-serif',
                   fontSize: '0.9rem',
                   letterSpacing: '1px',
                 }}>
@@ -137,13 +137,13 @@ const AddWishlistPage = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-            <button type="submit" style={{
+            <button type="submit" className="btn-blue" style={{
               backgroundColor: '#00bfff',
               color: '#050510',
               padding: '12px 24px',
               border: 'none',
               borderRadius: '4px',
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '1.1rem',
               letterSpacing: '3px',
               cursor: 'pointer',
@@ -156,7 +156,7 @@ const AddWishlistPage = () => {
               padding: '12px 24px',
               border: '1px solid #333',
               borderRadius: '4px',
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '1.1rem',
               letterSpacing: '3px',
               textDecoration: 'none',

@@ -51,7 +51,7 @@ const EditWishlistPage = () => {
     border: '1px solid #333',
     borderRadius: '4px',
     color: '#f5f5f5',
-    fontFamily: 'Oswald, sans-serif',
+    fontFamily: 'Rajdhani, sans-serif',
     fontSize: '0.95rem',
     letterSpacing: '1px',
     outline: 'none',
@@ -61,7 +61,7 @@ const EditWishlistPage = () => {
   const labelStyle = {
     display: 'block',
     color: '#888',
-    fontFamily: 'Oswald, sans-serif',
+    fontFamily: 'Rajdhani, sans-serif',
     fontSize: '0.75rem',
     letterSpacing: '2px',
     marginBottom: '6px',
@@ -78,7 +78,7 @@ const EditWishlistPage = () => {
     }}>
       <p style={{
         color: '#00bfff',
-        fontFamily: 'Bebas Neue, sans-serif',
+        fontFamily: 'Rajdhani, sans-serif',
         fontSize: '2rem',
         letterSpacing: '4px',
         textShadow: '0 0 20px rgba(0, 191, 255, 0.8)',
@@ -99,7 +99,7 @@ const EditWishlistPage = () => {
       {/* Form */}
       <div style={{ maxWidth: '600px', margin: '40px auto', padding: '0 24px' }}>
         <h1 style={{
-          fontFamily: 'Bebas Neue, sans-serif',
+          fontFamily: 'Rajdhani, sans-serif',
           fontSize: '2rem',
           color: '#00bfff',
           letterSpacing: '4px',
@@ -144,7 +144,7 @@ const EditWishlistPage = () => {
                   gap: '8px',
                   cursor: 'pointer',
                   color: '#ccc',
-                  fontFamily: 'Oswald, sans-serif',
+                  fontFamily: 'Rajdhani, sans-serif',
                   fontSize: '0.9rem',
                   letterSpacing: '1px',
                 }}>
@@ -174,7 +174,7 @@ const EditWishlistPage = () => {
               padding: '12px 24px',
               border: 'none',
               borderRadius: '4px',
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '1.1rem',
               letterSpacing: '3px',
               cursor: 'pointer',
@@ -187,7 +187,7 @@ const EditWishlistPage = () => {
               padding: '12px 24px',
               border: '1px solid #333',
               borderRadius: '4px',
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '1.1rem',
               letterSpacing: '3px',
               textDecoration: 'none',

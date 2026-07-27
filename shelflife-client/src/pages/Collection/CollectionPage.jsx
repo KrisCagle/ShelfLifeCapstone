@@ -102,7 +102,7 @@ const CollectionPage = () => {
         <p
           style={{
             color: "#00bfff",
-            fontFamily: "Bebas Neue, sans-serif",
+            fontFamily: "Rajdhani, sans-serif",
             fontSize: "2rem",
             letterSpacing: "4px",
             textShadow: "0 0 20px rgba(0, 191, 255, 0.8)",
@@ -115,10 +115,10 @@ const CollectionPage = () => {
 
   const formatColors = {
     VHS: "#01ccff",
-    CD: "#ffea00",
-    Vinyl: "#7722cc",
+    CD: "#a19513",
+    Vinyl: "#e9e50e",
     NES: "#768e0a",
-    SNES: "#00fff2",
+    SNES: "#f28304",
     N64: "#cc0000",
     PS1: "#ff00f7",
     PS2: "#0033cc",
@@ -171,7 +171,7 @@ const CollectionPage = () => {
               display: "flex",
               alignItems: "center",
               gap: "12px",
-              flexWrap: "wrap",
+              flexWrap: "nowrap",
             }}
           >
             <p
@@ -198,7 +198,7 @@ const CollectionPage = () => {
                 border: "1px solid #f5a623",
                 color: "#f5a623",
                 padding: "4px 10px",
-                fontFamily: "Bebas Neue, sans-serif",
+                fontFamily: "Rajdhani, sans-serif",
                 fontSize: "0.8rem",
                 letterSpacing: "2px",
                 cursor: "pointer",
@@ -231,16 +231,17 @@ const CollectionPage = () => {
             display: "flex",
             gap: "8px",
             alignItems: "center",
-            flexWrap: "wrap",
+            flexWrap: "nowrap",
           }}
         >
           <Link
             to="/items/new"
+            className="btn-blue"
             style={{
               backgroundColor: "#00bfff",
               color: "#050510",
               padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-              fontFamily: "Bebas Neue, sans-serif",
+              fontFamily: "Rajdhani, sans-serif",
               fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
               letterSpacing: "2px",
               textDecoration: "none",
@@ -254,7 +255,7 @@ const CollectionPage = () => {
             style={{
               color: "#00bfff",
               padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-              fontFamily: "Bebas Neue, sans-serif",
+              fontFamily: "Rajdhani, sans-serif",
               fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
               letterSpacing: "2px",
               textDecoration: "none",
@@ -271,7 +272,7 @@ const CollectionPage = () => {
               color: "#f5a623",
               border: "1px solid #f5a623",
               padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-              fontFamily: "Bebas Neue, sans-serif",
+              fontFamily: "Rajdhani, sans-serif",
               fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
               letterSpacing: "2px",
               cursor: "pointer",
@@ -390,7 +391,7 @@ const CollectionPage = () => {
           <div style={{ textAlign: "center", padding: "80px 0" }}>
             <p
               style={{
-                fontFamily: "Bebas Neue, sans-serif",
+                fontFamily: "Rajdhani, sans-serif",
                 fontSize: "2rem",
                 color: "#444",
                 letterSpacing: "4px",
@@ -506,7 +507,7 @@ const CollectionPage = () => {
                           >
                             <p
                               style={{
-                                fontFamily: "Bebas Neue, sans-serif",
+                                fontFamily: "Rajdhani, sans-serif",
                                 color:
                                   formatColors[item.format?.name] || "#00bfff",
                                 fontSize: windowWidth < 480 ? "1rem" : "1.4rem",
@@ -541,22 +542,23 @@ const CollectionPage = () => {
                           backgroundColor: "#060610",
                           width: `${cardWidth}px`,
                           boxSizing: "border-box",
+                          minHeight: "130px",
                         }}
                       >
                         <p
                           style={{
-                            fontFamily: "Oswald, sans-serif",
-                            color: "#f5f5f5",
-                            fontSize: windowWidth < 480 ? "0.75rem" : "0.9rem",
+                            fontFamily: "Rajdhani, sans-serif",
+                            fontSize: windowWidth < 480 ? "0.9rem" : "1.1rem",
+                            fontWeight: "700",
                             margin: "0 0 6px",
                             letterSpacing: "1px",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            fontWeight: "600",
+                            color: "#f5f5f5",
                           }}
                         >
-                          {item.title.toUpperCase()}
+                         {item.title.length > 25 
+  ? item.title.substring(0, 25).toUpperCase() + '...'
+  : item.title.toUpperCase()
+}
                         </p>
                         <div
                           style={{
@@ -570,7 +572,7 @@ const CollectionPage = () => {
                             style={{
                               display: "flex",
                               gap: "4px",
-                              flexWrap: "wrap",
+                              flexWrap: "nowrap",
                             }}
                           >
                             <span
@@ -580,7 +582,7 @@ const CollectionPage = () => {
                                 color: "#fff",
                                 padding: "2px 5px",
                                 fontSize: "0.9rem",
-                                fontFamily: "Bebas Neue, sans-serif",
+                                fontFamily: "Rajdhani, sans-serif",
                                 letterSpacing: "1px",
                                 borderRadius: "2px",
                               }}
@@ -617,7 +619,7 @@ const CollectionPage = () => {
                         <div
                           style={{
                             display: "flex",
-                            flexWrap: "wrap",
+                            flexWrap: "nowrap",
                             gap: "4px",
                             overflow: "hidden",
                           }}

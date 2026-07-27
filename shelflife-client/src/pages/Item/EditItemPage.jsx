@@ -68,7 +68,7 @@ const EditItemPage = () => {
     border: '1px solid #333',
     borderRadius: '4px',
     color: '#f5f5f5',
-    fontFamily: 'Oswald, sans-serif',
+    fontFamily: 'Rajdhani, sans-serif',
     fontSize: '0.95rem',
     letterSpacing: '1px',
     outline: 'none',
@@ -78,7 +78,7 @@ const EditItemPage = () => {
   const labelStyle = {
     display: 'block',
     color: '#888',
-    fontFamily: 'Oswald, sans-serif',
+    fontFamily: 'Rajdhani, sans-serif',
     fontSize: '0.75rem',
     letterSpacing: '2px',
     marginBottom: '6px',
@@ -95,7 +95,7 @@ const EditItemPage = () => {
     }}>
       <p style={{
         color: '#00bfff',
-        fontFamily: 'Bebas Neue, sans-serif',
+        fontFamily: 'Rajdhani, sans-serif',
         fontSize: '2rem',
         letterSpacing: '4px',
         textShadow: '0 0 20px rgba(0, 191, 255, 0.8)',
@@ -116,7 +116,7 @@ const EditItemPage = () => {
       {/* Form */}
       <div style={{ maxWidth: '600px', margin: '40px auto', padding: '0 24px' }}>
         <h1 style={{
-          fontFamily: 'Bebas Neue, sans-serif',
+          fontFamily: 'Rajdhani, sans-serif',
           fontSize: '2rem',
           color: '#00bfff',
           letterSpacing: '4px',
@@ -155,7 +155,7 @@ const EditItemPage = () => {
             <label style={labelStyle}>CONDITION</label>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
               {conditions.map(c => (
-                <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#ccc', fontFamily: 'Oswald, sans-serif', fontSize: '0.9rem', letterSpacing: '1px' }}>
+                <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#ccc', fontFamily: 'Rajdhani, sans-serif', fontSize: '0.9rem', letterSpacing: '1px' }}>
                   <input
                     type="radio"
                     name="conditionId"
@@ -197,7 +197,7 @@ const EditItemPage = () => {
                     padding: '4px 10px',
                     borderRadius: '2px',
                     fontSize: '0.7rem',
-                    fontFamily: 'Oswald, sans-serif',
+                    fontFamily: 'Rajdhani, sans-serif',
                     letterSpacing: '1px',
                     cursor: 'pointer',
                     border: formData.genreIds.includes(g.id) ? '1px solid #00bfff' : '1px solid #333',
@@ -229,7 +229,7 @@ const EditItemPage = () => {
               padding: '12px 24px',
               border: 'none',
               borderRadius: '4px',
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '1.1rem',
               letterSpacing: '3px',
               cursor: 'pointer',
@@ -242,7 +242,7 @@ const EditItemPage = () => {
               padding: '12px 24px',
               border: '1px solid #333',
               borderRadius: '4px',
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '1.1rem',
               letterSpacing: '3px',
               textDecoration: 'none',

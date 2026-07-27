@@ -35,7 +35,7 @@ const RegisterPage = () => {
     border: '1px solid #333',
     borderRadius: '4px',
     color: '#f5f5f5',
-    fontFamily: 'Oswald, sans-serif',
+    fontFamily: 'Rajdhani, sans-serif',
     fontSize: '0.95rem',
     letterSpacing: '1px',
     outline: 'none',
@@ -45,7 +45,7 @@ const RegisterPage = () => {
   const labelStyle = {
     display: 'block',
     color: '#666',
-    fontFamily: 'Oswald, sans-serif',
+    fontFamily: 'Rajdhani, sans-serif',
     fontSize: '0.75rem',
     letterSpacing: '2px',
     marginBottom: '6px',
@@ -72,7 +72,7 @@ const RegisterPage = () => {
         boxShadow: '0 0 40px rgba(0, 191, 255, 0.1)',
       }}>
         <h1 style={{
-          fontFamily: 'Bebas Neue, sans-serif',
+          fontFamily: 'Rajdhani, sans-serif',
           fontSize: '3rem',
           color: '#00bfff',
           letterSpacing: '6px',
@@ -100,7 +100,7 @@ const RegisterPage = () => {
             padding: '10px 14px',
             marginBottom: '20px',
             color: '#ff4444',
-            fontFamily: 'Oswald, sans-serif',
+            fontFamily: 'Rajdhani, sans-serif',
             fontSize: '0.85rem',
             letterSpacing: '1px',
           }}>
@@ -171,14 +171,14 @@ const RegisterPage = () => {
           </div>
 
           <button
-            type="submit"
+            type="submit" className="btn-blue"
             style={{
               backgroundColor: '#00bfff',
               color: '#050510',
               padding: '12px',
               border: 'none',
               borderRadius: '4px',
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '1.2rem',
               letterSpacing: '3px',
               cursor: 'pointer',
@@ -191,7 +191,7 @@ const RegisterPage = () => {
 
         <p style={{
           color: '#555',
-          fontFamily: 'Oswald, sans-serif',
+          fontFamily: 'Rajdhani, sans-serif',
           fontSize: '0.8rem',
           letterSpacing: '1px',
           textAlign: 'center',

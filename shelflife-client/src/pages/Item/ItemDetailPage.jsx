@@ -43,7 +43,7 @@ const ItemDetailPage = () => {
     }}>
       <p style={{
         color: '#00bfff',
-        fontFamily: 'Bebas Neue, sans-serif',
+        fontFamily: 'Rajdhani, sans-serif',
         fontSize: '2rem',
         letterSpacing: '4px',
         textShadow: '0 0 20px rgba(0, 191, 255, 0.8)',
@@ -64,7 +64,7 @@ const ItemDetailPage = () => {
     }}>
       <p style={{
         color: '#ff4444',
-        fontFamily: 'Bebas Neue, sans-serif',
+        fontFamily: 'Rajdhani, sans-serif',
         fontSize: '2rem',
         letterSpacing: '4px',
       }}>
@@ -119,7 +119,7 @@ const ItemDetailPage = () => {
               />
             ) : (
               <p style={{
-                fontFamily: 'Bebas Neue, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 color: '#00bfff',
                 fontSize: '1.4rem',
                 letterSpacing: '3px',
@@ -136,7 +136,7 @@ const ItemDetailPage = () => {
         {/* Details */}
         <div style={{ flex: 1, minWidth: '250px' }}>
           <h1 style={{
-            fontFamily: 'Bebas Neue, sans-serif',
+            fontFamily: 'Rajdhani, sans-serif',
             fontSize: '2.5rem',
             color: '#f5f5f5',
             letterSpacing: '3px',
@@ -151,7 +151,7 @@ const ItemDetailPage = () => {
               color: '#050510',
               padding: '4px 10px',
               fontSize: '0.75rem',
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               letterSpacing: '2px',
               borderRadius: '2px',
             }}>
@@ -162,7 +162,7 @@ const ItemDetailPage = () => {
               color: '#aaa',
               padding: '4px 10px',
               fontSize: '0.75rem',
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               letterSpacing: '2px',
               borderRadius: '2px',
               border: '1px solid #333',
@@ -180,7 +180,7 @@ const ItemDetailPage = () => {
             <div>
               <p style={{
                 color: '#888',
-                fontFamily: 'Oswald, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '0.7rem',
                 letterSpacing: '2px',
                 margin: '0 0 4px 0',
@@ -189,7 +189,7 @@ const ItemDetailPage = () => {
               </p>
               <p style={{
                 color: '#f5a623',
-                fontFamily: 'Bebas Neue, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '1.5rem',
                 letterSpacing: '2px',
                 margin: 0,
@@ -200,7 +200,7 @@ const ItemDetailPage = () => {
             <div>
               <p style={{
                 color: '#888',
-                fontFamily: 'Oswald, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '0.7rem',
                 letterSpacing: '2px',
                 margin: '0 0 4px 0',
@@ -209,7 +209,7 @@ const ItemDetailPage = () => {
               </p>
               <p style={{
                 color: '#ccc',
-                fontFamily: 'Oswald, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '1rem',
                 letterSpacing: '1px',
                 margin: 0,
@@ -220,7 +220,7 @@ const ItemDetailPage = () => {
             <div>
               <p style={{
                 color: '#888',
-                fontFamily: 'Oswald, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '0.7rem',
                 letterSpacing: '2px',
                 margin: '0 0 4px 0',
@@ -229,7 +229,7 @@ const ItemDetailPage = () => {
               </p>
               <p style={{
                 color: '#ccc',
-                fontFamily: 'Oswald, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '1rem',
                 letterSpacing: '1px',
                 margin: 0,
@@ -243,7 +243,7 @@ const ItemDetailPage = () => {
             <div style={{ marginBottom: '24px' }}>
               <p style={{
                 color: '#888',
-                fontFamily: 'Oswald, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '0.7rem',
                 letterSpacing: '2px',
                 margin: '0 0 4px 0',
@@ -252,7 +252,7 @@ const ItemDetailPage = () => {
               </p>
               <p style={{
                 color: '#ccc',
-                fontFamily: 'Oswald, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '0.9rem',
                 letterSpacing: '1px',
                 margin: 0,
@@ -267,7 +267,7 @@ const ItemDetailPage = () => {
             <div style={{ marginBottom: '32px' }}>
               <p style={{
                 color: '#888',
-                fontFamily: 'Oswald, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '0.7rem',
                 letterSpacing: '2px',
                 margin: '0 0 8px 0',
@@ -279,7 +279,7 @@ const ItemDetailPage = () => {
                   <span key={index} style={{
                     color: '#aaa',
                     fontSize: '0.7rem',
-                    fontFamily: 'Oswald, sans-serif',
+                    fontFamily: 'Rajdhani, sans-serif',
                     letterSpacing: '1px',
                     border: '1px solid #444',
                     padding: '3px 8px',
@@ -294,12 +294,12 @@ const ItemDetailPage = () => {
 
           <div style={{ display: 'flex', gap: '12px' }}>
             <Link
-              to={`/items/${item.id}/edit`}
+              to={`/items/${item.id}/edit`}  className="btn-blue"
               style={{
                 backgroundColor: '#00bfff',
                 color: '#050510',
                 padding: '10px 24px',
-                fontFamily: 'Bebas Neue, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '1rem',
                 letterSpacing: '3px',
                 textDecoration: 'none',
@@ -309,13 +309,13 @@ const ItemDetailPage = () => {
               EDIT
             </Link>
             <button
-              onClick={() => setShowConfirm(true)}
+              onClick={() => setShowConfirm(true)} className="btn-outline-red"
               style={{
                 backgroundColor: 'transparent',
                 color: '#ff4444',
                 border: '1px solid #ff4444',
                 padding: '10px 24px',
-                fontFamily: 'Bebas Neue, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '1rem',
                 letterSpacing: '3px',
                 cursor: 'pointer',
@@ -329,14 +329,14 @@ const ItemDetailPage = () => {
          {/* eBay Price Check */}
           <div style={{ marginTop: '24px', borderTop: '1px solid #1a1a2e', paddingTop: '24px' }}>
             <button
-              onClick={handlePriceCheck}
+              onClick={handlePriceCheck} className="btn-amber"
               style={{
                 backgroundColor: '#f5a623',
                 color: '#050510',
                 padding: '10px 24px',
                 border: 'none',
                 borderRadius: '4px',
-                fontFamily: 'Bebas Neue, sans-serif',
+                fontFamily: 'Rajdhani, sans-serif',
                 fontSize: '1rem',
                 letterSpacing: '3px',
                 cursor: 'pointer',
@@ -349,7 +349,7 @@ const ItemDetailPage = () => {
               <div style={{ marginTop: '16px' }}>
                 <p style={{
                   color: '#888',
-                  fontFamily: 'Oswald, sans-serif',
+                  fontFamily: 'Rajdhani, sans-serif',
                   fontSize: '0.75rem',
                   letterSpacing: '2px',
                   margin: '0 0 12px 0',
@@ -365,8 +365,8 @@ const ItemDetailPage = () => {
                     flex: 1,
                     minWidth: '100px',
                   }}>
-                    <p style={{ color: '#888', fontFamily: 'Oswald, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>LOW</p>
-                    <p style={{ color: '#00ff88', fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.5rem', margin: 0 }}>${ebayData.low}</p>
+                    <p style={{ color: '#888', fontFamily: 'Rajdhani, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>LOW</p>
+                    <p style={{ color: '#00ff88', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', margin: 0 }}>${ebayData.low}</p>
                   </div>
                   <div style={{
                     backgroundColor: '#0d0d1a',
@@ -376,8 +376,8 @@ const ItemDetailPage = () => {
                     flex: 1,
                     minWidth: '100px',
                   }}>
-                    <p style={{ color: '#888', fontFamily: 'Oswald, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>AVERAGE</p>
-                    <p style={{ color: '#f5a623', fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.5rem', margin: 0 }}>${ebayData.average}</p>
+                    <p style={{ color: '#888', fontFamily: 'Rajdhani, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>AVERAGE</p>
+                    <p style={{ color: '#f5a623', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', margin: 0 }}>${ebayData.average}</p>
                   </div>
                   <div style={{
                     backgroundColor: '#0d0d1a',
@@ -387,13 +387,13 @@ const ItemDetailPage = () => {
                     flex: 1,
                     minWidth: '100px',
                   }}>
-                    <p style={{ color: '#888', fontFamily: 'Oswald, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>HIGH</p>
-                    <p style={{ color: '#ff4444', fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.5rem', margin: 0 }}>${ebayData.high}</p>
+                    <p style={{ color: '#888', fontFamily: 'Rajdhani, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>HIGH</p>
+                    <p style={{ color: '#ff4444', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', margin: 0 }}>${ebayData.high}</p>
                   </div>
                 </div>
                 <div style={{ marginTop: '12px', padding: '10px 14px', backgroundColor: '#0d0d1a', border: '1px solid #1a1a2e', borderRadius: '4px' }}>
-                  <p style={{ color: '#888', fontFamily: 'Oswald, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>YOU PAID</p>
-                  <p style={{ color: '#ccc', fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.2rem', margin: '0 0 8px 0' }}>${item.purchasePrice?.toFixed(2)}</p>
+                  <p style={{ color: '#888', fontFamily: 'Rajdhani, sans-serif', fontSize: '0.65rem', letterSpacing: '2px', margin: '0 0 4px 0' }}>YOU PAID</p>
+                  <p style={{ color: '#ccc', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.2rem', margin: '0 0 8px 0' }}>${item.purchasePrice?.toFixed(2)}</p>
                   {ebayData.average > item.purchasePrice ? (
                     <p style={{ color: '#00ff88', fontFamily: 'Share Tech Mono, monospace', fontSize: '0.8rem', margin: 0 }}>
                       ↑ YOU SAVED ${(ebayData.average - item.purchasePrice).toFixed(2)} VS AVERAGE MARKET PRICE
@@ -431,7 +431,7 @@ const ItemDetailPage = () => {
             width: '90%',
           }}>
             <h2 style={{
-              fontFamily: 'Bebas Neue, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '1.8rem',
               color: '#ff4444',
               letterSpacing: '3px',
@@ -441,7 +441,7 @@ const ItemDetailPage = () => {
             </h2>
             <p style={{
               color: '#aaa',
-              fontFamily: 'Oswald, sans-serif',
+              fontFamily: 'Rajdhani, sans-serif',
               fontSize: '0.9rem',
               letterSpacing: '1px',
               margin: '0 0 24px 0',
@@ -451,13 +451,13 @@ const ItemDetailPage = () => {
             </p>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
-                onClick={handleDelete}
+                onClick={handleDelete} className="btn-red"
                 style={{
                   backgroundColor: '#ff4444',
                   color: '#fff',
                   border: 'none',
                   padding: '10px 24px',
-                  fontFamily: 'Bebas Neue, sans-serif',
+                  fontFamily: 'Rajdhani, sans-serif',
                   fontSize: '1rem',
                   letterSpacing: '3px',
                   cursor: 'pointer',
@@ -468,13 +468,13 @@ const ItemDetailPage = () => {
                 CONFIRM DELETE
               </button>
               <button
-                onClick={() => setShowConfirm(false)}
+                onClick={() => setShowConfirm(false)} className="btn-gray"
                 style={{
                   backgroundColor: 'transparent',
                   color: '#888',
                   border: '1px solid #333',
                   padding: '10px 24px',
-                  fontFamily: 'Bebas Neue, sans-serif',
+                  fontFamily: 'Rajdhani, sans-serif',
                   fontSize: '1rem',
                   letterSpacing: '3px',
                   cursor: 'pointer',

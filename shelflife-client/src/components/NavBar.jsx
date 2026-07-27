@@ -33,11 +33,11 @@ const Navbar = () => {
         />
       </Link>
       <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-        <Link to="/items/new" style={{
+        <Link to="/items/new"  className="btn-blue" style={{
           backgroundColor: "#00bfff",
           color: "#050510",
           padding: "8px 16px",
-          fontFamily: "Bebas Neue, sans-serif",
+          fontFamily: "Rajdhani, sans-serif",
           fontSize: "1.1rem",
           letterSpacing: "2px",
           textDecoration: "none",
@@ -45,10 +45,10 @@ const Navbar = () => {
         }}>
           + ADD TITLE
         </Link>
-        <Link to="/wishlist" style={{
+        <Link to="/wishlist" className="btn-outline-blue" style={{
           color: "#00bfff",
           padding: "8px 16px",
-          fontFamily: "Bebas Neue, sans-serif",
+          fontFamily: "Rajdhani, sans-serif",
           fontSize: "1.1rem",
           letterSpacing: "2px",
           textDecoration: "none",
@@ -57,12 +57,12 @@ const Navbar = () => {
         }}>
           WISHLIST
         </Link>
-        <button onClick={handleLogout} style={{
+        <button onClick={handleLogout} className="btn-gray" style={{
           backgroundColor: "transparent",
           color: "#f5a623",
           border: "1px solid #f5a623",
           padding: "8px 16px",
-          fontFamily: "Bebas Neue, sans-serif",
+          fontFamily: "Rajdhani, sans-serif",
           fontSize: "1.1rem",
           letterSpacing: "2px",
           cursor: "pointer",
