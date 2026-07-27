@@ -93,5 +93,81 @@ namespace ShelfLifeAPI.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        [HttpPost("collection-value")]
+        public async Task<IActionResult> GetCollectionValue([FromBody] List<CollectionValueRequest> items)
+        {
+            try
+            {
+                var token = await GetOAuthToken();
+                decimal totalLow = 0;
+                decimal totalHigh = 0;
+                decimal totalAverage = 0;
+                int itemsFound = 0;
+
+                foreach (var item in items)
+                {
+                    try
+                    {
+                        var searchQuery = Uri.EscapeDataString($"{item.Title} {item.Format}");
+                        var request = new HttpRequestMessage(HttpMethod.Get,
+                            $"https://api.ebay.com/buy/browse/v1/item_summary/search?q={searchQuery}&limit=5&filter=buyingOptions:%7BFIXED_PRICE%7D");
+                        request.Headers.Add("Authorization", $"Bearer {token}");
+                        request.Headers.Add("X-EBAY-C-MARKETPLACE-ID", "EBAY_US");
+
+                        var response = await _httpClient.SendAsync(request);
+                        var content = await response.Content.ReadAsStringAsync();
+                        var json = JsonDocument.Parse(content);
+
+                        if (!json.RootElement.TryGetProperty("itemSummaries", out var itemSummaries))
+                            continue;
+
+                        var prices = new List<decimal>();
+                        foreach (var ebayItem in itemSummaries.EnumerateArray())
+                        {
+                            if (ebayItem.TryGetProperty("price", out var price))
+                            {
+                                if (price.TryGetProperty("value", out var value))
+                                {
+                                    if (decimal.TryParse(value.GetString(), out var priceValue))
+                                    {
+                                        prices.Add(priceValue);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (prices.Count > 0)
+                        {
+                            totalLow += prices.Min();
+                            totalHigh += prices.Max();
+                            totalAverage += prices.Average();
+                            itemsFound++;
+                        }
+
+                        await Task.Delay(100);
+                    }
+                    catch { continue; }
+                }
+
+                return Ok(new
+                {
+                    totalLow = Math.Round(totalLow, 2),
+                    totalHigh = Math.Round(totalHigh, 2),
+                    totalAverage = Math.Round(totalAverage, 2),
+                    itemsFound
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Collection value error: {ex.Message}");
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        public class CollectionValueRequest
+        {
+            public string Title { get; set; }
+            public string Format { get; set; }
+        }
     }
 }

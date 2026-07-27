@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getItems } from "../../services/itemService";
 import { logout } from "../../services/authService";
+import { getCollectionValue } from "../../services/itemService";
 
 const useWindowWidth = () => {
   const [width, setWidth] = useState(window.innerWidth);
@@ -21,6 +22,8 @@ const CollectionPage = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const windowWidth = useWindowWidth();
+  const [collectionValue, setCollectionValue] = useState(null);
+  const [valueLoading, setValueLoading] = useState(false);
 
   const getCardSize = () => {
     if (windowWidth < 480)
@@ -33,7 +36,14 @@ const CollectionPage = () => {
   };
 
   const { cardWidth, cardHeight, cardsPerShelf } = getCardSize();
-
+  const handleCollectionValue = async () => {
+    setValueLoading(true);
+    const data = await getCollectionValue(
+      items.map((i) => ({ title: i.title, format: i.format?.name })),
+    );
+    setCollectionValue(data);
+    setValueLoading(false);
+  };
   useEffect(() => {
     getItems()
       .then((data) => {
@@ -156,23 +166,66 @@ const CollectionPage = () => {
             />
           </Link>
 
-          <p
+          <div
             style={{
-              color: "#f5a623",
-              margin: "0 0 8px 0",
-              fontSize: ".99rem",
-              letterSpacing: "2px",
-              fontFamily: "Share Tech Mono, monospace",
-              textShadow: "0 0 10px rgba(245, 166, 35, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              flexWrap: "wrap",
             }}
           >
-            {items.length} TITLES · $
-            {items
-              .reduce((sum, item) => sum + (item.purchasePrice || 0), 0)
-              .toFixed(2)}{" "}
-            INVESTED
-          </p>
+            <p
+              style={{
+                color: "#f5a623",
+                margin: 0,
+                fontSize: "0.99rem",
+                letterSpacing: "2px",
+                fontFamily: "Share Tech Mono, monospace",
+                textShadow: "0 0 10px rgba(245, 166, 35, 0.5)",
+              }}
+            >
+              {items.length} TITLES · $
+              {items
+                .reduce((sum, item) => sum + (item.purchasePrice || 0), 0)
+                .toFixed(2)}{" "}
+              INVESTED
+            </p>
+
+            <button
+              onClick={handleCollectionValue}
+              style={{
+                backgroundColor: "transparent",
+                border: "1px solid #f5a623",
+                color: "#f5a623",
+                padding: "4px 10px",
+                fontFamily: "Bebas Neue, sans-serif",
+                fontSize: "0.8rem",
+                letterSpacing: "2px",
+                cursor: "pointer",
+                borderRadius: "4px",
+              }}
+            >
+              {valueLoading ? "CALCULATING..." : "CHECK COLLECTION VALUE"}
+            </button>
+
+            {collectionValue && (
+              <p
+                style={{
+                  color: "#00ff88",
+                  margin: 0,
+                  fontSize: "0.75rem",
+                  letterSpacing: "2px",
+                  fontFamily: "Share Tech Mono, monospace",
+                  textShadow: "0 0 10px rgba(0, 255, 136, 0.5)",
+                }}
+              >
+                EST. VALUE ${collectionValue.totalAverage} ·{" "}
+                {collectionValue.itemsFound} ITEMS PRICED
+              </p>
+            )}
+          </div>
         </div>
+
         <div
           style={{
             display: "flex",

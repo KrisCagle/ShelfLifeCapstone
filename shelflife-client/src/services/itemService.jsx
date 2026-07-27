@@ -43,3 +43,10 @@ export const deleteWishlistItem = (id) =>
   export const getEbayPrice = (title, format) =>
   fetch(`/api/ebay/price?title=${encodeURIComponent(title)}&format=${encodeURIComponent(format)}`)
     .then(r => r.json())
+  
+  export const getCollectionValue = (items) =>
+  fetch('/api/ebay/collection-value', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(items)
+  }).then(r => r.json())
