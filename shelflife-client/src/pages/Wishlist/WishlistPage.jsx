@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { getWishlist, deleteWishlistItem } from '../../services/itemService'
 
 const priorityLabels = { 1: "Low", 2: "Medium", 3: "High" }
-const priorityColors = { 1: "#555", 2: "#f5a623", 3: "#ff4444" }
+const priorityColors = { 1: "#01dfba", 2: "#f5a623", 3: "#ff4444" }
 
 const WishlistPage = () => {
   const [items, setItems] = useState([])
@@ -33,8 +33,8 @@ const WishlistPage = () => {
           fontSize: '2rem',
           color: '#00bfff',
           letterSpacing: '4px',
-          margin: '0 0 24px 0',
-          textShadow: '0 0 20px rgba(0, 191, 255, 0.5)',
+          margin: '0 0 10px 12px',
+          textShadow: '0 0 11px rgba(0, 191, 255, 0.5)',
         }}>
           MY WISHLIST
         </h1>
@@ -60,18 +60,24 @@ const WishlistPage = () => {
             </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {items.map(item => (
-              <div key={item.id} style={{
-                backgroundColor: '#050510',
-                border: '1px solid #1a1a2e',
-                borderLeft: `4px solid ${priorityColors[item.priority]}`,
-                borderRadius: '4px',
-                padding: '16px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
+          <div style={{
+            background: "radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0) 100%)",
+            backdropFilter: "blur(1px)",
+            borderRadius: "8px",
+            padding: "16px",
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {items.map(item => (
+                <div key={item.id} style={{
+                  backgroundColor: '#050510',
+                  border: '1px solid #1a1a2e',
+                  borderLeft: `4px solid ${priorityColors[item.priority]}`,
+                  borderRadius: '4px',
+                  padding: '16px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
                     <h2 style={{
@@ -87,7 +93,7 @@ const WishlistPage = () => {
                       backgroundColor: '#0d0d1a',
                       color: '#00bfff',
                       padding: '2px 8px',
-                      fontSize: '0.65rem',
+                      fontSize: '0.79rem',
                       fontFamily: 'Rajdhani, sans-serif',
                       letterSpacing: '1px',
                       borderRadius: '2px',
@@ -97,7 +103,7 @@ const WishlistPage = () => {
                     </span>
                     <span style={{
                       color: priorityColors[item.priority],
-                      fontSize: '0.65rem',
+                      fontSize: '0.79rem',
                       fontFamily: 'Rajdhani, sans-serif',
                       letterSpacing: '1px',
                     }}>
@@ -106,9 +112,9 @@ const WishlistPage = () => {
                   </div>
                   {item.notes && (
                     <p style={{
-                      color: '#666',
+                      color: '#9a9898',
                       fontFamily: 'Rajdhani, sans-serif',
-                      fontSize: '0.85rem',
+                      fontSize: '1rem',
                       letterSpacing: '1px',
                       margin: 0,
                     }}>
@@ -159,6 +165,7 @@ const WishlistPage = () => {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         )}
       </div>

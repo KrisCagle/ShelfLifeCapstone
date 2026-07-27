@@ -83,9 +83,9 @@ useEffect(() => {
 
   const labelStyle = {
     display: 'block',
-    color: '#888',
+    color: '#a4a0a0',
     fontFamily: 'Rajdhani, sans-serif',
-    fontSize: '0.75rem',
+    fontSize: '0.89rem',
     letterSpacing: '2px',
     marginBottom: '6px',
   }
@@ -105,7 +105,7 @@ useEffect(() => {
           fontSize: '2rem',
           color: '#00bfff',
           letterSpacing: '4px',
-          margin: '0 0 24px 0',
+          margin: '0 0 10px 0',
           textShadow: '0 0 20px rgba(0, 191, 255, 0.5)',
         }}>
           ADD NEW TITLE
@@ -178,10 +178,11 @@ useEffect(() => {
                   type="button"
                   key={g.id}
                   onClick={() => handleGenreToggle(g.id)}
+                  className="btn-blue"
                   style={{
                     padding: '4px 10px',
                     borderRadius: '2px',
-                    fontSize: '0.7rem',
+                    fontSize: '0.9rem',
                     fontFamily: 'Rajdhani, sans-serif',
                     letterSpacing: '1px',
                     cursor: 'pointer',

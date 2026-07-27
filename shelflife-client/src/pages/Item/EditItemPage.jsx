@@ -77,9 +77,9 @@ const EditItemPage = () => {
 
   const labelStyle = {
     display: 'block',
-    color: '#888',
+    color: '#aea9a9',
     fontFamily: 'Rajdhani, sans-serif',
-    fontSize: '0.75rem',
+    fontSize: '0.90rem',
     letterSpacing: '2px',
     marginBottom: '6px',
   }
@@ -120,7 +120,7 @@ const EditItemPage = () => {
           fontSize: '2rem',
           color: '#00bfff',
           letterSpacing: '4px',
-          margin: '0 0 24px 0',
+          margin: '0 0 10px 0',
           textShadow: '0 0 20px rgba(0, 191, 255, 0.5)',
         }}>
           EDIT TITLE
@@ -193,16 +193,17 @@ const EditItemPage = () => {
                   type="button"
                   key={g.id}
                   onClick={() => handleGenreToggle(g.id)}
+                  className="btn-blue"
                   style={{
                     padding: '4px 10px',
                     borderRadius: '2px',
-                    fontSize: '0.7rem',
+                    fontSize: '0.88rem',
                     fontFamily: 'Rajdhani, sans-serif',
                     letterSpacing: '1px',
                     cursor: 'pointer',
                     border: formData.genreIds.includes(g.id) ? '1px solid #00bfff' : '1px solid #333',
                     backgroundColor: formData.genreIds.includes(g.id) ? '#00bfff' : 'transparent',
-                    color: formData.genreIds.includes(g.id) ? '#050510' : '#666',
+                    color: formData.genreIds.includes(g.id) ? '#050510' : '#8e8888',
                     transition: 'all 0.15s',
                   }}
                 >
@@ -223,7 +224,9 @@ const EditItemPage = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-            <button type="submit" style={{
+            <button type="submit" 
+            className="btn-blue"
+            style={{
               backgroundColor: '#00bfff',
               color: '#050510',
               padding: '12px 24px',
@@ -236,9 +239,11 @@ const EditItemPage = () => {
             }}>
               SAVE CHANGES
             </button>
-            <Link to={`/items/${id}`} style={{
+            <Link to={`/items/${id}`}
+             className="btn-gray"
+            style={{
               backgroundColor: 'transparent',
-              color: '#888',
+              color: '#a59e9e',
               padding: '12px 24px',
               border: '1px solid #333',
               borderRadius: '4px',
