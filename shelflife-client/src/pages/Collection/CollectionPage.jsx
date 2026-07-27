@@ -166,20 +166,13 @@ const CollectionPage = () => {
             />
           </Link>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              flexWrap: "nowrap",
-            }}
-          >
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <p
               style={{
                 color: "#f5a623",
                 margin: 0,
-                fontSize: "0.99rem",
-                letterSpacing: "2px",
+                fontSize: "1.3rem",
+                letterSpacing: "1px",
                 fontFamily: "Share Tech Mono, monospace",
                 textShadow: "0 0 10px rgba(245, 166, 35, 0.5)",
               }}
@@ -192,6 +185,7 @@ const CollectionPage = () => {
             </p>
 
             <button
+              className="btn-outline-amber"
               onClick={handleCollectionValue}
               style={{
                 backgroundColor: "transparent",
@@ -200,30 +194,30 @@ const CollectionPage = () => {
                 padding: "4px 10px",
                 fontFamily: "Rajdhani, sans-serif",
                 fontSize: "0.8rem",
-                letterSpacing: "2px",
+                letterSpacing: "1px",
                 cursor: "pointer",
                 borderRadius: "4px",
               }}
             >
               {valueLoading ? "CALCULATING..." : "CHECK COLLECTION VALUE"}
             </button>
-
-            {collectionValue && (
-              <p
-                style={{
-                  color: "#00ff88",
-                  margin: 0,
-                  fontSize: "0.75rem",
-                  letterSpacing: "2px",
-                  fontFamily: "Share Tech Mono, monospace",
-                  textShadow: "0 0 10px rgba(0, 255, 136, 0.5)",
-                }}
-              >
-                EST. VALUE ${collectionValue.totalAverage} ·{" "}
-                {collectionValue.itemsFound} ITEMS PRICED
-              </p>
-            )}
           </div>
+
+          {collectionValue && (
+            <p
+              style={{
+                color: "#00ff88",
+                margin: "4px 0 0 0",
+                fontSize: "1rem",
+                letterSpacing: "2px",
+                fontFamily: "Share Tech Mono, monospace",
+                textShadow: "0 0 10px rgba(0, 255, 136, 0.5)",
+              }}
+            >
+              EST. VALUE ${collectionValue.totalAverage} ·{" "}
+              {collectionValue.itemsFound} ITEMS PRICED
+            </p>
+          )}
         </div>
 
         <div
@@ -252,6 +246,7 @@ const CollectionPage = () => {
           </Link>
           <Link
             to="/wishlist"
+            className="btn-outline-blue"
             style={{
               color: "#00bfff",
               padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
@@ -267,6 +262,7 @@ const CollectionPage = () => {
           </Link>
           <button
             onClick={handleLogout}
+            className="btn-outline-amber"
             style={{
               backgroundColor: "transparent",
               color: "#f5a623",
@@ -380,11 +376,16 @@ const CollectionPage = () => {
       {/* Shelves */}
       <div
         style={{
-          padding: "16px 0",
+          padding: "8px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          width: "100%",
+          width: "fit-content",
+          background:
+            "radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0) 100%)",
+          backdropFilter: "blur(.7px)",
+          borderRadius: "8px",
+          margin: "10px auto",
         }}
       >
         {filtered.length === 0 ? (
@@ -415,7 +416,6 @@ const CollectionPage = () => {
             <div
               key={shelfIndex}
               style={{
-                marginBottom: "8px",
                 display: "inline-block",
                 width: "100%",
                 textAlign: "center",
@@ -548,17 +548,17 @@ const CollectionPage = () => {
                         <p
                           style={{
                             fontFamily: "Rajdhani, sans-serif",
-                            fontSize: windowWidth < 480 ? "0.9rem" : "1.1rem",
-                            fontWeight: "700",
-                            margin: "0 0 6px",
-                            letterSpacing: "1px",
                             color: "#f5f5f5",
+                            fontSize: windowWidth < 480 ? "0.9rem" : "1.1rem",
+                            fontWeight: "650",
+                            margin: 0,
+                            letterSpacing: "1px",
+                            minHeight: "4rem",
                           }}
                         >
-                         {item.title.length > 25 
-  ? item.title.substring(0, 25).toUpperCase() + '...'
-  : item.title.toUpperCase()
-}
+                          {item.title.length > 25
+                            ? item.title.substring(0, 25).toUpperCase() + "..."
+                            : item.title.toUpperCase()}
                         </p>
                         <div
                           style={{
@@ -581,7 +581,7 @@ const CollectionPage = () => {
                                   formatColors[item.format?.name] || "#00bfff",
                                 color: "#fff",
                                 padding: "2px 5px",
-                                fontSize: "0.9rem",
+                                fontSize: ".95rem",
                                 fontFamily: "Rajdhani, sans-serif",
                                 letterSpacing: "1px",
                                 borderRadius: "2px",
@@ -594,8 +594,8 @@ const CollectionPage = () => {
                               style={{
                                 backgroundColor: "#1a1a2e",
                                 color: "#aaa",
-                                padding: "2px 5px",
-                                fontSize: "0.8rem",
+                                padding: "5px 3px",
+                                fontSize: "0.65rem",
                                 fontFamily: "Share Tech Mono, monospace",
                                 letterSpacing: "1px",
                                 borderRadius: "2px",
@@ -608,7 +608,7 @@ const CollectionPage = () => {
                           <span
                             style={{
                               color: "#f5a623",
-                              fontSize: "0.99rem",
+                              fontSize: "1.2rem",
                               fontFamily: "Share Tech Mono, monospace",
                               textShadow: "0 0 8px rgba(245, 166, 35, 0.4)",
                             }}
