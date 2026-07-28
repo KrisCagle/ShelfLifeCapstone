@@ -136,7 +136,7 @@ const AddWishlistPage = () => {
             <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
             <button type="submit" className="btn-blue" style={{
               backgroundColor: '#00bfff',
               color: '#050510',

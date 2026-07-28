@@ -84,10 +84,13 @@ const ItemDetailPage = () => {
       <div style={{
         maxWidth: '900px',
         margin: '40px auto',
-        padding: '0 24px',
+        padding: '32px 24px',
         display: 'flex',
         gap: '40px',
         flexWrap: 'wrap',
+        background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0) 100%)',
+        backdropFilter: 'blur(2px)',
+        borderRadius: '8px',
       }}>
         {/* Cover Image */}
         <div style={{
@@ -114,7 +117,7 @@ const ItemDetailPage = () => {
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
+                  objectFit: 'contain',
                 }}
               />
             ) : (

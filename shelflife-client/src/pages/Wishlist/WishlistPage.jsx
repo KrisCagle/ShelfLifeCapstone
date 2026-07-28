@@ -5,8 +5,20 @@ import { getWishlist, deleteWishlistItem } from '../../services/itemService'
 const priorityLabels = { 1: "Low", 2: "Medium", 3: "High" }
 const priorityColors = { 1: "#01dfba", 2: "#f5a623", 3: "#ff4444" }
 
+const useWindowWidth = () => {
+  const [width, setWidth] = useState(window.innerWidth)
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+  return width
+}
+
 const WishlistPage = () => {
   const [items, setItems] = useState([])
+  const windowWidth = useWindowWidth()
+  const isMobile = windowWidth < 600
 
   useEffect(() => {
     getWishlist().then(data => setItems(Array.isArray(data) ? data : []))
@@ -75,7 +87,8 @@ const WishlistPage = () => {
                   borderRadius: '4px',
                   padding: '16px 20px',
                   display: 'flex',
-                  alignItems: 'center',
+                  flexDirection: isMobile ? 'column' : 'row',
+                  alignItems: isMobile ? 'stretch' : 'center',
                   justifyContent: 'space-between',
                 }}>
                 <div style={{ flex: 1 }}>
@@ -122,7 +135,14 @@ const WishlistPage = () => {
                     </p>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '12px', marginLeft: '16px', flexShrink: 0 }}>
+                <div style={{
+                  display: 'flex',
+                  gap: '12px',
+                  marginLeft: isMobile ? 0 : '16px',
+                  marginTop: isMobile ? '12px' : 0,
+                  flexShrink: 0,
+                  flexWrap: 'wrap',
+                }}>
                   <Link
                     to={`/items/new?title=${encodeURIComponent(item.title)}&formatId=${item.formatId}`}
                     style={{

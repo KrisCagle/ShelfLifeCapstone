@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { getItems } from "../../services/itemService";
-import { logout } from "../../services/authService";
-import { getCollectionValue } from "../../services/itemService";
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { getItems, getCollectionValue } from '../../services/itemService';
+import { logout } from '../../services/authService';
 
 const useWindowWidth = () => {
   const [width, setWidth] = useState(window.innerWidth);
@@ -24,12 +23,14 @@ const CollectionPage = () => {
   const windowWidth = useWindowWidth();
   const [collectionValue, setCollectionValue] = useState(null);
   const [valueLoading, setValueLoading] = useState(false);
+  const [checkProgress, setCheckProgress] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const getCardSize = () => {
     if (windowWidth < 480)
-      return { cardWidth: 120, cardHeight: 168, cardsPerShelf: 3 };
+      return { cardWidth: 160, cardHeight: 224, cardsPerShelf: 1 };
     if (windowWidth < 768)
-      return { cardWidth: 140, cardHeight: 196, cardsPerShelf: 3 };
+      return { cardWidth: 160, cardHeight: 224, cardsPerShelf: 2 };
     if (windowWidth < 1100)
       return { cardWidth: 180, cardHeight: 252, cardsPerShelf: 4 };
     return { cardWidth: 200, cardHeight: 280, cardsPerShelf: 5 };
@@ -37,12 +38,23 @@ const CollectionPage = () => {
 
   const { cardWidth, cardHeight, cardsPerShelf } = getCardSize();
   const handleCollectionValue = async () => {
+    if (valueLoading) return;
     setValueLoading(true);
-    const data = await getCollectionValue(
-      items.map((i) => ({ title: i.title, format: i.format?.name })),
-    );
-    setCollectionValue(data);
-    setValueLoading(false);
+    setCheckProgress(0);
+    const total = items.length;
+    const progressInterval = setInterval(() => {
+      setCheckProgress((prev) => (prev < total - 1 ? prev + 1 : prev));
+    }, 400);
+    try {
+      const data = await getCollectionValue(
+        items.map((i) => ({ title: i.title, format: i.format?.name })),
+      );
+      setCollectionValue(data);
+      setCheckProgress(total);
+    } finally {
+      clearInterval(progressInterval);
+      setValueLoading(false);
+    }
   };
   useEffect(() => {
     getItems()
@@ -151,6 +163,7 @@ const CollectionPage = () => {
           alignItems: windowWidth < 768 ? "flex-start" : "center",
           justifyContent: "space-between",
           gap: "8px",
+          position: "relative",
         }}
       >
         <div>
@@ -208,9 +221,39 @@ const CollectionPage = () => {
                 borderRadius: "4px",
               }}
             >
-              {valueLoading ? "CALCULATING..." : "CHECK COLLECTION VALUE"}
+              {valueLoading
+                ? `CHECKING ${checkProgress}/${items.length}...`
+                : "CHECK COLLECTION VALUE"}
             </button>
           </div>
+
+          {valueLoading && (
+            <div
+              style={{
+                marginTop: "8px",
+                width: windowWidth < 768 ? "100%" : "260px",
+              }}
+            >
+              <div
+                style={{
+                  height: "6px",
+                  backgroundColor: "#1a1a2e",
+                  borderRadius: "3px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${items.length ? (checkProgress / items.length) * 100 : 0}%`,
+                    backgroundColor: "#f5a623",
+                    boxShadow: "0 0 8px rgba(245, 166, 35, 0.6)",
+                    transition: "width 0.3s ease",
+                  }}
+                />
+              </div>
+            </div>
+          )}
 
           {collectionValue && (
             <p
@@ -228,66 +271,122 @@ const CollectionPage = () => {
             </p>
           )}
         </div>
+          {windowWidth < 768 ? (
+          <>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              style={{
+                backgroundColor: "transparent",
+                border: "1px solid #00bfff",
+                borderRadius: "4px",
+                padding: "6px 10px",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                gap: "5px",
+              }}
+            >
+              <span style={{ display: "block", width: "22px", height: "2px", backgroundColor: "#00bfff" }} />
+              <span style={{ display: "block", width: "22px", height: "2px", backgroundColor: "#00bfff" }} />
+              <span style={{ display: "block", width: "22px", height: "2px", backgroundColor: "#00bfff" }} />
+            </button>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            alignItems: "center",
-            flexWrap: "wrap",
-            justifyContent: windowWidth < 768 ? "flex-start" : "flex-end",
-          }}
-        >
-          <Link
-            to="/items/new"
-            className="btn-blue"
-            style={{
+            {menuOpen && (
+              <div style={{
+                position: "absolute",
+                top: "100%",
+                right: 0,
+                backgroundColor: "#050510",
+                border: "1px solid #1a1a2e",
+                borderTop: "2px solid #00bfff",
+                borderRadius: "0 0 4px 4px",
+                zIndex: 100,
+                minWidth: "200px",
+                display: "flex",
+                flexDirection: "column",
+              }}>
+                <Link to="/items/new" onClick={() => setMenuOpen(false)} style={{
+                  color: "#00bfff",
+                  padding: "14px 20px",
+                  fontFamily: "Bebas Neue, sans-serif",
+                  fontSize: "1.1rem",
+                  letterSpacing: "2px",
+                  textDecoration: "none",
+                  borderBottom: "1px solid #1a1a2e",
+                }}>
+                  + ADD TITLE
+                </Link>
+                <Link to="/wishlist" onClick={() => setMenuOpen(false)} style={{
+                  color: "#00bfff",
+                  padding: "14px 20px",
+                  fontFamily: "Bebas Neue, sans-serif",
+                  fontSize: "1.1rem",
+                  letterSpacing: "2px",
+                  textDecoration: "none",
+                  borderBottom: "1px solid #1a1a2e",
+                }}>
+                  WISHLIST
+                </Link>
+                <button onClick={() => { handleLogout(); setMenuOpen(false) }} style={{
+                  backgroundColor: "transparent",
+                  color: "#888",
+                  border: "none",
+                  padding: "14px 20px",
+                  fontFamily: "Bebas Neue, sans-serif",
+                  fontSize: "1.1rem",
+                  letterSpacing: "2px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}>
+                  LOGOUT
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <Link to="/items/new" className="btn-blue" style={{
               backgroundColor: "#00bfff",
               color: "#050510",
-              padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-              fontFamily: "Rajdhani, sans-serif",
-              fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
+              padding: "8px 16px",
+              fontFamily: "Bebas Neue, sans-serif",
+              fontSize: "1.1rem",
               letterSpacing: "2px",
               textDecoration: "none",
               borderRadius: "4px",
-            }}
-          >
-            + ADD TITLE
-          </Link>
-          <Link
-            to="/wishlist"
-            className="btn-outline-blue"
-            style={{
+              whiteSpace: "nowrap",
+            }}>
+              + ADD TITLE
+            </Link>
+            <Link to="/wishlist" className="btn-outline-blue" style={{
               color: "#00bfff",
-              padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-              fontFamily: "Rajdhani, sans-serif",
-              fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
+              padding: "8px 16px",
+              fontFamily: "Bebas Neue, sans-serif",
+              fontSize: "1.1rem",
               letterSpacing: "2px",
               textDecoration: "none",
               border: "1px solid #00bfff",
               borderRadius: "4px",
-            }}
-          >
-            WISHLIST
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="btn-outline-amber"
-            style={{
+              whiteSpace: "nowrap",
+            }}>
+              WISHLIST
+            </Link>
+            <button onClick={handleLogout} className="btn-gray" style={{
               backgroundColor: "transparent",
-              color: "#f5a623",
-              border: "1px solid #f5a623",
-              padding: windowWidth < 768 ? "6px 10px" : "8px 16px",
-              fontFamily: "Rajdhani, sans-serif",
-              fontSize: windowWidth < 768 ? "0.9rem" : "1.1rem",
+              color: "#888",
+              border: "1px solid #888",
+              padding: "8px 16px",
+              fontFamily: "Bebas Neue, sans-serif",
+              fontSize: "1.1rem",
               letterSpacing: "2px",
               cursor: "pointer",
               borderRadius: "4px",
-            }}
-          >
-            LOGOUT
-          </button>
-        </div>
+              whiteSpace: "nowrap",
+            }}>
+              LOGOUT
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter Bar */}
@@ -561,7 +660,7 @@ const CollectionPage = () => {
                           style={{
                             fontFamily: "Rajdhani, sans-serif",
                             color: "#f5f5f5",
-                            fontSize: windowWidth < 480 ? "0.9rem" : "1.1rem",
+                            fontSize: windowWidth < 480 ? "0.8rem" : "1.1rem",
                             fontWeight: "650",
                             margin: 0,
                             letterSpacing: "1px",
@@ -592,9 +691,11 @@ const CollectionPage = () => {
                                 backgroundColor:
                                   formatColors[item.format?.name] || "#00bfff",
                                 color: "#fff",
-                                padding: "2px 5px",
-                                fontSize: ".95rem",
-                                fontFamily: "Rajdhani, sans-serif",
+                                padding:
+                                  windowWidth < 480 ? "7px 4px" : "1px 6px",
+                                fontSize:
+                                  windowWidth < 480 ? "0.55rem" : "0.65rem",
+                                fontFamily: "Bebas Neue, sans-serif",
                                 letterSpacing: "1px",
                                 borderRadius: "2px",
                               }}
@@ -620,7 +721,8 @@ const CollectionPage = () => {
                           <span
                             style={{
                               color: "#f5a623",
-                              fontSize: "1.2rem",
+                              fontSize:
+                                windowWidth < 480 ? "0.75rem" : "1.2rem",
                               fontFamily: "Share Tech Mono, monospace",
                               textShadow: "0 0 8px rgba(245, 166, 35, 0.4)",
                             }}
