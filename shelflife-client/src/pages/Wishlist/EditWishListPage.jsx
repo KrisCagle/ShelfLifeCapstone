@@ -168,7 +168,7 @@ const EditWishlistPage = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
-            <button type="submit" style={{
+            <button type="submit" className="btn-blue"  style={{
               backgroundColor: '#00bfff',
               color: '#050510',
               padding: '12px 24px',
@@ -181,7 +181,7 @@ const EditWishlistPage = () => {
             }}>
               SAVE CHANGES
             </button>
-            <Link to="/wishlist" style={{
+            <Link to="/wishlist" className="btn-gray" style={{
               backgroundColor: 'transparent',
               color: '#888',
               padding: '12px 24px',

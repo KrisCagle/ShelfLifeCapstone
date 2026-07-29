@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { getItems, getCollectionValue } from '../../services/itemService';
-import { logout } from '../../services/authService';
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { getItems, getCollectionValue } from "../../services/itemService";
+import { logout } from "../../services/authService";
 
 const useWindowWidth = () => {
   const [width, setWidth] = useState(window.innerWidth);
@@ -271,7 +271,7 @@ const CollectionPage = () => {
             </p>
           )}
         </div>
-          {windowWidth < 768 ? (
+        {windowWidth < 768 ? (
           <>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -286,58 +286,95 @@ const CollectionPage = () => {
                 gap: "5px",
               }}
             >
-              <span style={{ display: "block", width: "22px", height: "2px", backgroundColor: "#00bfff" }} />
-              <span style={{ display: "block", width: "22px", height: "2px", backgroundColor: "#00bfff" }} />
-              <span style={{ display: "block", width: "22px", height: "2px", backgroundColor: "#00bfff" }} />
+              <span
+                style={{
+                  display: "block",
+                  width: "22px",
+                  height: "2px",
+                  backgroundColor: "#00bfff",
+                }}
+              />
+              <span
+                style={{
+                  display: "block",
+                  width: "22px",
+                  height: "2px",
+                  backgroundColor: "#00bfff",
+                }}
+              />
+              <span
+                style={{
+                  display: "block",
+                  width: "22px",
+                  height: "2px",
+                  backgroundColor: "#00bfff",
+                }}
+              />
             </button>
 
             {menuOpen && (
-              <div style={{
-                position: "absolute",
-                top: "100%",
-                right: 0,
-                backgroundColor: "#050510",
-                border: "1px solid #1a1a2e",
-                borderTop: "2px solid #00bfff",
-                borderRadius: "0 0 4px 4px",
-                zIndex: 100,
-                minWidth: "200px",
-                display: "flex",
-                flexDirection: "column",
-              }}>
-                <Link to="/items/new" onClick={() => setMenuOpen(false)} style={{
-                  color: "#00bfff",
-                  padding: "14px 20px",
-                  fontFamily: "Bebas Neue, sans-serif",
-                  fontSize: "1.1rem",
-                  letterSpacing: "2px",
-                  textDecoration: "none",
-                  borderBottom: "1px solid #1a1a2e",
-                }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  backgroundColor: "#050510",
+                  border: "1px solid #1a1a2e",
+                  borderTop: "2px solid #00bfff",
+                  borderRadius: "0 0 4px 4px",
+                  zIndex: 100,
+                  minWidth: "200px",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Link
+                  to="/items/new"
+                  onClick={() => setMenuOpen(false)}
+                  style={{
+                    color: "#00bfff",
+                    padding: "14px 20px",
+                    fontFamily: "Bebas Neue, sans-serif",
+                    fontSize: "1.1rem",
+                    letterSpacing: "2px",
+                    textDecoration: "none",
+                    borderBottom: "1px solid #1a1a2e",
+                  }}
+                >
                   + ADD TITLE
                 </Link>
-                <Link to="/wishlist" onClick={() => setMenuOpen(false)} style={{
-                  color: "#00bfff",
-                  padding: "14px 20px",
-                  fontFamily: "Bebas Neue, sans-serif",
-                  fontSize: "1.1rem",
-                  letterSpacing: "2px",
-                  textDecoration: "none",
-                  borderBottom: "1px solid #1a1a2e",
-                }}>
+                <Link
+                  to="/wishlist"
+                  onClick={() => setMenuOpen(false)}
+                  style={{
+                    color: "#00bfff",
+                    padding: "14px 20px",
+                    fontFamily: "Bebas Neue, sans-serif",
+                    fontSize: "1.1rem",
+                    letterSpacing: "2px",
+                    textDecoration: "none",
+                    borderBottom: "1px solid #1a1a2e",
+                  }}
+                >
                   WISHLIST
                 </Link>
-                <button onClick={() => { handleLogout(); setMenuOpen(false) }} style={{
-                  backgroundColor: "transparent",
-                  color: "#888",
-                  border: "none",
-                  padding: "14px 20px",
-                  fontFamily: "Bebas Neue, sans-serif",
-                  fontSize: "1.1rem",
-                  letterSpacing: "2px",
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMenuOpen(false);
+                  }}
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "#888",
+                    border: "none",
+                    padding: "14px 20px",
+                    fontFamily: "Bebas Neue, sans-serif",
+                    fontSize: "1.1rem",
+                    letterSpacing: "2px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
                   LOGOUT
                 </button>
               </div>
@@ -345,44 +382,56 @@ const CollectionPage = () => {
           </>
         ) : (
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <Link to="/items/new" className="btn-blue" style={{
-              backgroundColor: "#00bfff",
-              color: "#050510",
-              padding: "8px 16px",
-              fontFamily: "Bebas Neue, sans-serif",
-              fontSize: "1.1rem",
-              letterSpacing: "2px",
-              textDecoration: "none",
-              borderRadius: "4px",
-              whiteSpace: "nowrap",
-            }}>
+            <Link
+              to="/items/new"
+              className="btn-blue"
+              style={{
+                backgroundColor: "#00bfff",
+                color: "#050510",
+                padding: "8px 16px",
+                fontFamily: "Bebas Neue, sans-serif",
+                fontSize: "1.1rem",
+                letterSpacing: "2px",
+                textDecoration: "none",
+                borderRadius: "4px",
+                whiteSpace: "nowrap",
+              }}
+            >
               + ADD TITLE
             </Link>
-            <Link to="/wishlist" className="btn-outline-blue" style={{
-              color: "#00bfff",
-              padding: "8px 16px",
-              fontFamily: "Bebas Neue, sans-serif",
-              fontSize: "1.1rem",
-              letterSpacing: "2px",
-              textDecoration: "none",
-              border: "1px solid #00bfff",
-              borderRadius: "4px",
-              whiteSpace: "nowrap",
-            }}>
+            <Link
+              to="/wishlist"
+              className="btn-outline-blue"
+              style={{
+                color: "#00bfff",
+                padding: "8px 16px",
+                fontFamily: "Bebas Neue, sans-serif",
+                fontSize: "1.1rem",
+                letterSpacing: "2px",
+                textDecoration: "none",
+                border: "1px solid #00bfff",
+                borderRadius: "4px",
+                whiteSpace: "nowrap",
+              }}
+            >
               WISHLIST
             </Link>
-            <button onClick={handleLogout} className="btn-gray" style={{
-              backgroundColor: "transparent",
-              color: "#888",
-              border: "1px solid #888",
-              padding: "8px 16px",
-              fontFamily: "Bebas Neue, sans-serif",
-              fontSize: "1.1rem",
-              letterSpacing: "2px",
-              cursor: "pointer",
-              borderRadius: "4px",
-              whiteSpace: "nowrap",
-            }}>
+            <button
+              onClick={handleLogout}
+              className="btn-gray"
+              style={{
+                backgroundColor: "transparent",
+                color: "#888",
+                border: "1px solid #888",
+                padding: "8px 16px",
+                fontFamily: "Bebas Neue, sans-serif",
+                fontSize: "1.1rem",
+                letterSpacing: "2px",
+                cursor: "pointer",
+                borderRadius: "4px",
+                whiteSpace: "nowrap",
+              }}
+            >
               LOGOUT
             </button>
           </div>
@@ -505,7 +554,7 @@ const CollectionPage = () => {
               style={{
                 fontFamily: "Rajdhani, sans-serif",
                 fontSize: "2rem",
-                color: "#444",
+                color: "#00bfff",
                 letterSpacing: "4px",
               }}
             >
@@ -513,7 +562,7 @@ const CollectionPage = () => {
             </p>
             <p
               style={{
-                color: "#555",
+                color: "#f5a623",
                 letterSpacing: "2px",
                 fontSize: "0.85rem",
                 fontFamily: "Share Tech Mono, monospace",
@@ -692,12 +741,15 @@ const CollectionPage = () => {
                                   formatColors[item.format?.name] || "#00bfff",
                                 color: "#fff",
                                 padding:
-                                  windowWidth < 480 ? "7px 4px" : "1px 6px",
+                                  windowWidth < 480 ? "1px 4px" : "2px 6px",
                                 fontSize:
-                                  windowWidth < 480 ? "0.55rem" : "0.65rem",
+                                  windowWidth < 480 ? "0.55rem" : "0.85rem",
                                 fontFamily: "Bebas Neue, sans-serif",
                                 letterSpacing: "1px",
                                 borderRadius: "2px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
                               }}
                             >
                               {formatShortNames[item.format?.name] ||

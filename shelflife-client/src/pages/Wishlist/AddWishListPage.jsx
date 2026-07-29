@@ -78,7 +78,7 @@ const AddWishlistPage = () => {
           ADD TO WISHLIST
         </h1>
 
-        <form onSubmit={handleSubmit} className="btn-blue" style={{
+        <form onSubmit={handleSubmit} style={{
           backgroundColor: '#050510',
           border: '1px solid #1a1a2e',
           borderTop: '3px solid #00bfff',
@@ -150,7 +150,7 @@ const AddWishlistPage = () => {
             }}>
               SAVE TO WISHLIST
             </button>
-            <Link to="/wishlist" style={{
+            <Link to="/wishlist" className="btn-gray" style={{
               backgroundColor: 'transparent',
               color: '#888',
               padding: '12px 24px',
