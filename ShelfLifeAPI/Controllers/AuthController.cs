@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using ShelfLifeAPI.Data;
 using ShelfLifeAPI.Models;
+using ShelfLifeAPI.Services;
 
 namespace ShelfLifeAPI.Controllers
 {
@@ -17,11 +18,13 @@ namespace ShelfLifeAPI.Controllers
     {
         private readonly ShelfLifeDbContext _dbContext;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAuthorizationService _authorization;
 
-        public AuthController(ShelfLifeDbContext context, UserManager<ApplicationUser> userManager)
+        public AuthController(ShelfLifeDbContext context, UserManager<ApplicationUser> userManager, IAuthorizationService authorization)
         {
             _dbContext = context;
             _userManager = userManager;
+            _authorization = authorization;
         }
 
         [HttpPost("login")]
@@ -54,6 +57,7 @@ namespace ShelfLifeAPI.Controllers
             var profile = await _dbContext.UserProfiles.SingleOrDefaultAsync(up => up.IdentityUserId == identityUserId);
             if (profile != null)
             {
+                var isAdmin = (await _authorization.AuthorizeAsync(User, AuthPolicies.Admin)).Succeeded;
                 return Ok(new
                 {
                     Id = profile.Id,
@@ -61,7 +65,8 @@ namespace ShelfLifeAPI.Controllers
                     LastName = profile.LastName,
                     IdentityUserId = identityUserId,
                     UserName = User.FindFirstValue(ClaimTypes.Name),
-                    Email = User.FindFirstValue(ClaimTypes.Email)
+                    Email = User.FindFirstValue(ClaimTypes.Email),
+                    IsAdmin = isAdmin
                 });
             }
             return NotFound();
