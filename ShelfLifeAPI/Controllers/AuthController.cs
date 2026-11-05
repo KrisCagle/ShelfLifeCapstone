@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
 using ShelfLifeAPI.Data;
@@ -14,8 +15,8 @@ namespace ShelfLifeAPI.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private ShelfLifeDbContext _dbContext;
-        private UserManager<ApplicationUser> _userManager;
+        private readonly ShelfLifeDbContext _dbContext;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public AuthController(ShelfLifeDbContext context, UserManager<ApplicationUser> userManager)
         {
@@ -24,74 +25,33 @@ namespace ShelfLifeAPI.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromHeader(Name = "Authorization")] string authHeader)
+        public async Task<IActionResult> Login([FromHeader(Name = "Authorization")] string? authHeader)
         {
-            try
-            {
-                string encodedCreds = authHeader.Substring(6).Trim();
-                string creds = Encoding
-                    .GetEncoding("iso-8859-1")
-                    .GetString(Convert.FromBase64String(encodedCreds));
-
-                int separator = creds.IndexOf(':');
-                string email = creds.Substring(0, separator);
-                string password = creds.Substring(separator + 1);
-
-                var user = _dbContext.Users.Where(u => u.Email == email).FirstOrDefault();
-                if (user == null)
-                    return Unauthorized("Invalid email or password");
-
-                var hasher = new PasswordHasher<ApplicationUser>();
-                var result = hasher.VerifyHashedPassword(user, user.PasswordHash, password);
-
-                if (result == PasswordVerificationResult.Success)
-                {
-                    var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                        new Claim(ClaimTypes.Name, user.UserName.ToString()),
-                        new Claim(ClaimTypes.Email, user.Email)
-                    };
-
-                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                    HttpContext.SignInAsync(
-                        CookieAuthenticationDefaults.AuthenticationScheme,
-                        new ClaimsPrincipal(claimsIdentity)).Wait();
-
-                    return Ok();
-                }
-
+            if (!TryParseBasicAuth(authHeader, out var email, out var password))
                 return Unauthorized("Invalid email or password");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Login error: {ex.Message}");
-                return StatusCode(500, ex.Message);
-            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null || !await _userManager.CheckPasswordAsync(user, password))
+                return Unauthorized("Invalid email or password");
+
+            await SignInAsync(user);
+            return Ok();
         }
 
-        [HttpGet("logout")]
+        [HttpPost("logout")]
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            try
-            {
-                HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Ok();
         }
 
         [HttpGet("Me")]
         [Authorize]
-        public IActionResult Me()
+        public async Task<IActionResult> Me()
         {
             var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var profile = _dbContext.UserProfiles.SingleOrDefault(up => up.IdentityUserId == identityUserId);
+            var profile = await _dbContext.UserProfiles.SingleOrDefaultAsync(up => up.IdentityUserId == identityUserId);
             if (profile != null)
             {
                 return Ok(new
@@ -110,43 +70,83 @@ namespace ShelfLifeAPI.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegistrationDto registration)
         {
+            string password;
+            try
+            {
+                password = Encoding.Latin1.GetString(Convert.FromBase64String(registration.Password));
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Password must be base64 encoded");
+            }
+
             var user = new ApplicationUser
             {
                 UserName = registration.UserName,
                 Email = registration.Email
             };
 
-            var password = Encoding
-                .GetEncoding("iso-8859-1")
-                .GetString(Convert.FromBase64String(registration.Password));
-
             var result = await _userManager.CreateAsync(user, password);
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                _dbContext.UserProfiles.Add(new UserProfile
-                {
-                    FirstName = registration.FirstName,
-                    LastName = registration.LastName,
-                    IdentityUserId = user.Id
-                });
-                _dbContext.SaveChanges();
-
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.UserName.ToString()),
-                    new Claim(ClaimTypes.Email, user.Email)
-                };
-
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity)).Wait();
-
-                return Ok();
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError(error.Code, error.Description);
+                return ValidationProblem(ModelState);
             }
-            return StatusCode(500, result.Errors);
+
+            _dbContext.UserProfiles.Add(new UserProfile
+            {
+                FirstName = registration.FirstName,
+                LastName = registration.LastName,
+                IdentityUserId = user.Id
+            });
+            await _dbContext.SaveChangesAsync();
+
+            await SignInAsync(user);
+            return Ok();
+        }
+
+        private async Task SignInAsync(ApplicationUser user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(ClaimTypes.Email, user.Email!)
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity));
+        }
+
+        // Reads "Basic base64(email:password)". Returns false for anything malformed
+        // so bad input gets a 401 instead of an exception.
+        private static bool TryParseBasicAuth(string? header, out string email, out string password)
+        {
+            email = password = string.Empty;
+            if (header == null || !header.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            string creds;
+            try
+            {
+                creds = Encoding.Latin1.GetString(Convert.FromBase64String(header[6..].Trim()));
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+
+            var separator = creds.IndexOf(':');
+            if (separator <= 0)
+                return false;
+
+            email = creds[..separator];
+            password = creds[(separator + 1)..];
+            return true;
         }
     }
 

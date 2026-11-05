@@ -17,8 +17,8 @@ const Navbar = () => {
   const windowWidth = useWindowWidth()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     navigate('/login')
   }
 
