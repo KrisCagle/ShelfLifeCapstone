@@ -74,6 +74,8 @@ owns this" possible.
 - [ ] GitHub Actions CI on every PR: build, test, lint.
 - [ ] Client: TypeScript migration, TanStack Query for server state, an auth context with protected
       routes, React Hook Form + Zod, and breaking up the 800-line `CollectionPage`.
+- [ ] Forms show errors and stay put when a save fails. Today Add Item navigates
+      home even on a 400 (e.g. no condition picked), silently losing the item.
 - [ ] A root `README.md` with local setup, architecture and screenshots.
 
 ## Phase 2 — Collector core (≈4 weeks)
