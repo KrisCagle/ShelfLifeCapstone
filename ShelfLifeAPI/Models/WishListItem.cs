@@ -10,5 +10,9 @@ namespace ShelfLifeAPI.Models
         public string Title { get; set; }
         public string Notes { get; set; }
         public int Priority { get; set; }
+
+        // Optional link to the exact title being hunted (for cover art and "Found it").
+        public int? CatalogEntryId { get; set; }
+        public CatalogEntry? CatalogEntry { get; set; }
     }
 }

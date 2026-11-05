@@ -1,15 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type {
+  AttributeDefinition,
+  Candidate,
   CollectionValue,
+  Format,
   Headline,
   Item,
-  ItemInput,
+  ItemSave,
   Lookup,
+  MediaType,
   NewsCategory,
   NewsPost,
   NewsPostInput,
   PriceCheck,
+  ProviderInfo,
   WishlistInput,
   WishlistItem,
 } from '@/lib/types'
@@ -24,20 +29,62 @@ export const keys = {
   headlines: (category?: NewsCategory) => ['news', 'headlines', category ?? 'all'] as const,
   posts: ['news', 'posts'] as const,
   allPosts: ['news', 'posts', 'all'] as const,
+  catalogSearch: (q: string, formatId: number) => ['catalog', 'search', formatId, q.trim().toLowerCase()] as const,
+  barcode: (code: string) => ['catalog', 'barcode', code] as const,
 }
 
 // ── Lookups (formats, conditions, genres never change at runtime) ──────────
 
-const useLookup = (kind: 'formats' | 'conditions' | 'genres') =>
+export const useFormats = () =>
+  useQuery({ queryKey: keys.lookup('formats'), queryFn: () => api.get<Format[]>('/formats'), staleTime: Infinity })
+
+export const useConditions = () =>
+  useQuery({ queryKey: keys.lookup('conditions'), queryFn: () => api.get<Lookup[]>('/conditions'), staleTime: Infinity })
+
+export const useGenres = () =>
+  useQuery({ queryKey: keys.lookup('genres'), queryFn: () => api.get<Lookup[]>('/genres'), staleTime: Infinity })
+
+export const useAttributeDefinitions = () =>
   useQuery({
-    queryKey: keys.lookup(kind),
-    queryFn: () => api.get<Lookup[]>(`/${kind}`),
+    queryKey: keys.lookup('attributes'),
+    queryFn: () => api.get<Record<MediaType, AttributeDefinition[]>>('/catalog/attributes'),
     staleTime: Infinity,
   })
 
-export const useFormats = () => useLookup('formats')
-export const useConditions = () => useLookup('conditions')
-export const useGenres = () => useLookup('genres')
+// ── Catalog ────────────────────────────────────────────────────────────────
+
+interface SearchResponse {
+  results: Candidate[]
+  provider: ProviderInfo | null
+}
+
+export const useCatalogSearch = (q: string, formatId: number | null) =>
+  useQuery({
+    queryKey: keys.catalogSearch(q, formatId ?? 0),
+    queryFn: ({ signal }) =>
+      fetchJson<SearchResponse>(`/catalog/search?q=${encodeURIComponent(q.trim())}&formatId=${formatId}`, signal),
+    enabled: !!formatId && q.trim().length >= 2,
+    staleTime: 5 * 60_000,
+    placeholderData: (previous) => previous,
+  })
+
+export const useBarcodeLookup = (code: string | null) =>
+  useQuery({
+    queryKey: keys.barcode(code ?? ''),
+    queryFn: () => api.get<{ barcode: string; results: Candidate[] }>(`/catalog/barcode/${code}`),
+    enabled: !!code,
+    staleTime: 60_000,
+  })
+
+export const useProviders = () =>
+  useQuery({ queryKey: ['catalog', 'providers'], queryFn: () => api.get<ProviderInfo[]>('/catalog/providers'), staleTime: Infinity })
+
+// Search requests are cancelled when the user keeps typing.
+const fetchJson = async <T,>(path: string, signal: AbortSignal) => {
+  const response = await fetch(`/api${path}`, { signal })
+  if (!response.ok) throw new Error(`Search failed (${response.status})`)
+  return (await response.json()) as T
+}
 
 // ── Collection ─────────────────────────────────────────────────────────────
 
@@ -54,9 +101,13 @@ export const useItem = (id: number) =>
 export function useSaveItem(id?: number) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: ItemInput) =>
+    mutationFn: (input: ItemSave) =>
       id ? api.put<void>(`/items/${id}`, input).then(() => undefined) : api.post<Item>('/items', input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.items }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: keys.items })
+      // Ownership badges in search/scan results depend on the collection.
+      queryClient.invalidateQueries({ queryKey: ['catalog'] })
+    },
   })
 }
 
@@ -64,7 +115,10 @@ export function useDeleteItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => api.delete(`/items/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.items }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: keys.items })
+      queryClient.invalidateQueries({ queryKey: ['catalog'] })
+    },
   })
 }
 

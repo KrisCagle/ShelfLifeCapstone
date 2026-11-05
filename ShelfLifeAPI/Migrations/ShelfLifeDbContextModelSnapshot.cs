@@ -218,6 +218,66 @@ namespace ShelfLifeAPI.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("ShelfLifeAPI.Models.CatalogEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("CoverUrl")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Creator")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("FormatId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ReleaseYear")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Barcode");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("FormatId");
+
+                    b.HasIndex("Source", "ExternalId", "FormatId")
+                        .IsUnique()
+                        .HasFilter("\"ExternalId\" IS NOT NULL");
+
+                    b.ToTable("CatalogEntries");
+                });
+
             modelBuilder.Entity("ShelfLifeAPI.Models.Condition", b =>
                 {
                     b.Property<int>("Id")
@@ -265,6 +325,10 @@ namespace ShelfLifeAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("MediaType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -277,61 +341,73 @@ namespace ShelfLifeAPI.Migrations
                         new
                         {
                             Id = 1,
+                            MediaType = "Movies",
                             Name = "VHS"
                         },
                         new
                         {
                             Id = 2,
+                            MediaType = "Music",
                             Name = "CD"
                         },
                         new
                         {
                             Id = 3,
+                            MediaType = "Music",
                             Name = "Vinyl"
                         },
                         new
                         {
                             Id = 4,
+                            MediaType = "Games",
                             Name = "NES"
                         },
                         new
                         {
                             Id = 5,
+                            MediaType = "Games",
                             Name = "SNES"
                         },
                         new
                         {
                             Id = 6,
+                            MediaType = "Games",
                             Name = "N64"
                         },
                         new
                         {
                             Id = 7,
+                            MediaType = "Games",
                             Name = "PS1"
                         },
                         new
                         {
                             Id = 8,
+                            MediaType = "Games",
                             Name = "PS2"
                         },
                         new
                         {
                             Id = 9,
+                            MediaType = "Games",
                             Name = "GameBoy"
                         },
                         new
                         {
                             Id = 10,
+                            MediaType = "Games",
                             Name = "GameBoy Advance"
                         },
                         new
                         {
                             Id = 11,
+                            MediaType = "Games",
                             Name = "GameCube"
                         },
                         new
                         {
                             Id = 12,
+                            MediaType = "Games",
                             Name = "Sega Genesis"
                         });
                 });
@@ -463,34 +539,32 @@ namespace ShelfLifeAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Attributes")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Barcode")
+                        .HasColumnType("text");
+
+                    b.Property<int>("CatalogEntryId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("ConditionId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("DateAcquired")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("FormatId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Priority")
-                        .HasColumnType("integer");
+                    b.Property<string>("PhotoUrl")
+                        .HasColumnType("text");
 
                     b.Property<decimal>("PurchasePrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("StoreFound")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -500,9 +574,9 @@ namespace ShelfLifeAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConditionId");
+                    b.HasIndex("CatalogEntryId");
 
-                    b.HasIndex("FormatId");
+                    b.HasIndex("ConditionId");
 
                     b.HasIndex("UserId");
 
@@ -604,6 +678,9 @@ namespace ShelfLifeAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CatalogEntryId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("FormatId")
                         .HasColumnType("integer");
 
@@ -623,6 +700,8 @@ namespace ShelfLifeAPI.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CatalogEntryId");
 
                     b.HasIndex("FormatId");
 
@@ -682,17 +761,28 @@ namespace ShelfLifeAPI.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ShelfLifeAPI.Models.Item", b =>
+            modelBuilder.Entity("ShelfLifeAPI.Models.CatalogEntry", b =>
                 {
-                    b.HasOne("ShelfLifeAPI.Models.Condition", "Condition")
-                        .WithMany()
-                        .HasForeignKey("ConditionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ShelfLifeAPI.Models.Format", "Format")
                         .WithMany()
                         .HasForeignKey("FormatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Format");
+                });
+
+            modelBuilder.Entity("ShelfLifeAPI.Models.Item", b =>
+                {
+                    b.HasOne("ShelfLifeAPI.Models.CatalogEntry", "CatalogEntry")
+                        .WithMany("Items")
+                        .HasForeignKey("CatalogEntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ShelfLifeAPI.Models.Condition", "Condition")
+                        .WithMany()
+                        .HasForeignKey("ConditionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -702,9 +792,9 @@ namespace ShelfLifeAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Condition");
+                    b.Navigation("CatalogEntry");
 
-                    b.Navigation("Format");
+                    b.Navigation("Condition");
 
                     b.Navigation("User");
                 });
@@ -741,6 +831,11 @@ namespace ShelfLifeAPI.Migrations
 
             modelBuilder.Entity("ShelfLifeAPI.Models.WishlistItem", b =>
                 {
+                    b.HasOne("ShelfLifeAPI.Models.CatalogEntry", "CatalogEntry")
+                        .WithMany()
+                        .HasForeignKey("CatalogEntryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ShelfLifeAPI.Models.Format", "Format")
                         .WithMany()
                         .HasForeignKey("FormatId")
@@ -753,6 +848,8 @@ namespace ShelfLifeAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("CatalogEntry");
+
                     b.Navigation("Format");
 
                     b.Navigation("User");
@@ -762,6 +859,11 @@ namespace ShelfLifeAPI.Migrations
                 {
                     b.Navigation("UserProfile")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ShelfLifeAPI.Models.CatalogEntry", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("ShelfLifeAPI.Models.Item", b =>

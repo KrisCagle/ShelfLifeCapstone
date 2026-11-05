@@ -1,28 +1,32 @@
 import type { ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowLeft, BadgeDollarSign, CalendarDays, ExternalLink, PackageSearch, Pencil, Store, Tag as TagIcon, Trash2 } from 'lucide-react'
+import { ArrowLeft, BadgeDollarSign, Barcode, CalendarDays, Camera, ExternalLink, PackageSearch, Pencil, Store, Tag as TagIcon, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { keys, useDeleteItem, useItem, usePriceCheck } from '@/hooks/queries'
+import { useAttributesFor } from '@/components/catalog/AttributeFields'
+import { SOURCE_LABELS } from '@/components/catalog/CandidateCard'
 import { api, ApiError } from '@/lib/api'
 import { formatDate, formatMoney } from '@/lib/format'
 import { platformColor, withAlpha } from '@/lib/platforms'
-import type { Item, ItemInput } from '@/lib/types'
+import type { Item, ItemSave } from '@/lib/types'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { EmptyState, Panel, PlatformBadge, Skeleton, Tag } from '@/components/ui/Misc'
 import { CaseCard } from '@/components/collection/CaseCard'
 
-const toInput = (item: Item): ItemInput => ({
-  title: item.title,
-  formatId: item.formatId,
+// Everything needed to put the same copy back, pointing at the same catalog entry.
+const toSave = (item: Item): ItemSave => ({
+  catalog: { id: item.catalogEntry.id, source: item.catalogEntry.source, title: item.title, formatId: item.formatId },
   conditionId: item.conditionId,
   purchasePrice: item.purchasePrice,
-  dateAcquired: item.dateAcquired,
+  dateAcquired: item.dateAcquired.slice(0, 10),
   storeFound: item.storeFound ?? '',
   notes: item.notes ?? '',
-  imageUrl: item.imageUrl ?? '',
+  photoUrl: item.photoUrl,
+  barcode: item.barcode,
   genreIds: item.itemGenres?.map((g) => g.genreId) ?? [],
+  attributes: item.attributes ?? {},
 })
 
 export default function ItemDetailPage() {
@@ -31,6 +35,7 @@ export default function ItemDetailPage() {
   const deleteItem = useDeleteItem()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const attributeDefs = useAttributesFor(item?.format)
 
   if (isLoading) return <DetailSkeleton />
   if (!item || error)
@@ -52,7 +57,7 @@ export default function ItemDetailPage() {
 
   // Delete right away, offer Undo by re-creating the same title.
   const onDelete = () => {
-    const snapshot = toInput(item)
+    const snapshot = toSave(item)
     deleteItem.mutate(item.id, {
       onSuccess: () => {
         navigate('/collection')
@@ -94,6 +99,9 @@ export default function ItemDetailPage() {
                 {item.condition?.name && <Tag className="text-xs">{item.condition.name}</Tag>}
               </div>
               <h1 className="font-display text-5xl leading-none tracking-[0.05em] text-white sm:text-6xl">{item.title}</h1>
+              {(item.catalogEntry.creator || item.catalogEntry.releaseYear) && (
+                <p className="mt-2 text-lg text-zinc-300">{[item.catalogEntry.creator, item.catalogEntry.releaseYear].filter(Boolean).join(' · ')}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -101,6 +109,19 @@ export default function ItemDetailPage() {
               <Fact icon={<CalendarDays />} label="Acquired" value={formatDate(item.dateAcquired)} />
               <Fact icon={<Store />} label="Found at" value={item.storeFound || '—'} className="col-span-2 sm:col-span-1" />
             </div>
+
+            {attributeDefs.some((d) => item.attributes?.[d.key]) && (
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 sm:grid-cols-3">
+                {attributeDefs
+                  .filter((d) => item.attributes?.[d.key])
+                  .map((d) => (
+                    <div key={d.key}>
+                      <dt className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-zinc-500">{d.label}</dt>
+                      <dd className="mt-0.5 text-zinc-100">{d.kind === 'Toggle' ? 'Yes' : item.attributes[d.key]}</dd>
+                    </div>
+                  ))}
+              </dl>
+            )}
 
             {genres.length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
@@ -110,6 +131,20 @@ export default function ItemDetailPage() {
                 ))}
               </div>
             )}
+
+            <div className="flex flex-wrap gap-x-5 gap-y-1 font-mono text-xs text-zinc-500">
+              {item.barcode && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Barcode className="size-3.5" /> {item.barcode}
+                </span>
+              )}
+              {item.photoUrl && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Camera className="size-3.5" /> Your photo
+                </span>
+              )}
+              {item.catalogEntry.source !== 'manual' && <span>Title data via {SOURCE_LABELS[item.catalogEntry.source]}</span>}
+            </div>
 
             {item.notes && (
               <Panel className="p-4">

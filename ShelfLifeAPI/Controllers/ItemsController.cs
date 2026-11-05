@@ -1,11 +1,12 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShelfLifeAPI.Data;
+using ShelfLifeAPI.Dtos;
 using ShelfLifeAPI.Models;
+using ShelfLifeAPI.Services;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ShelfLifeAPI.Controllers
 {
@@ -15,129 +16,71 @@ namespace ShelfLifeAPI.Controllers
     public class ItemsController : ControllerBase
     {
         private readonly ShelfLifeDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly CatalogService _catalog;
 
-        public ItemsController(ShelfLifeDbContext context, UserManager<ApplicationUser> userManager)
+        public ItemsController(ShelfLifeDbContext context, CatalogService catalog)
         {
             _context = context;
-            _userManager = userManager;
+            _catalog = catalog;
         }
 
         private string GetUserId() =>
-            User.FindFirstValue(ClaimTypes.NameIdentifier);
+            User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+        private IQueryable<Item> UserItems() =>
+            _context.Items
+                .Where(i => i.UserId == GetUserId())
+                .Include(i => i.CatalogEntry).ThenInclude(c => c.Format)
+                .Include(i => i.Condition)
+                .Include(i => i.ItemGenres).ThenInclude(ig => ig.Genre);
 
         // GET: api/items
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var userId = GetUserId();
-            var items = await _context.Items
-                .Where(i => i.UserId == userId)
-                .Include(i => i.Format)
-                .Include(i => i.Condition)
-                .Include(i => i.ItemGenres)
-                    .ThenInclude(ig => ig.Genre)
-                .ToListAsync();
-
-            return Ok(items);
+            var items = await UserItems().AsNoTracking().ToListAsync();
+            return Ok(items.Select(ItemDto.From));
         }
 
         // GET: api/items/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var userId = GetUserId();
-            var item = await _context.Items
-                .Include(i => i.Format)
-                .Include(i => i.Condition)
-                .Include(i => i.ItemGenres)
-                    .ThenInclude(ig => ig.Genre)
-                .FirstOrDefaultAsync(i => i.Id == id && i.UserId == userId);
-
-            if (item == null)
-                return NotFound();
-
-            return Ok(item);
+            var item = await UserItems().AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
+            return item == null ? NotFound() : Ok(ItemDto.From(item));
         }
 
         // POST: api/items
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ItemCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] ItemSaveDto dto, CancellationToken cancellationToken)
         {
-            var userId = GetUserId();
-
-            var item = new Item
-            {
-                UserId = userId,
-                Title = dto.Title,
-                FormatId = dto.FormatId,
-                ConditionId = dto.ConditionId,
-                PurchasePrice = dto.PurchasePrice,
-                DateAcquired = dto.DateAcquired,
-                StoreFound = dto.StoreFound,
-                Notes = dto.Notes,
-                ImageUrl = dto.ImageUrl,
-                Priority = 0
-            };
+            var item = new Item { UserId = GetUserId(), ItemGenres = [] };
+            var error = await ApplyAsync(item, dto, cancellationToken);
+            if (error != null)
+                return Invalid(error);
 
             _context.Items.Add(item);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
-            if (dto.GenreIds != null && dto.GenreIds.Any())
-            {
-                foreach (var genreId in dto.GenreIds)
-                {
-                    _context.ItemGenres.Add(new ItemGenre
-                    {
-                        ItemId = item.Id,
-                        GenreId = genreId
-                    });
-                }
-                await _context.SaveChangesAsync();
-            }
-
-            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+            var saved = await UserItems().AsNoTracking().FirstAsync(i => i.Id == item.Id, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { id = item.Id }, ItemDto.From(saved));
         }
 
         // PUT: api/items/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] ItemCreateDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] ItemSaveDto dto, CancellationToken cancellationToken)
         {
-            var userId = GetUserId();
             var item = await _context.Items
                 .Include(i => i.ItemGenres)
-                .FirstOrDefaultAsync(i => i.Id == id);
-
+                .FirstOrDefaultAsync(i => i.Id == id && i.UserId == GetUserId(), cancellationToken);
             if (item == null)
                 return NotFound();
 
-            if (item.UserId != userId)
-                return Forbid();
+            var error = await ApplyAsync(item, dto, cancellationToken);
+            if (error != null)
+                return Invalid(error);
 
-            item.Title = dto.Title;
-            item.FormatId = dto.FormatId;
-            item.ConditionId = dto.ConditionId;
-            item.PurchasePrice = dto.PurchasePrice;
-            item.DateAcquired = dto.DateAcquired;
-            item.StoreFound = dto.StoreFound;
-            item.Notes = dto.Notes;
-            item.ImageUrl = dto.ImageUrl;
-            item.Priority = 0;
-
-            _context.ItemGenres.RemoveRange(item.ItemGenres);
-            if (dto.GenreIds != null && dto.GenreIds.Any())
-            {
-                foreach (var genreId in dto.GenreIds)
-                {
-                    _context.ItemGenres.Add(new ItemGenre
-                    {
-                        ItemId = item.Id,
-                        GenreId = genreId
-                    });
-                }
-            }
-
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
             return NoContent();
         }
 
@@ -145,32 +88,51 @@ namespace ShelfLifeAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = GetUserId();
-            var item = await _context.Items
-                .FirstOrDefaultAsync(i => i.Id == id);
-
+            var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == id && i.UserId == GetUserId());
             if (item == null)
                 return NotFound();
-
-            if (item.UserId != userId)
-                return Forbid();
 
             _context.Items.Remove(item);
             await _context.SaveChangesAsync();
             return NoContent();
         }
-    }
 
-    public class ItemCreateDto
-    {
-        public string Title { get; set; }
-        public int FormatId { get; set; }
-        public int ConditionId { get; set; }
-        public decimal PurchasePrice { get; set; }
-        public DateTime DateAcquired { get; set; }
-        public string StoreFound { get; set; }
-        public string Notes { get; set; }
-        public string ImageUrl { get; set; }
-        public List<int> GenreIds { get; set; }
+        private async Task<string?> ApplyAsync(Item item, ItemSaveDto dto, CancellationToken cancellationToken)
+        {
+            if (!await _context.Conditions.AnyAsync(c => c.Id == dto.ConditionId, cancellationToken))
+                return "Pick a condition.";
+
+            var (entry, error) = await _catalog.ResolveAsync(GetUserId(), dto.Catalog, cancellationToken);
+            if (entry == null)
+                return error;
+
+            var attributes = MediaAttributes.Sanitize(entry.Format, dto.Attributes, out var attributeError);
+            if (attributeError != null)
+                return attributeError;
+
+            var genreIds = (dto.GenreIds ?? []).Distinct().ToList();
+            var validGenres = await _context.Genres.Where(g => genreIds.Contains(g.Id)).Select(g => g.Id).ToListAsync(cancellationToken);
+
+            item.CatalogEntry = entry;
+            item.ConditionId = dto.ConditionId;
+            item.PurchasePrice = dto.PurchasePrice;
+            item.DateAcquired = dto.DateAcquired;
+            item.StoreFound = dto.StoreFound?.Trim() ?? string.Empty;
+            item.Notes = dto.Notes?.Trim() ?? string.Empty;
+            item.PhotoUrl = string.IsNullOrWhiteSpace(dto.PhotoUrl) ? null : dto.PhotoUrl.Trim();
+            item.Barcode = string.IsNullOrWhiteSpace(dto.Barcode) ? null : dto.Barcode;
+            item.Attributes = attributes;
+
+            _context.ItemGenres.RemoveRange(item.ItemGenres.Where(g => !validGenres.Contains(g.GenreId)));
+            foreach (var genreId in validGenres.Where(g => item.ItemGenres.All(x => x.GenreId != g)))
+                item.ItemGenres.Add(new ItemGenre { GenreId = genreId });
+            return null;
+        }
+
+        private IActionResult Invalid(string message)
+        {
+            ModelState.AddModelError(string.Empty, message);
+            return ValidationProblem(ModelState);
+        }
     }
 }

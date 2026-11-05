@@ -14,6 +14,7 @@ namespace ShelfLifeAPI.Data
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<WishlistItem> WishlistItems { get; set; }
         public DbSet<NewsPost> NewsPosts { get; set; }
+        public DbSet<CatalogEntry> CatalogEntries { get; set; }
         public ShelfLifeDbContext(DbContextOptions<ShelfLifeDbContext> options) : base(options)
         {
         }
@@ -24,20 +25,50 @@ namespace ShelfLifeAPI.Data
             modelBuilder.Entity<Item>()
                 .Property(i => i.PurchasePrice)
                 .HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Item>()
+                .Property(i => i.Attributes)
+                .HasColumnType("jsonb");
+            modelBuilder.Entity<Item>()
+                .HasOne(i => i.CatalogEntry)
+                .WithMany(c => c.Items)
+                .HasForeignKey(i => i.CatalogEntryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CatalogEntry>(entry =>
+            {
+                entry.Property(c => c.Title).HasMaxLength(200);
+                entry.Property(c => c.Creator).HasMaxLength(200);
+                entry.Property(c => c.Barcode).HasMaxLength(32);
+                entry.Property(c => c.Source).HasMaxLength(20);
+                entry.Property(c => c.ExternalId).HasMaxLength(64);
+                // One shared entry per source record and format.
+                entry.HasIndex(c => new { c.Source, c.ExternalId, c.FormatId })
+                    .IsUnique()
+                    .HasFilter("\"ExternalId\" IS NOT NULL");
+                entry.HasIndex(c => c.Barcode);
+                entry.HasIndex(c => c.CreatedByUserId);
+            });
+
+            modelBuilder.Entity<WishlistItem>()
+                .HasOne(w => w.CatalogEntry)
+                .WithMany()
+                .HasForeignKey(w => w.CatalogEntryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Seed Formats
             modelBuilder.Entity<Format>().HasData(
-                new Format { Id = 1, Name = "VHS" },
-                new Format { Id = 2, Name = "CD" },
-                new Format { Id = 3, Name = "Vinyl" },
-                new Format { Id = 4, Name = "NES" },
-                new Format { Id = 5, Name = "SNES" },
-                new Format { Id = 6, Name = "N64" },
-                new Format { Id = 7, Name = "PS1" },
-                new Format { Id = 8, Name = "PS2" },
-                new Format { Id = 9, Name = "GameBoy" },
-                new Format { Id = 10, Name = "GameBoy Advance" },
-                new Format { Id = 11, Name = "GameCube" },
-                new Format { Id = 12, Name = "Sega Genesis" }
+                new Format { Id = 1, Name = "VHS", MediaType = MediaTypes.Movies },
+                new Format { Id = 2, Name = "CD", MediaType = MediaTypes.Music },
+                new Format { Id = 3, Name = "Vinyl", MediaType = MediaTypes.Music },
+                new Format { Id = 4, Name = "NES", MediaType = MediaTypes.Games },
+                new Format { Id = 5, Name = "SNES", MediaType = MediaTypes.Games },
+                new Format { Id = 6, Name = "N64", MediaType = MediaTypes.Games },
+                new Format { Id = 7, Name = "PS1", MediaType = MediaTypes.Games },
+                new Format { Id = 8, Name = "PS2", MediaType = MediaTypes.Games },
+                new Format { Id = 9, Name = "GameBoy", MediaType = MediaTypes.Games },
+                new Format { Id = 10, Name = "GameBoy Advance", MediaType = MediaTypes.Games },
+                new Format { Id = 11, Name = "GameCube", MediaType = MediaTypes.Games },
+                new Format { Id = 12, Name = "Sega Genesis", MediaType = MediaTypes.Games }
             );
 
             // Seed Conditions

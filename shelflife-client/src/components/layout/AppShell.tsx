@@ -52,8 +52,10 @@ function Footer() {
           <Logo className="h-6 opacity-80" />
           <span>© {new Date().getFullYear()} ShelfLife</span>
         </div>
-        <p className="max-w-md sm:text-right">
-          Headlines link to and belong to their publishers. Price estimates come from live eBay listings.
+        <p className="max-w-lg text-xs leading-relaxed sm:text-right">
+          Headlines link to and belong to their publishers. Price estimates come from live eBay listings. Music data from
+          MusicBrainz, cover art from the Cover Art Archive, game data from IGDB. This product uses the TMDB API but is not
+          endorsed or certified by TMDB.
         </p>
         <nav className="flex gap-4">
           <Link to="/" className="hover:text-zinc-300">Home</Link>
