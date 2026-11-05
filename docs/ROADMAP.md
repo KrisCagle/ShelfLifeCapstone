@@ -43,7 +43,9 @@ Fix what's broken in production today.
 
 ## Phase 1 — Professional foundation (≈3–4 weeks)
 
-**The big change: separate the catalog from the user's copy.**
+**The big change: separate the catalog from the user's copy.** ✅ Done (Nov 2026): `CatalogEntries` +
+`Items` as owned copies, per-media attributes in `jsonb`. Shared entries are only ever created from
+data the server fetched from the source itself; hand-typed titles stay private to their author.
 
 - `CatalogEntry` (shared): title, media type, platform/format, release year, UPC, cover art,
   external IDs (IGDB, Discogs, TMDB), region.
@@ -63,8 +65,9 @@ owns this" possible.
 
 **Engineering**
 
-- [ ] Service layer and DTOs. Controllers only translate HTTP.
-- [ ] Request validation (DataAnnotations or FluentValidation).
+- [~] Service layer and DTOs. Items, wishlist and catalog use DTOs and a `CatalogService`;
+      the remaining controllers still return entities.
+- [~] Request validation: DataAnnotations on the item, wishlist, catalog and news DTOs.
 - [ ] Server-side search, filtering, sorting and pagination.
 - [ ] Rate limiting (the built-in .NET rate limiter), especially on external lookups.
 - [ ] Auth hardening: email confirmation, password reset, lockout, account deletion, data export.
@@ -98,13 +101,34 @@ Pulled forward because a polished front end matters before anything goes live.
 
 ## Phase 2 — Collector core (≈4 weeks)
 
-- [ ] **Barcode scanning** with the phone camera → catalog match → add in one tap.
-- [ ] **Metadata lookup**: games (IGDB), music (Discogs), movies (TMDB), with cover art auto-filled.
-- [ ] **Hunt mode**: a fast "do I own this?" screen, installable PWA, works offline.
+- [x] **Barcode scanning** with the phone camera (native BarcodeDetector, ZXing WebAssembly
+      fallback, photo upload and typed digits as backups) → catalog match → add in one tap.
+- [x] **Metadata lookup** with cover art: music via MusicBrainz + Cover Art Archive (free, no key,
+      live now); games via IGDB and movies via TMDB once their free keys are set
+      (`Igdb:ClientId`/`Igdb:ClientSecret`, `Tmdb:ApiKey`); any barcode via UPCitemdb's trial tier.
+- [~] **Hunt mode**: "Scan" in the nav answers *you own this / it's on your wishlist / new to you*
+      in one scan. Still to do: installable PWA and offline use.
 - [ ] **Hauls**: log a whole trip at once. Spending by month, store and media type.
 - [ ] Tags, custom shelves, physical location ("Box 3"), loaned-out tracking.
 - [ ] CSV import and export (export is always free — your data is yours).
 - [ ] Dashboard: counts, spend, and breakdowns by media type and platform.
+
+### Ideas backlog (UI/UX)
+
+Candidates for the next rounds, roughly in order of payoff:
+
+- **Haul mode**: scan several items in a row at the store; they share store/date/price-split and
+  save as one haul.
+- **Stats page**: spending over time, by store and by format; most valuable items; biggest gains.
+- **Command palette (Ctrl+K)**: jump to any title, add, scan, or switch views from the keyboard.
+- **Onboarding checklist** for new accounts: add 3 titles, scan a barcode, add a hunt, check a price.
+- **Bulk select**: move to a shelf/location, change condition, delete several at once.
+- **Shelf locations**: "Box 3", "Living room shelf A", and a filter for them.
+- **Shareable showcase**: a read-only public link to a shelf or the whole collection.
+- **Trade list**: mark duplicates or spare copies as available for trade.
+- **Photo upload** (Supabase Storage) instead of pasted image links.
+- **Keyboard shortcut help** (`?`) and more shortcuts (`n` new, `s` scan).
+- **Theme variants** (CRT green, synthwave pink) — a natural Pro perk.
 
 ## Phase 3 — Value engine (≈4 weeks)
 

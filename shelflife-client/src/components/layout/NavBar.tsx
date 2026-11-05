@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { Heart, Home, Library, LogOut, Megaphone, Menu, Plus, X } from 'lucide-react'
+import { Heart, Home, Library, LogOut, Megaphone, Menu, Plus, ScanLine, X } from 'lucide-react'
+import { QuickScan } from '@/components/catalog/QuickScan'
 import { toast } from 'sonner'
 import { useAuth } from '@/auth/AuthProvider'
 import { Logo } from '@/components/ui/Logo'
@@ -22,6 +23,7 @@ export function NavBar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [scanOpen, setScanOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -91,6 +93,14 @@ export function NavBar() {
         <div className="ml-auto flex items-center gap-2">
           {user ? (
             <>
+              <button
+                onClick={() => setScanOpen(true)}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neon-cyan/50 px-2.5 font-display tracking-[0.12em] text-neon-cyan transition hover:bg-neon-cyan/10 hover:shadow-glow-cyan"
+                aria-label="Scan a barcode to check if you own it"
+                title="Do I own this? Scan a barcode"
+              >
+                <ScanLine className="size-4" /> <span className="hidden lg:inline">Scan</span>
+              </button>
               <ButtonLink to="/items/new" size="sm" icon={<Plus className="size-4" />} className="hidden sm:inline-flex">
                 Add title
               </ButtonLink>
@@ -191,6 +201,7 @@ export function NavBar() {
           </motion.nav>
         )}
       </AnimatePresence>
+      {user && <QuickScan open={scanOpen} onClose={() => setScanOpen(false)} />}
     </header>
   )
 }

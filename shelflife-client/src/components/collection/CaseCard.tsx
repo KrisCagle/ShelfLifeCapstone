@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom'
 import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from 'motion/react'
 import { cn } from '@/lib/cn'
 import { formatMoney } from '@/lib/format'
-import { platformColor, platformShort, withAlpha } from '@/lib/platforms'
+import { platformColor, platformMedia, platformShort, withAlpha } from '@/lib/platforms'
 import { PlatformBadge, Tag } from '@/components/ui/Misc'
+
+/** Records and CDs are square sleeves; games and tapes are tall boxes. */
+export const caseAspect = (format?: string | null) => (format && platformMedia(format) === 'Music' ? 'aspect-square' : 'aspect-[5/7]')
 
 export interface CaseCardData {
   id?: number
@@ -14,6 +17,8 @@ export interface CaseCardData {
   price?: number | null
   imageUrl?: string | null
   genres?: string[]
+  /** Short collector badges like "CIB" or "VG+". */
+  badges?: string[]
 }
 
 /** Generated "box art" for titles without a cover: platform-tinted case with a labeled spine. */
@@ -56,17 +61,25 @@ export function CaseArt({ title, format, compact }: { title: string; format?: st
   )
 }
 
+// Generated case art shows immediately; a real cover fades in over it once loaded
+// (cover hosts like the Cover Art Archive can take a few seconds).
 function Cover({ title, format, imageUrl, compact }: Pick<CaseCardData, 'title' | 'format' | 'imageUrl'> & { compact?: boolean }) {
-  const [failed, setFailed] = useState(false)
-  if (!imageUrl || failed) return <CaseArt title={title} format={format} compact={compact} />
+  const [state, setState] = useState<'loading' | 'loaded' | 'failed'>('loading')
   return (
-    <img
-      src={imageUrl}
-      alt=""
-      loading="lazy"
-      onError={() => setFailed(true)}
-      className="absolute inset-0 size-full bg-ink-800 object-cover"
-    />
+    <>
+      {state !== 'loaded' && <CaseArt title={title} format={format} compact={compact} />}
+      {imageUrl && state !== 'failed' && (
+        <img
+          src={imageUrl}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onLoad={() => setState('loaded')}
+          onError={() => setState('failed')}
+          className={cn('absolute inset-0 size-full object-cover transition-opacity duration-500', state === 'loaded' ? 'opacity-100' : 'opacity-0')}
+        />
+      )}
+    </>
   )
 }
 
@@ -119,9 +132,14 @@ export function CaseCard({ item, to, compact, showInfo = true, className }: Case
       className={cn('group relative overflow-hidden rounded-md border bg-ink-800 transition-[border-color] duration-300', className)}
     >
       <div className="absolute inset-x-0 top-0 z-10 h-[3px]" style={{ backgroundColor: color, boxShadow: `0 0 12px ${color}` }} />
-      <div className="relative aspect-[5/7] w-full overflow-hidden">
+      <div className={cn('relative w-full overflow-hidden', caseAspect(item.format))}>
         <Cover title={item.title} format={item.format} imageUrl={item.imageUrl} compact={compact} />
         <motion.div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: sheen }} />
+        {compact && item.badges?.[0] && (
+          <span className="absolute right-1.5 top-2 rounded bg-black/75 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wider text-neon-amber ring-1 ring-neon-amber/50 backdrop-blur">
+            {item.badges[0]}
+          </span>
+        )}
       </div>
       {showInfo && (
         <div className={cn('space-y-2 border-t border-white/5 bg-ink-900/95', compact ? 'p-2' : 'p-3')}>
@@ -139,9 +157,14 @@ export function CaseCard({ item, to, compact, showInfo = true, className }: Case
               </span>
             )}
           </div>
-          {!compact && item.genres && item.genres.length > 0 && (
+          {!compact && ((item.badges?.length ?? 0) > 0 || (item.genres?.length ?? 0) > 0) && (
             <div className="flex gap-1 overflow-hidden">
-              {item.genres.slice(0, 2).map((g) => (
+              {item.badges?.map((b) => (
+                <Tag key={b} className="shrink-0 border-neon-amber/40 text-neon-amber">
+                  {b}
+                </Tag>
+              ))}
+              {item.genres?.slice(0, 2 - Math.min(item.badges?.length ?? 0, 1)).map((g) => (
                 <Tag key={g}>{g}</Tag>
               ))}
             </div>

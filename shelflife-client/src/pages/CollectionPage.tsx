@@ -3,15 +3,16 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { BadgeDollarSign, Grid3x3, LayoutList, Library, Plus, Rows3, Search, SearchX, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { useCollectionValue, useItems } from '@/hooks/queries'
+import { useAttributeDefinitions, useCollectionValue, useItems } from '@/hooks/queries'
+import { cardBadges } from '@/components/catalog/AttributeFields'
 import { useElementWidth } from '@/hooks/useElementWidth'
 import { cn } from '@/lib/cn'
 import { formatDate, formatMoney } from '@/lib/format'
-import type { Item } from '@/lib/types'
+import type { AttributeDefinition, Item, MediaType } from '@/lib/types'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Form'
 import { EmptyState, PageHeader, Panel, PlatformBadge, Skeleton, Stat, Tag } from '@/components/ui/Misc'
-import { CaseArt, CaseCard, ShelfPlank, type CaseCardData } from '@/components/collection/CaseCard'
+import { CaseArt, CaseCard, caseAspect, ShelfPlank, type CaseCardData } from '@/components/collection/CaseCard'
 
 type View = 'shelf' | 'grid' | 'list'
 type Sort = 'recent' | 'title' | 'price-desc' | 'price-asc' | 'acquired'
@@ -34,7 +35,9 @@ const storedView = (): View => {
   }
 }
 
-const toCard = (item: Item): CaseCardData => ({
+type Definitions = Record<MediaType, AttributeDefinition[]> | undefined
+
+const toCard = (item: Item, definitions: Definitions): CaseCardData => ({
   id: item.id,
   title: item.title,
   format: item.format?.name,
@@ -42,10 +45,12 @@ const toCard = (item: Item): CaseCardData => ({
   price: item.purchasePrice,
   imageUrl: item.imageUrl,
   genres: item.itemGenres?.map((g) => g.genre?.name).filter((g): g is string => !!g),
+  badges: cardBadges(definitions, item.format, item.attributes),
 })
 
 export default function CollectionPage() {
   const { data: items, isLoading, isError, refetch } = useItems()
+  const { data: definitions } = useAttributeDefinitions()
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
   const format = params.get('format') ?? ''
@@ -93,7 +98,8 @@ export default function CollectionPage() {
     return (items ?? [])
       .filter(
         (i) =>
-          (!needle || i.title.toLowerCase().includes(needle) || i.storeFound?.toLowerCase().includes(needle) || i.notes?.toLowerCase().includes(needle)) &&
+          (!needle ||
+            [i.title, i.catalogEntry?.creator, i.storeFound, i.notes, i.barcode].some((v) => v?.toLowerCase().includes(needle))) &&
           (!format || i.format?.name === format) &&
           (!genre || i.itemGenres?.some((g) => g.genre?.name === genre)),
       )
@@ -132,7 +138,7 @@ export default function CollectionPage() {
             value={q}
             onChange={(e) => update({ q: e.target.value })}
             onKeyDown={(e) => e.key === 'Escape' && update({ q: '' })}
-            placeholder="Search titles, stores, notes…"
+            placeholder="Search titles, artists, stores…"
             aria-label="Search collection"
             className="h-10 w-full rounded-lg border border-white/10 bg-ink-800/80 pl-9 pr-16 text-zinc-100 placeholder:text-zinc-500 focus:border-neon-cyan/70 focus:outline-none focus:ring-2 focus:ring-neon-cyan/30 [&::-webkit-search-cancel-button]:hidden"
           />
@@ -219,7 +225,7 @@ export default function CollectionPage() {
       ) : view === 'list' ? (
         <ListView items={visible} />
       ) : (
-        <ShelfView items={visible} dense={view === 'grid'} />
+        <ShelfView items={visible} dense={view === 'grid'} definitions={definitions} />
       )}
     </div>
   )
@@ -252,7 +258,7 @@ function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => voi
 }
 
 /** Cases on wooden shelves; the number per shelf follows the available width. */
-function ShelfView({ items, dense }: { items: Item[]; dense: boolean }) {
+function ShelfView({ items, dense, definitions }: { items: Item[]; dense: boolean; definitions: Definitions }) {
   const [ref, width] = useElementWidth<HTMLDivElement>()
   const minCard = dense ? 120 : width < 640 ? 140 : 180
   const gap = dense ? 12 : 18
@@ -268,7 +274,7 @@ function ShelfView({ items, dense }: { items: Item[]; dense: boolean }) {
       {width > 0 &&
         shelves.map((row, r) => (
           <div key={r}>
-            <div className="grid px-3" style={{ gridTemplateColumns: `repeat(${perShelf}, minmax(0, 1fr))`, gap }}>
+            <div className="grid items-end px-3" style={{ gridTemplateColumns: `repeat(${perShelf}, minmax(0, 1fr))`, gap }}>
               {row.map((item, i) => (
                 <motion.div
                   key={item.id}
@@ -276,7 +282,7 @@ function ShelfView({ items, dense }: { items: Item[]; dense: boolean }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(r * 0.05 + i * 0.04, 0.6), duration: 0.35 }}
                 >
-                  <CaseCard item={toCard(item)} to={`/items/${item.id}`} compact={dense || width < 640} showInfo={!dense} />
+                  <CaseCard item={toCard(item, definitions)} to={`/items/${item.id}`} compact={dense || width < 640} showInfo={!dense} />
                 </motion.div>
               ))}
             </div>
@@ -293,7 +299,7 @@ function ListView({ items }: { items: Item[] }) {
       {items.map((item, i) => (
         <motion.div key={item.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: Math.min(i * 0.02, 0.4) }}>
           <Link to={`/items/${item.id}`} className="group flex items-center gap-4 px-4 py-3 transition hover:bg-white/[0.03]">
-            <div className="relative aspect-[5/7] w-11 shrink-0 overflow-hidden rounded">
+            <div className={cn('relative w-11 shrink-0 overflow-hidden rounded', caseAspect(item.format?.name))}>
               {item.imageUrl ? <img src={item.imageUrl} alt="" className="size-full object-cover" /> : <CaseArt title="" format={item.format?.name} compact />}
             </div>
             <div className="min-w-0 flex-1">

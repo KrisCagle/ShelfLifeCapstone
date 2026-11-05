@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, BadgeDollarSign, Heart, PackageCheck, Pencil, Plus, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, BadgeDollarSign, Heart, PackageCheck, Pencil, Plus, RefreshCw, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { keys, useDeleteWishlistItem, useFormats, usePriceCheck, useSaveWishlistItem, useWishlist, useWishlistItem } from '@/hooks/queries'
@@ -9,11 +9,13 @@ import { api, ApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import { formatMoney } from '@/lib/format'
 import { withAlpha } from '@/lib/platforms'
-import type { Priority, WishlistItem } from '@/lib/types'
+import type { CatalogRef, Priority, WishlistItem } from '@/lib/types'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { Field, Input, Segmented, Select, Textarea } from '@/components/ui/Form'
 import { EmptyState, PageHeader, Panel, PlatformBadge, Skeleton } from '@/components/ui/Misc'
 import { PRIORITIES, PriorityPill } from '@/components/collection/PriorityPill'
+import { CoverThumb, SOURCE_LABELS } from '@/components/catalog/CandidateCard'
+import { CatalogFinder, type FinderPick } from '@/components/catalog/CatalogFinder'
 
 type Filter = 'all' | Priority
 
@@ -97,7 +99,7 @@ function WishCard({ item }: { item: WishlistItem }) {
   const remove = useDeleteWishlistItem()
   const price = usePriceCheck()
   const queryClient = useQueryClient()
-  const found = `/items/new?${new URLSearchParams({ title: item.title, formatId: String(item.formatId), fromWishlist: String(item.id) })}`
+  const found = `/items/new?fromWishlist=${item.id}`
 
   const onRemove = () =>
     remove.mutate(item.id, {
@@ -107,7 +109,13 @@ function WishCard({ item }: { item: WishlistItem }) {
           action: {
             label: 'Undo',
             onClick: async () => {
-              await api.post('/wishlist', { title: item.title, formatId: item.formatId, notes: item.notes ?? '', priority: item.priority })
+              await api.post('/wishlist', {
+                title: item.title,
+                formatId: item.formatId,
+                notes: item.notes ?? '',
+                priority: item.priority,
+                catalog: item.catalogEntryId ? { id: item.catalogEntryId, source: item.catalogSource ?? 'manual', title: item.title, formatId: item.formatId } : null,
+              })
               queryClient.invalidateQueries({ queryKey: keys.wishlist })
             },
           },
@@ -118,8 +126,10 @@ function WishCard({ item }: { item: WishlistItem }) {
     <motion.div layout initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.2 }}>
       <Panel className="group flex h-full flex-col p-5 transition hover:border-white/15" style={{ boxShadow: `inset 3px 0 0 ${color}, 0 20px 50px -20px rgba(0,0,0,0.9)` }}>
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+          <CoverThumb src={item.coverUrl} title={item.title} format={item.format?.name} className="w-14" />
+          <div className="min-w-0 flex-1">
             <h3 className="font-display text-2xl leading-tight tracking-[0.06em] text-white">{item.title}</h3>
+            {(item.creator || item.releaseYear) && <p className="text-sm text-zinc-400">{[item.creator, item.releaseYear].filter(Boolean).join(' · ')}</p>}
             <div className="mt-1.5 flex items-center gap-2">
               <PlatformBadge name={item.format?.name} />
               <PriorityPill priority={item.priority} />
@@ -164,6 +174,7 @@ function WishCard({ item }: { item: WishlistItem }) {
 
 export function WishlistFormPage() {
   const params = useParams()
+  const location = useLocation()
   const id = params.id ? Number(params.id) : undefined
   const { data: existing, isLoading } = useWishlistItem(id ?? NaN)
   if (id && isLoading)
@@ -173,32 +184,72 @@ export function WishlistFormPage() {
         <Skeleton className="h-80 rounded-2xl" />
       </div>
     )
-  return <WishlistForm key={id ?? 'new'} existing={existing} />
+  const pick = (location.state as { pick?: FinderPick } | null)?.pick
+  return <WishlistForm key={id ?? 'new'} existing={existing} initialPick={pick} />
 }
 
-function WishlistForm({ existing }: { existing?: WishlistItem }) {
+/** The hunted title: linked to a catalog entry (cover, locked title) or plain text. */
+interface HuntTitle {
+  title: string
+  formatId: number
+  catalog: CatalogRef | null
+  coverUrl: string | null
+  meta: string
+}
+
+const fromPick = ({ candidate: c }: FinderPick): HuntTitle => ({
+  title: c.title,
+  formatId: c.formatId ?? 0,
+  coverUrl: c.coverUrl,
+  meta: [c.creator, c.releaseYear].filter(Boolean).join(' · '),
+  catalog:
+    c.source === 'manual' && !c.catalogEntryId
+      ? null
+      : {
+          id: c.catalogEntryId ?? undefined,
+          source: c.source === 'upc' ? 'manual' : c.source,
+          externalId: c.source === 'upc' ? null : c.externalId,
+          title: c.title,
+          formatId: c.formatId ?? 0,
+          releaseYear: c.releaseYear,
+          creator: c.creator,
+          coverUrl: c.coverUrl,
+        },
+})
+
+const fromExisting = (w: WishlistItem): HuntTitle => ({
+  title: w.title,
+  formatId: w.formatId,
+  coverUrl: w.coverUrl,
+  meta: [w.creator, w.releaseYear].filter(Boolean).join(' · '),
+  catalog: w.catalogEntryId ? { id: w.catalogEntryId, source: w.catalogSource ?? 'manual', title: w.title, formatId: w.formatId } : null,
+})
+
+function WishlistForm({ existing, initialPick }: { existing?: WishlistItem; initialPick?: FinderPick }) {
   const navigate = useNavigate()
   const { data: formats } = useFormats()
   const save = useSaveWishlistItem(existing?.id)
-  const [title, setTitle] = useState(existing?.title ?? '')
-  const [formatId, setFormatId] = useState(existing ? String(existing.formatId) : '')
+  const [hunt, setHunt] = useState<HuntTitle | null>(existing ? fromExisting(existing) : initialPick ? fromPick(initialPick) : null)
+  const [finding, setFinding] = useState(!hunt)
   const [priority, setPriority] = useState<Priority>(existing?.priority ?? 2)
   const [notes, setNotes] = useState(existing?.notes ?? '')
   const [errors, setErrors] = useState<{ title?: string; formatId?: string; form?: string }>({})
+  const formatName = formats?.find((f) => f.id === hunt?.formatId)?.name
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (!hunt) return
     const found: typeof errors = {}
-    if (!title.trim()) found.title = 'What are you hunting for?'
-    if (!formatId) found.formatId = 'Pick a format.'
+    if (!hunt.title.trim()) found.title = 'What are you hunting for?'
+    if (!hunt.formatId) found.formatId = 'Pick a format.'
     setErrors(found)
     if (Object.keys(found).length) {
       requestAnimationFrame(() => document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus())
       return
     }
     try {
-      await save.mutateAsync({ title: title.trim(), formatId: Number(formatId), priority, notes: notes.trim() })
-      toast.success(existing ? 'Hunt updated' : `“${title.trim()}” added to your wishlist`)
+      await save.mutateAsync({ title: hunt.title.trim(), formatId: hunt.formatId, priority, notes: notes.trim(), catalog: hunt.catalog })
+      toast.success(existing ? 'Hunt updated' : `“${hunt.title.trim()}” added to your wishlist`)
       navigate('/wishlist')
     } catch (err) {
       setErrors({ form: err instanceof ApiError ? err.message : 'Couldn’t save. Try again.' })
@@ -211,55 +262,92 @@ function WishlistForm({ existing }: { existing?: WishlistItem }) {
         <ArrowLeft className="size-4" /> Wishlist
       </Link>
       <h1 className="mb-8 font-display text-5xl tracking-[0.06em] text-white">{existing ? 'Edit hunt' : 'Add a hunt'}</h1>
-      <Panel className="p-5 sm:p-6">
-        <form onSubmit={onSubmit} noValidate className="space-y-5">
-          {errors.form && (
-            <div role="alert" className="rounded-lg border border-neon-red/40 bg-neon-red/10 px-4 py-3 text-neon-red">
-              {errors.form}
+
+      {finding || !hunt ? (
+        <Panel className="p-5 sm:p-6">
+          <CatalogFinder
+            initialQuery={hunt?.title ?? ''}
+            initialFormatId={hunt?.formatId || null}
+            manualLabel="Just want a note?"
+            onPick={(pick) => {
+              setHunt(fromPick(pick))
+              setFinding(false)
+            }}
+          />
+        </Panel>
+      ) : (
+        <Panel className="p-5 sm:p-6">
+          <form onSubmit={onSubmit} noValidate className="space-y-5">
+            {errors.form && (
+              <div role="alert" className="rounded-lg border border-neon-red/40 bg-neon-red/10 px-4 py-3 text-neon-red">
+                {errors.form}
+              </div>
+            )}
+            {hunt.catalog ? (
+              <div className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-3">
+                <CoverThumb src={hunt.coverUrl} title={hunt.title} format={formatName} className="w-16" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-2xl leading-tight tracking-[0.06em] text-white">{hunt.title}</p>
+                  {hunt.meta && <p className="text-sm text-zinc-400">{hunt.meta}</p>}
+                  <div className="mt-1 flex items-center gap-2">
+                    <PlatformBadge name={formatName} />
+                    <span className="font-mono text-[0.65rem] uppercase tracking-wider text-zinc-500">{SOURCE_LABELS[hunt.catalog.source]}</span>
+                  </div>
+                </div>
+                <Button type="button" variant="ghost" size="sm" icon={<RefreshCw className="size-4" />} onClick={() => setFinding(true)}>
+                  Change
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Field label="Title" error={errors.title}>
+                  {({ id, invalid, describedBy }) => (
+                    <Input id={id} invalid={invalid} aria-describedby={describedBy} value={hunt.title} onChange={(e) => setHunt({ ...hunt, title: e.target.value })} />
+                  )}
+                </Field>
+                <Field label="Format" error={errors.formatId}>
+                  {({ id, invalid, describedBy }) => (
+                    <Select id={id} invalid={invalid} aria-describedby={describedBy} value={hunt.formatId || ''} onChange={(e) => setHunt({ ...hunt, formatId: Number(e.target.value) })}>
+                      <option value="" disabled>
+                        Choose a format…
+                      </option>
+                      {formats?.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                </Field>
+                <button type="button" onClick={() => setFinding(true)} className="font-mono text-sm text-neon-cyan hover:underline">
+                  Search the catalog to add cover art →
+                </button>
+              </>
+            )}
+            <Field label="Priority">
+              {() => (
+                <Segmented
+                  name="priority"
+                  value={priority}
+                  onChange={setPriority}
+                  options={([3, 2, 1] as Priority[]).map((p) => ({ value: p, label: PRIORITIES[p].label, color: PRIORITIES[p].color }))}
+                />
+              )}
+            </Field>
+            <Field label="Notes" optional>
+              {({ id }) => <Textarea id={id} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Max price, variant, complete in box…" />}
+            </Field>
+            <div className="flex gap-3 pt-2">
+              <Button type="submit" size="lg" loading={save.isPending} icon={<Save className="size-5" />}>
+                {existing ? 'Save changes' : 'Add to wishlist'}
+              </Button>
+              <Button type="button" variant="ghost" size="lg" onClick={() => navigate(-1)}>
+                Cancel
+              </Button>
             </div>
-          )}
-          <Field label="Title" error={errors.title}>
-            {({ id, invalid, describedBy }) => (
-              <Input id={id} invalid={invalid} aria-describedby={describedBy} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. EarthBound" autoFocus={!existing} />
-            )}
-          </Field>
-          <Field label="Format" error={errors.formatId}>
-            {({ id, invalid, describedBy }) => (
-              <Select id={id} invalid={invalid} aria-describedby={describedBy} value={formatId} onChange={(e) => setFormatId(e.target.value)}>
-                <option value="" disabled>
-                  Choose a format…
-                </option>
-                {formats?.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </Field>
-          <Field label="Priority">
-            {() => (
-              <Segmented
-                name="priority"
-                value={priority}
-                onChange={setPriority}
-                options={([3, 2, 1] as Priority[]).map((p) => ({ value: p, label: PRIORITIES[p].label, color: PRIORITIES[p].color }))}
-              />
-            )}
-          </Field>
-          <Field label="Notes" optional>
-            {({ id }) => <Textarea id={id} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Max price, variant, complete in box…" />}
-          </Field>
-          <div className="flex gap-3 pt-2">
-            <Button type="submit" size="lg" loading={save.isPending} icon={<Save className="size-5" />}>
-              {existing ? 'Save changes' : 'Add to wishlist'}
-            </Button>
-            <Button type="button" variant="ghost" size="lg" onClick={() => navigate(-1)}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </Panel>
+          </form>
+        </Panel>
+      )}
     </div>
   )
 }

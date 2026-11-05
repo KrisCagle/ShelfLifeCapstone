@@ -186,7 +186,7 @@ function HeroShelf({ shelves, linkItems }: { shelves: CaseCardData[][]; linkItem
         <div className="space-y-6">
           {shelves.map((row, r) => (
             <div key={r}>
-              <div className="grid grid-cols-4 gap-2.5 px-2 sm:gap-3.5">
+              <div className="grid grid-cols-4 items-end gap-2.5 px-2 sm:gap-3.5">
                 {row.map((card, i) => (
                   <motion.div
                     key={`${card.title}-${i}`}

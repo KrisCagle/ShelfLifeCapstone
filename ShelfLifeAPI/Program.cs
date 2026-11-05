@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using ShelfLifeAPI.Data;
 using ShelfLifeAPI.Models;
 using ShelfLifeAPI.Services;
+using ShelfLifeAPI.Services.Metadata;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().AddJsonOptions(opts =>
 {
     opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -24,6 +26,24 @@ builder.Services.AddHttpClient<NewsFeedService>(client =>
     client.DefaultRequestHeaders.UserAgent.ParseAdd("ShelfLife/1.0 (+news reader)");
 });
 builder.Services.AddAuthorization(options => options.AddShelfLifePolicies(builder.Configuration));
+
+// Catalog metadata sources. MusicBrainz asks clients to identify themselves.
+var userAgent = builder.Configuration["Metadata:UserAgent"] ?? "ShelfLife/0.1 (https://github.com/KrisCagle/ShelfLifeCapstone)";
+void Metadata(HttpClient client)
+{
+    client.Timeout = TimeSpan.FromSeconds(8);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+}
+builder.Services.AddHttpClient<MusicBrainzProvider>(Metadata);
+builder.Services.AddHttpClient<IgdbProvider>(Metadata);
+builder.Services.AddHttpClient<TmdbProvider>(Metadata);
+builder.Services.AddHttpClient<UpcItemDbProvider>(Metadata);
+builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<IgdbProvider>());
+builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<MusicBrainzProvider>());
+builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<TmdbProvider>());
+builder.Services.AddScoped<MetadataService>();
+builder.Services.AddScoped<CatalogService>();
 
 // The React app reaches the API through a same-origin proxy (Vite in dev, Vercel
 // rewrites in production), so browsers normally never make cross-origin calls.
