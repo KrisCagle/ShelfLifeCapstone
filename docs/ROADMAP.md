@@ -32,14 +32,14 @@ What a collector needs, in priority order:
 
 Fix what's broken in production today.
 
-- [ ] Vercel rewrites `/api/*` to the API, so the browser sees one site. This fixes cross-site login cookies being dropped and the calls that had `/api/...` hardcoded.
-- [ ] Vercel SPA fallback, so refreshing `/wishlist` or any route other than `/` stops returning 404.
-- [ ] One API base URL on the client. Every request goes through `services/`, with no raw `fetch` calls in pages.
-- [ ] Async all the way down in `AuthController` (no `.Wait()`). Use `UserManager` for password checks.
-- [ ] A global exception handler that returns ProblemDetails, so server errors no longer send `ex.Message` to clients.
-- [ ] Logout becomes `POST`. CORS is limited to configured origins instead of any `*.vercel.app` site.
-- [ ] Remove the leftover JWT package and the localStorage `token` code.
-- [ ] Connection-string parsing handles `postgres://` and URL-encoded passwords (Supabase/Render style).
+- [x] Vercel rewrites `/api/*` to the API, so the browser sees one site. This fixes cross-site login cookies being dropped and the calls that had `/api/...` hardcoded.
+- [x] Vercel SPA fallback, so refreshing `/wishlist` or any route other than `/` stops returning 404.
+- [x] One API base URL on the client. Every request goes through `services/`, with no raw `fetch` calls in pages.
+- [x] Async all the way down in `AuthController` (no `.Wait()`). Use `UserManager` for password checks.
+- [x] A global exception handler that returns ProblemDetails, so server errors no longer send `ex.Message` to clients.
+- [x] Logout becomes `POST`. CORS is limited to configured origins instead of any `*.vercel.app` site.
+- [x] Remove the leftover JWT package and the localStorage `token` code.
+- [x] Connection-string parsing handles `postgres://` and URL-encoded passwords (Supabase/Render style).
 
 ## Phase 1 — Professional foundation (≈3–4 weeks)
 
@@ -72,11 +72,29 @@ owns this" possible.
 - [ ] Tests: xUnit + `WebApplicationFactory` integration tests against real Postgres
       (Testcontainers), and Vitest + React Testing Library on the client.
 - [ ] GitHub Actions CI on every PR: build, test, lint.
-- [ ] Client: TypeScript migration, TanStack Query for server state, an auth context with protected
-      routes, React Hook Form + Zod, and breaking up the 800-line `CollectionPage`.
-- [ ] Forms show errors and stay put when a save fails. Today Add Item navigates
-      home even on a 400 (e.g. no condition picked), silently losing the item.
+- [x] Client: TypeScript, TanStack Query for server state, an auth context with protected
+      routes, and the 800-line `CollectionPage` broken into components (UI rework, Nov 2026).
+      Form validation is hand-rolled for now; React Hook Form + Zod can come with bigger forms.
+- [x] Forms show errors and stay put when a save fails.
 - [ ] A root `README.md` with local setup, architecture and screenshots.
+
+## UI rework (done, Nov 2026)
+
+Pulled forward because a polished front end matters before anything goes live.
+
+- [x] Design system: Tailwind tokens (neon palette, platform colors, fonts), glass panels,
+      shared Button / Field / Modal / Skeleton / Toast components, generated wood-grain wall.
+- [x] Landing page for everyone: neon hero with a 3D shelf, live news ticker, collector news
+      (RSS headlines + pinned ShelfLife posts), features and how-it-works for visitors, and a
+      welcome-back snapshot (stats, format breakdown, top hunts) for signed-in users.
+- [x] News API: `/api/news/headlines` aggregates the RSS/Atom feeds in `appsettings.json`
+      (cached 30 min, one shared refresh); `/api/news/posts` with an admin-only editor.
+- [x] Collection: URL-synced search (`/` shortcut), filters and sort; shelf / grid / list views;
+      responsive shelves (2 per shelf on phones); tilting case cards with generated box art.
+- [x] Item pages: live preview while editing, genres suggested by format, delete with Undo,
+      price-range bar with gain/loss vs. what you paid.
+- [x] Wishlist: priority filters, inline price check, "Found it" moves a hunt to the shelf.
+- [x] 404 page, skip link, focus rings, reduced-motion support, route-level code splitting.
 
 ## Phase 2 — Collector core (≈4 weeks)
 

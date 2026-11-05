@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShelfLifeAPI.Data;
 using ShelfLifeAPI.Models;
+using ShelfLifeAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.AddProblemDetails();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<NewsFeedService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("ShelfLife/1.0 (+news reader)");
+});
+builder.Services.AddAuthorization(options => options.AddShelfLifePolicies(builder.Configuration));
 
 // The React app reaches the API through a same-origin proxy (Vite in dev, Vercel
 // rewrites in production), so browsers normally never make cross-origin calls.

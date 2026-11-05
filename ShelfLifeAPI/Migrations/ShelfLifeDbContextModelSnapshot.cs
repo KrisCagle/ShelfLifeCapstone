@@ -532,6 +532,42 @@ namespace ShelfLifeAPI.Migrations
                     b.ToTable("ItemGenres");
                 });
 
+            modelBuilder.Entity("ShelfLifeAPI.Models.NewsPost", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LinkUrl")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("PublishedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("NewsPosts");
+                });
+
             modelBuilder.Entity("ShelfLifeAPI.Models.UserProfile", b =>
                 {
                     b.Property<int>("Id")
