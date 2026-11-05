@@ -19,6 +19,15 @@ namespace ShelfLifeAPI.Services.Metadata
             _http = http;
             _apiKey = configuration["Tmdb:ApiKey"];
             _token = configuration["Tmdb:ReadAccessToken"];
+
+            // TMDB's settings page shows both a short v3 key and a long v4 token, and they're
+            // easy to swap. A v4 token is a JWT (three dot-separated parts), so accept it in
+            // either setting and send it the way TMDB expects.
+            if (string.IsNullOrEmpty(_token) && _apiKey?.Count(c => c == '.') == 2)
+            {
+                _token = _apiKey;
+                _apiKey = null;
+            }
         }
 
         public string Source => CatalogSources.Tmdb;
@@ -31,7 +40,25 @@ namespace ShelfLifeAPI.Services.Metadata
             using var doc = await GetJsonAsync($"/search/movie?query={Uri.EscapeDataString(query)}&include_adult=false", cancellationToken);
             if (doc == null || !doc.RootElement.TryGetProperty("results", out var results))
                 return [];
-            return results.EnumerateArray().Take(12).Select(m => FromMovie(m, format.Id)).ToList();
+
+            // TMDB's order is popularity-weighted, so "home alone" leads with a 2021 sequel.
+            // Exact titles first; on tape formats, films from the tape era (VHS production
+            // ended around 2006) before later remakes; then the film most people have rated
+            // ("Home Alone" 1990, not an obscure short called "Home, Alone").
+            var normalizedQuery = CatalogService.Normalize(query);
+            var tapeEra = format.Name == "VHS" ? 2006 : int.MaxValue;
+            return results.EnumerateArray()
+                .Select((m, index) => (
+                    Movie: FromMovie(m, format.Id),
+                    Votes: m.TryGetProperty("vote_count", out var v) ? v.GetInt32() : 0,
+                    Index: index))
+                .OrderByDescending(x => CatalogService.Normalize(x.Movie.Title) == normalizedQuery)
+                .ThenByDescending(x => x.Movie.ReleaseYear is int year && year <= tapeEra)
+                .ThenByDescending(x => x.Votes)
+                .ThenBy(x => x.Index)
+                .Take(12)
+                .Select(x => x.Movie)
+                .ToList();
         }
 
         public async Task<CatalogCandidate?> GetAsync(string externalId, Format format, CancellationToken cancellationToken)

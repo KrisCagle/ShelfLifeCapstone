@@ -43,9 +43,10 @@ namespace ShelfLifeAPI.Services.Metadata
             if (provider == null || query.Trim().Length < 2)
                 return [];
 
-            // Only game search depends on the platform; an album search is the same for CD and
-            // vinyl, so those share one cache entry and just get re-tagged with the format.
-            var scope = provider.Source == CatalogSources.Igdb ? format.Id.ToString() : provider.MediaType;
+            // Game search filters by platform and movie search ranks by format (tape era), so
+            // those are cached per format. An album search is the same for CD and vinyl, so
+            // those share one cache entry and just get re-tagged with the format.
+            var scope = provider.Source is CatalogSources.Igdb or CatalogSources.Tmdb ? format.Id.ToString() : provider.MediaType;
             var key = $"meta:search:{provider.Source}:{scope}:{query.Trim().ToLowerInvariant()}";
             if (!_cache.TryGetValue(key, out IReadOnlyList<CatalogCandidate>? results) || results == null)
             {
@@ -93,8 +94,13 @@ namespace ShelfLifeAPI.Services.Metadata
                 foreach (var product in products.Where(p => p.FormatId != null))
                 {
                     var format = formats.First(f => f.Id == product.FormatId);
-                    var matches = await SearchAsync(product.Title, format, cancellationToken);
-                    results.AddRange(matches.Take(4).Select(m => m with { Barcode = barcode }));
+                    // Retail names trail extra words ("Earthbound Rpg"); if the full name finds
+                    // nothing, drop words from the end until something matches.
+                    var words = product.Title.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+                    IReadOnlyList<CatalogCandidate> matches = [];
+                    for (var take = words.Count; take >= 1 && take > words.Count - 3 && matches.Count == 0; take--)
+                        matches = await SearchAsync(string.Join(' ', words.Take(take)), format, cancellationToken);
+                    results.AddRange(matches.Take(2).Select(m => m with { Barcode = barcode }));
                 }
                 results.AddRange(products);
             }
@@ -104,9 +110,11 @@ namespace ShelfLifeAPI.Services.Metadata
             return results;
         }
 
+        // TMDB search results lack the studio, which only its detail call returns, so movie
+        // records are always fetched fresh when saved instead of reused from a search.
         private void Remember(IEnumerable<CatalogCandidate> candidates)
         {
-            foreach (var c in candidates.Where(c => c.FormatId != null && c.Source != CatalogSources.Upc))
+            foreach (var c in candidates.Where(c => c.FormatId != null && c.Source is not (CatalogSources.Upc or CatalogSources.Tmdb)))
                 _cache.Set(RecordKey(c.Source, c.ExternalId, c.FormatId!.Value), c, RecordTtl);
         }
 

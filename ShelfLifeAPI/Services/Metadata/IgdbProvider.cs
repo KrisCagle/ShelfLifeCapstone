@@ -8,7 +8,7 @@ namespace ShelfLifeAPI.Services.Metadata
     // set Igdb:ClientId and Igdb:ClientSecret (user secrets locally).
     public class IgdbProvider : IMetadataProvider
     {
-        private const string Fields = "fields name,first_release_date,cover.image_id,involved_companies.company.name,involved_companies.publisher;";
+        private const string Fields = "fields name,first_release_date,total_rating_count,cover.image_id,involved_companies.company.id,involved_companies.company.name,involved_companies.developer,involved_companies.publisher;";
 
         // IGDB platform ids for the formats we carry.
         private static readonly Dictionary<string, int> PlatformIds = new()
@@ -48,17 +48,45 @@ namespace ShelfLifeAPI.Services.Metadata
         {
             var search = query.Replace("\\", "").Replace("\"", "");
             var platform = PlatformIds.TryGetValue(format.Name, out var p) ? $" where platforms = ({p});" : "";
-            return await QueryAsync($"search \"{search}\"; {Fields}{platform} limit 12;", format, cancellationToken);
+            var games = await QueryAsync($"search \"{search}\"; {Fields}{platform} limit 50;", format, cancellationToken);
+
+            // IGDB ranks purely on text, so ROM hacks and fan games that repeat the name
+            // ("Super Metroid: Phazon", "Sonic 2 Recreation") crowd out the real release.
+            // Exact title first, then titles containing every searched word, then by how many
+            // people have rated it: real retail games have hundreds, hacks almost none.
+            var words = Words(query);
+            return games
+                .Select((g, index) => new { g, index, title = Words(g.Candidate.Title) })
+                .OrderByDescending(x => x.title.SetEquals(words))
+                .ThenByDescending(x => words.IsSubsetOf(x.title))
+                .ThenByDescending(x => x.g.Ratings)
+                .ThenBy(x => x.index)
+                .Take(12)
+                .Select(x => x.g.Candidate)
+                .ToList();
         }
 
         public async Task<CatalogCandidate?> GetAsync(string externalId, Format format, CancellationToken cancellationToken)
         {
             if (!long.TryParse(externalId, out var id))
                 return null;
-            return (await QueryAsync($"{Fields} where id = {id};", format, cancellationToken)).FirstOrDefault();
+            return (await QueryAsync($"{Fields} where id = {id};", format, cancellationToken)).FirstOrDefault()?.Candidate;
         }
 
-        private async Task<IReadOnlyList<CatalogCandidate>> QueryAsync(string body, Format format, CancellationToken cancellationToken)
+        private record IgdbGame(CatalogCandidate Candidate, int Ratings);
+
+        // Lowercased words with accents folded, so "pokemon" matches "Pokémon".
+        private static HashSet<string> Words(string text)
+        {
+            var folded = new string(text.Normalize(NormalizationForm.FormD)
+                .Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
+                .ToArray()).ToLowerInvariant();
+            return folded.Split(Separators, StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+        }
+
+        private static readonly char[] Separators = [' ', ':', '-', '.', ',', '!', '?', '\'', '&', '/', '(', ')'];
+
+        private async Task<IReadOnlyList<IgdbGame>> QueryAsync(string body, Format format, CancellationToken cancellationToken)
         {
             if (!IsConfigured)
                 return [];
@@ -83,20 +111,30 @@ namespace ShelfLifeAPI.Services.Metadata
                 int? year = g.TryGetProperty("first_release_date", out var d)
                     ? DateTimeOffset.FromUnixTimeSeconds(d.GetInt64()).Year
                     : null;
-                return new CatalogCandidate(Source, g.GetProperty("id").GetInt64().ToString(), g.GetProperty("name").GetString()!,
-                    format.Id, year, Publisher(g), cover);
+                var ratings = g.TryGetProperty("total_rating_count", out var r) ? r.GetInt32() : 0;
+                return new IgdbGame(new CatalogCandidate(Source, g.GetProperty("id").GetInt64().ToString(), g.GetProperty("name").GetString()!,
+                    format.Id, year, Developer(g), cover), ratings);
             }).ToList();
         }
 
-        private static string? Publisher(JsonElement game)
+        // The name on the box: the publisher (Square, Nintendo, Konami). Games often list
+        // regional publishers too (Pokémon Red: Nintendo and Brazil's Gradiente); IGDB's
+        // company ids are roughly in order of addition and the majors went in first, so the
+        // lowest id is the main publisher. Falls back to the developer when none is listed.
+        private static string? Developer(JsonElement game)
         {
             if (!game.TryGetProperty("involved_companies", out var companies))
                 return null;
-            var all = companies.EnumerateArray().ToList();
-            var pick = all.FirstOrDefault(c => c.TryGetProperty("publisher", out var p) && p.GetBoolean());
+            static bool Is(JsonElement c, string role) => c.TryGetProperty(role, out var v) && v.GetBoolean();
+            static long Id(JsonElement c) => c.TryGetProperty("company", out var co) && co.TryGetProperty("id", out var id) ? id.GetInt64() : long.MaxValue;
+
+            var all = companies.EnumerateArray().Where(c => c.TryGetProperty("company", out _)).ToList();
+            var pick = all.Where(c => Is(c, "publisher")).OrderBy(Id).FirstOrDefault();
+            if (pick.ValueKind == JsonValueKind.Undefined)
+                pick = all.Where(c => Is(c, "developer")).OrderBy(Id).FirstOrDefault();
             if (pick.ValueKind == JsonValueKind.Undefined && all.Count > 0)
                 pick = all[0];
-            return pick.ValueKind != JsonValueKind.Undefined && pick.TryGetProperty("company", out var co) && co.TryGetProperty("name", out var n)
+            return pick.ValueKind != JsonValueKind.Undefined && pick.GetProperty("company").TryGetProperty("name", out var n)
                 ? n.GetString()
                 : null;
         }
