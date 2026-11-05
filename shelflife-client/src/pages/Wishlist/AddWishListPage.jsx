@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { createWishlistItem } from '../../services/itemService'
+import { createWishlistItem } from '../../services/wishlistService'
+import { getFormats } from '../../services/lookupService'
 
 const priorityLabels = { 1: "Low", 2: "Medium", 3: "High" }
 
@@ -15,7 +16,7 @@ const AddWishlistPage = () => {
   })
 
   useEffect(() => {
-    fetch('/api/formats').then(r => r.json()).then(setFormats)
+    getFormats().then(setFormats)
   }, [])
 
   const handleChange = (e) => {

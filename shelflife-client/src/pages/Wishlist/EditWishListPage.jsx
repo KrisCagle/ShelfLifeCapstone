@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
+import { getWishlistItemById, updateWishlistItem } from '../../services/wishlistService'
+import { getFormats } from '../../services/lookupService'
 
 const priorityLabels = { 1: "Low", 2: "Medium", 3: "High" }
 
@@ -11,8 +13,8 @@ const EditWishlistPage = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/formats').then(r => r.json()),
-      fetch(`/api/wishlist/${id}`).then(r => r.json())
+      getFormats(),
+      getWishlistItemById(id)
     ]).then(([formatsData, itemData]) => {
       setFormats(formatsData)
       setFormData({
@@ -31,15 +33,11 @@ const EditWishlistPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await fetch(`/api/wishlist/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: formData.title,
-        formatId: parseInt(formData.formatId),
-        priority: parseInt(formData.priority),
-        notes: formData.notes
-      })
+    await updateWishlistItem(id, {
+      title: formData.title,
+      formatId: parseInt(formData.formatId),
+      priority: parseInt(formData.priority),
+      notes: formData.notes
     })
     navigate('/wishlist')
   }

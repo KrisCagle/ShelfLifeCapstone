@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { createItem } from '../../services/itemService'
- 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api'
+import { getFormats, getConditions, getGenres } from '../../services/lookupService'
+
 const AddItemPage = () => {
   const navigate = useNavigate()
   const [formats, setFormats] = useState([])
@@ -22,11 +22,11 @@ const AddItemPage = () => {
 
  
 
-useEffect(() => {
-  fetch(`${BASE_URL}/formats`).then(r => r.json()).then(setFormats)
-  fetch(`${BASE_URL}/conditions`).then(r => r.json()).then(setConditions)
-  fetch(`${BASE_URL}/genres`).then(r => r.json()).then(setGenres)
-}, [])
+  useEffect(() => {
+    getFormats().then(setFormats)
+    getConditions().then(setConditions)
+    getGenres().then(setGenres)
+  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)

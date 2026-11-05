@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { getItemById, updateItem } from '../../services/itemService'
+import { getFormats, getConditions, getGenres } from '../../services/lookupService'
 
 const EditItemPage = () => {
   const { id } = useParams()
@@ -12,9 +13,9 @@ const EditItemPage = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/formats').then(r => r.json()),
-      fetch('/api/conditions').then(r => r.json()),
-      fetch('/api/genres').then(r => r.json()),
+      getFormats(),
+      getConditions(),
+      getGenres(),
       getItemById(id)
     ]).then(([formatsData, conditionsData, genresData, itemData]) => {
       setFormats(formatsData)

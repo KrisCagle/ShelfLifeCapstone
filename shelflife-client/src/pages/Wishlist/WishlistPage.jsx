@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getWishlist, deleteWishlistItem } from "../../services/itemService";
+import { getWishlist, deleteWishlistItem } from "../../services/wishlistService";
 
 const priorityLabels = { 1: "Low", 2: "Medium", 3: "High" };
 const priorityColors = { 1: "#01dfba", 2: "#f5a623", 3: "#ff4444" };

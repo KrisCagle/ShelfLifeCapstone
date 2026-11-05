@@ -15,18 +15,23 @@ builder.Services.AddControllers().AddJsonOptions(opts =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
+builder.Services.AddProblemDetails();
+
+// The React app reaches the API through a same-origin proxy (Vite in dev, Vercel
+// rewrites in production), so browsers normally never make cross-origin calls.
+// Only origins listed in config are trusted; never a wildcard like *.vercel.app,
+// since anyone can deploy a site there.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5173"];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.SetIsOriginAllowed(origin =>
-            origin == "http://localhost:5173" ||
-            origin == "https://shelf-life-capstone.vercel.app" ||
-            origin.EndsWith(".vercel.app")
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
+        policy.WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -68,16 +73,26 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? Environment.GetEnvironmentVariable("DATABASE_URL");
 
-if (connectionString != null && connectionString.StartsWith("postgresql://"))
+// Hosts like Render and Supabase hand out URL-style connection strings
+// (postgres://user:pass@host:port/db); Npgsql wants key=value pairs.
+if (connectionString != null &&
+    (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://")))
 {
     var uri = new Uri(connectionString);
-    var userInfo = uri.UserInfo.Split(':');
-    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    var password = Uri.UnescapeDataString(userInfo[1]);
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    connectionString = $"Host={uri.Host};Port={port};Database={uri.AbsolutePath.TrimStart('/')};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
 }
 
 builder.Services.AddNpgsql<ShelfLifeDbContext>(connectionString);
 
 var app = builder.Build();
+
+// Unhandled exceptions become a generic ProblemDetails 500; the real error is
+// logged server-side instead of being sent to the client.
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
