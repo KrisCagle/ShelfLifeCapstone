@@ -17,11 +17,13 @@ namespace ShelfLifeAPI.Controllers
     {
         private readonly ShelfLifeDbContext _context;
         private readonly CatalogService _catalog;
+        private readonly IPhotoStorage _photos;
 
-        public ItemsController(ShelfLifeDbContext context, CatalogService catalog)
+        public ItemsController(ShelfLifeDbContext context, CatalogService catalog, IPhotoStorage photos)
         {
             _context = context;
             _catalog = catalog;
+            _photos = photos;
         }
 
         private string GetUserId() =>
@@ -101,11 +103,14 @@ namespace ShelfLifeAPI.Controllers
             if (item == null)
                 return NotFound();
 
+            var previousPhoto = item.PhotoUrl;
             var error = await ApplyAsync(item, dto, cancellationToken);
             if (error != null)
                 return Invalid(error);
 
             await _context.SaveChangesAsync(cancellationToken);
+            if (previousPhoto != item.PhotoUrl)
+                await RemovePhotoIfUnusedAsync(previousPhoto, cancellationToken);
             return NoContent();
         }
 
@@ -119,6 +124,7 @@ namespace ShelfLifeAPI.Controllers
 
             _context.Items.Remove(item);
             await _context.SaveChangesAsync();
+            await RemovePhotoIfUnusedAsync(item.PhotoUrl, CancellationToken.None);
             return NoContent();
         }
 
@@ -152,6 +158,15 @@ namespace ShelfLifeAPI.Controllers
             foreach (var genreId in validGenres.Where(g => item.ItemGenres.All(x => x.GenreId != g)))
                 item.ItemGenres.Add(new ItemGenre { GenreId = genreId });
             return null;
+        }
+
+        // Runs after the save, so a failed save never loses a photo. The check means an
+        // item pointing at someone else's photo can't be used to delete it.
+        private async Task RemovePhotoIfUnusedAsync(string? url, CancellationToken cancellationToken)
+        {
+            var name = PhotoFiles.NameFrom(url);
+            if (name != null && !await _context.Items.AnyAsync(i => i.PhotoUrl == url, cancellationToken))
+                _photos.Delete(name);
         }
 
         private IActionResult Invalid(string message)
