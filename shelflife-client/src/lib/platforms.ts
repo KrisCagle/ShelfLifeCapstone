@@ -1,7 +1,7 @@
 import type { MediaType } from './types'
 
 /** Every kind of thing people collect, in display order. */
-export const MEDIA_TYPES: MediaType[] = ['Games', 'Music', 'Movies', 'Books']
+export const MEDIA_TYPES: MediaType[] = ['Games', 'Music', 'Movies', 'Books', 'Comics']
 
 interface PlatformStyle {
   color: string
@@ -43,6 +43,10 @@ const PLATFORMS: Record<string, PlatformStyle> = {
   Paperback: { color: '#e9c46a', media: 'Books' },
   'Mass Market Paperback': { color: '#f4a261', short: 'Mass Market', media: 'Books' },
   Manga: { color: '#ff5c8a', media: 'Books' },
+  'Single Issue': { color: '#ff3d3d', short: 'Issue', media: 'Comics' },
+  'Trade Paperback': { color: '#ffb703', short: 'TPB', media: 'Comics' },
+  'Graphic Novel': { color: '#fb5607', short: 'GN', media: 'Comics' },
+  Omnibus: { color: '#3a86ff', media: 'Comics' },
 }
 
 const FALLBACK: PlatformStyle = { color: '#00bfff', media: 'Games' }
@@ -55,11 +59,11 @@ export const ALL_PLATFORMS = Object.keys(PLATFORMS)
 
 // Genres are one shared list; this decides which ones a format's form shows first.
 const GENRE_MEDIA: Record<string, MediaType[]> = {
-  Action: ['Games', 'Movies'],
-  Comedy: ['Movies', 'Books'],
-  Horror: ['Games', 'Movies', 'Books'],
+  Action: ['Games', 'Movies', 'Comics'],
+  Comedy: ['Movies', 'Books', 'Comics'],
+  Horror: ['Games', 'Movies', 'Books', 'Comics'],
   Drama: ['Movies'],
-  'Sci-Fi': ['Games', 'Movies', 'Books'],
+  'Sci-Fi': ['Games', 'Movies', 'Books', 'Comics'],
   RPG: ['Games'],
   Platformer: ['Games'],
   Shooter: ['Games'],
@@ -77,7 +81,8 @@ const GENRE_MEDIA: Record<string, MediaType[]> = {
   Pop: ['Music'],
   Fiction: ['Books'],
   'Non-fiction': ['Books'],
-  Fantasy: ['Books'],
+  Fantasy: ['Books', 'Comics'],
+  Superhero: ['Comics'],
   Mystery: ['Books', 'Movies'],
   Romance: ['Books', 'Movies'],
   Biography: ['Books'],

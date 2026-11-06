@@ -52,6 +52,12 @@ builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<Igd
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<MusicBrainzProvider>());
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<TmdbProvider>());
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<OpenLibraryProvider>());
+builder.Services.AddHttpClient<GcdProvider>(client =>
+{
+    Metadata(client);
+    client.Timeout = TimeSpan.FromSeconds(12);
+});
+builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<GcdProvider>());
 builder.Services.AddScoped<MetadataService>();
 builder.Services.AddScoped<CatalogService>();
 

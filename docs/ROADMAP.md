@@ -118,6 +118,17 @@ Pulled forward because a polished front end matters before anything goes live.
   fields, and a Books tab. Collection tabs now split every media type into its own shelf, and
   titles carry a description from their source. Open Library asks not to be a high-traffic
   commercial backend, so move to its monthly data dumps before that matters.
+- [x] **Comics, stage one**: issue search through the Grand Comics Database ("Saga 12"), with
+  Direct and Newsstand editions, collector fields, and a Comics tab. Covers come from the
+  user's own photo, because GCD's aren't licensed for reuse.
+- [ ] **Comics, stage two**: exact-issue scanning. The main barcode only names the series; the
+  5-digit add-on beside it gives issue, variant and printing, and the scanner ignores add-ons
+  today. Metron has the UPC lookup, but asks each user of a multi-user app to bring their own
+  account, so this needs a conversation with them first.
+- [ ] **Before launch**: comic search can't stay on GCD's anonymous API. Testing used up its limit
+  within a few dozen requests, and all users would share that allowance from one server. Use a
+  GCD account or import its data downloads, and confirm its terms for an app like this and what
+  share-alike means for the shared catalog.
 - [ ] **Haul history**: keep each haul as a record, with spending by month, store and media type.
 - [ ] Tags, custom shelves, physical location ("Box 3"), loaned-out tracking.
 - [ ] CSV import and export (export is always free — your data is yours).

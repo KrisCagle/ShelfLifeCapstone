@@ -50,6 +50,14 @@ namespace ShelfLifeAPI.Services
                     new("dustJacket", "Has dust jacket", AttributeKind.Toggle, Formats: ["Hardcover"]),
                     new("publisher", "Publisher", AttributeKind.Text, Placeholder: "Bantam, Penguin…"),
                 ],
+                [MediaTypes.Comics] =
+                [
+                    new("grade", "Grade", AttributeKind.Text, Placeholder: "CGC 9.8, raw VF…", ShowOnCard: true),
+                    new("slabbed", "Slabbed", AttributeKind.Toggle),
+                    new("variant", "Variant", AttributeKind.Text, Placeholder: "Cover B, 1:25 incentive…"),
+                    new("signed", "Signed", AttributeKind.Toggle),
+                    new("keyIssue", "Key issue", AttributeKind.Text, Placeholder: "First appearance of…"),
+                ],
                 [MediaTypes.Movies] =
                 [
                     new("caseType", "Case", AttributeKind.Select,

@@ -15,5 +15,6 @@ namespace ShelfLifeAPI.Models
         public const string Music = "Music";
         public const string Movies = "Movies";
         public const string Books = "Books";
+        public const string Comics = "Comics";
     }
 }
