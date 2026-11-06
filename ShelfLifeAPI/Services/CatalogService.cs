@@ -44,8 +44,12 @@ namespace ShelfLifeAPI.Services
 
             if (reference.Source != CatalogSources.Manual && reference.Source != CatalogSources.Upc && !string.IsNullOrEmpty(reference.ExternalId))
             {
-                var shared = await _db.CatalogEntries.Include(c => c.Format).FirstOrDefaultAsync(c =>
-                    c.Source == reference.Source && c.ExternalId == reference.ExternalId && c.FormatId == format.Id, cancellationToken);
+                // Local first: a batch stages several items before saving, and two copies of a
+                // new title must share one entry or they'd break the unique index.
+                var shared = _db.CatalogEntries.Local.FirstOrDefault(c =>
+                    c.Source == reference.Source && c.ExternalId == reference.ExternalId && c.FormatId == format.Id)
+                    ?? await _db.CatalogEntries.Include(c => c.Format).FirstOrDefaultAsync(c =>
+                        c.Source == reference.Source && c.ExternalId == reference.ExternalId && c.FormatId == format.Id, cancellationToken);
                 if (shared != null)
                     return (shared, null);
 

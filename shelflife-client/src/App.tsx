@@ -17,6 +17,7 @@ const ItemFormPage = lazy(() => import('@/pages/ItemFormPage'))
 const WishlistPage = lazy(() => import('@/pages/WishlistPages').then((m) => ({ default: m.WishlistPage })))
 const WishlistFormPage = lazy(() => import('@/pages/WishlistPages').then((m) => ({ default: m.WishlistFormPage })))
 const AdminNewsPage = lazy(() => import('@/pages/AdminNewsPage'))
+const HaulPage = lazy(() => import('@/pages/HaulPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,7 @@ const router = createBrowserRouter([
         element: <RequireAuth />,
         children: [
           { path: '/collection', element: <CollectionPage /> },
+          { path: '/haul', element: <HaulPage /> },
           { path: '/items/new', element: <ItemFormPage /> },
           { path: '/items/:id', element: <ItemDetailPage /> },
           { path: '/items/:id/edit', element: <ItemFormPage /> },

@@ -126,4 +126,10 @@ namespace ShelfLifeAPI.Dtos
 
         public Dictionary<string, string>? Attributes { get; set; }
     }
+
+    public class ItemBatchDto
+    {
+        [Required, MinLength(1), MaxLength(100)]
+        public List<ItemSaveDto> Items { get; set; } = [];
+    }
 }

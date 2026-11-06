@@ -111,6 +111,23 @@ export function useSaveItem(id?: number) {
   })
 }
 
+/** Adds up to 100 items, all or none, then clears any that were on the wishlist. */
+export function useSaveBatch() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ items, wishlistIds }: { items: ItemSave[]; wishlistIds: number[] }) => {
+      await api.post<Item[]>('/items/batch', { items })
+      // The items are safely saved; a wishlist entry left behind is harmless.
+      await Promise.allSettled(wishlistIds.map((id) => api.delete(`/wishlist/${id}`)))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: keys.items })
+      queryClient.invalidateQueries({ queryKey: keys.wishlist })
+      queryClient.invalidateQueries({ queryKey: ['catalog'] })
+    },
+  })
+}
+
 export function useDeleteItem() {
   const queryClient = useQueryClient()
   return useMutation({

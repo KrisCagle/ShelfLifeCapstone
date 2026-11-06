@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { Camera, Flashlight, ImageUp, Keyboard, X } from 'lucide-react'
@@ -44,9 +44,31 @@ interface BarcodeScannerProps {
   open: boolean
   onClose: () => void
   onDetected: (barcode: string) => void
+  /** Keep scanning after each read, and read every barcode in a photo. */
+  continuous?: boolean
+  title?: string
+  /** Shown above the controls, e.g. the running list of a batch. */
+  children?: ReactNode
 }
 
-export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeScannerProps) {
+/** A short tick, so a batch can be scanned without watching the screen. */
+function beep() {
+  try {
+    const audio = new AudioContext()
+    const tone = audio.createOscillator()
+    const volume = audio.createGain()
+    volume.gain.value = 0.06
+    tone.frequency.value = 1500
+    tone.connect(volume).connect(audio.destination)
+    tone.onended = () => audio.close()
+    tone.start()
+    tone.stop(audio.currentTime + 0.08)
+  } catch {
+    // No audio available; the flash and vibration still confirm the read.
+  }
+}
+
+export default function BarcodeScanner({ open, onClose, onDetected, continuous = false, title = 'Scan a barcode', children }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const detectorRef = useRef<Detector | null>(null)
@@ -57,15 +79,27 @@ export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeSca
   const [flash, setFlash] = useState(false)
   const [photoError, setPhotoError] = useState('')
 
+  // Held in a ref so a parent re-render (a batch list growing) can't restart the camera.
+  const onDetectedRef = useRef(onDetected)
+  useEffect(() => {
+    onDetectedRef.current = onDetected
+  }, [onDetected])
+
   const finish = useCallback(
     (raw: string) => {
       const code = normalizeBarcode(raw)
       if (code.length < 8) return
       navigator.vibrate?.(60)
       setFlash(true)
-      window.setTimeout(() => onDetected(code), 180)
+      if (continuous) {
+        beep()
+        onDetectedRef.current(code)
+        window.setTimeout(() => setFlash(false), 250)
+      } else {
+        window.setTimeout(() => onDetectedRef.current(code), 180)
+      }
     },
-    [onDetected],
+    [continuous],
   )
 
   // Camera + detection loop. A code must read the same twice in a row to count,
@@ -75,6 +109,7 @@ export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeSca
     let cancelled = false
     let timer = 0
     let last = ''
+    let accepted = ''
 
     const start = async () => {
       if (!window.isSecureContext) return setStatus('insecure')
@@ -103,7 +138,16 @@ export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeSca
             try {
               const [hit] = await detectorRef.current.detect(video)
               if (hit?.rawValue) {
-                if (hit.rawValue === last) return finish(hit.rawValue)
+                if (hit.rawValue === last) {
+                  if (!continuous) return finish(hit.rawValue)
+                  // Ignore the code still in frame; give time to move to the next item.
+                  if (hit.rawValue !== accepted) {
+                    accepted = hit.rawValue
+                    finish(hit.rawValue)
+                    timer = window.setTimeout(tick, 900)
+                    return
+                  }
+                }
                 last = hit.rawValue
               }
             } catch {
@@ -126,7 +170,7 @@ export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeSca
       streamRef.current?.getTracks().forEach((t) => t.stop())
       streamRef.current = null
     }
-  }, [open, finish])
+  }, [open, finish, continuous])
 
   useEffect(() => {
     if (!open) return
@@ -147,9 +191,11 @@ export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeSca
     setPhotoError('')
     try {
       detectorRef.current ??= await createDetector()
-      const [hit] = await detectorRef.current.detect(await createImageBitmap(file))
-      if (hit?.rawValue) finish(hit.rawValue)
-      else setPhotoError('No barcode found in that photo. Try a closer, sharper shot.')
+      const hits = await detectorRef.current.detect(await createImageBitmap(file))
+      const codes = [...new Set(hits.map((h) => h.rawValue).filter(Boolean))]
+      if (codes.length === 0) setPhotoError('No barcode found in that photo. Try a closer, sharper shot.')
+      else if (continuous) codes.forEach(finish)
+      else finish(codes[0])
     } catch {
       setPhotoError('Couldn’t read that image.')
     }
@@ -158,7 +204,10 @@ export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeSca
   const submitManual = (e: FormEvent) => {
     e.preventDefault()
     const code = normalizeBarcode(manual)
-    if (code.length >= 8 && code.length <= 14) finish(code)
+    if (code.length >= 8 && code.length <= 14) {
+      finish(code)
+      setManual('')
+    }
   }
 
   const message: Record<Exclude<Status, 'scanning'>, string> = {
@@ -181,7 +230,7 @@ export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeSca
           aria-label="Scan a barcode"
         >
           <div className="flex items-center justify-between px-4 py-3">
-            <p className="font-display text-2xl tracking-[0.15em] text-white">Scan a barcode</p>
+            <p className="font-display text-2xl tracking-[0.15em] text-white">{title}</p>
             <button onClick={onClose} className="grid size-10 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20" aria-label="Close scanner">
               <X className="size-5" />
             </button>
@@ -212,7 +261,8 @@ export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeSca
           </div>
 
           <div className="mx-auto w-full max-w-2xl space-y-3 px-4 pb-6 pt-4">
-            {status === 'scanning' && <p className="text-center text-sm text-zinc-400">Line the barcode up inside the frame. It’ll read on its own.</p>}
+            {children}
+            {status === 'scanning' && !continuous && <p className="text-center text-sm text-zinc-400">Line the barcode up inside the frame. It’ll read on its own.</p>}
             <div className="flex flex-wrap justify-center gap-2">
               {torch !== null && (
                 <button onClick={toggleTorch} className={cn('inline-flex items-center gap-2 rounded-full px-4 py-2 font-display tracking-wider', torch ? 'bg-neon-amber text-ink-900' : 'bg-white/10 text-white')}>
@@ -221,7 +271,15 @@ export default function BarcodeScanner({ open, onClose, onDetected }: BarcodeSca
               )}
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-white/10 px-4 py-2 font-display tracking-wider text-white hover:bg-white/20">
                 <ImageUp className="size-4" /> Photo
-                <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => fromPhoto(e.target.files?.[0])} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => {
+                    fromPhoto(e.target.files?.[0])
+                    e.target.value = ''
+                  }}
+                />
               </label>
               <button onClick={() => setShowManual((v) => !v)} className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 font-display tracking-wider text-white hover:bg-white/20">
                 <Keyboard className="size-4" /> Type it
