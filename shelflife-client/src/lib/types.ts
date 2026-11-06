@@ -3,7 +3,7 @@ export interface Lookup {
   name: string
 }
 
-export type MediaType = 'Games' | 'Music' | 'Movies' | 'Books'
+export type MediaType = 'Games' | 'Music' | 'Movies' | 'Books' | 'Comics'
 
 export interface Format extends Lookup {
   mediaType: MediaType
@@ -14,7 +14,7 @@ export interface ItemGenre {
   genre?: Lookup | null
 }
 
-export type CatalogSource = 'manual' | 'igdb' | 'musicbrainz' | 'tmdb' | 'openlibrary' | 'upc'
+export type CatalogSource = 'manual' | 'igdb' | 'musicbrainz' | 'tmdb' | 'openlibrary' | 'gcd' | 'upc'
 
 export interface CatalogEntry {
   id: number

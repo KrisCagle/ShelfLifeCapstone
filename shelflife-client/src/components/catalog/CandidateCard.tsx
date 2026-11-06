@@ -10,6 +10,7 @@ export const SOURCE_LABELS: Record<CatalogSource, string> = {
   musicbrainz: 'MusicBrainz',
   tmdb: 'TMDB',
   openlibrary: 'Open Library',
+  gcd: 'GCD',
   upc: 'Product lookup',
   manual: 'Your entry',
 }

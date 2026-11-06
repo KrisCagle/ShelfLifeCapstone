@@ -90,7 +90,11 @@ namespace ShelfLifeAPI.Data
                 new Format { Id = 29, Name = "Hardcover", MediaType = MediaTypes.Books },
                 new Format { Id = 30, Name = "Paperback", MediaType = MediaTypes.Books },
                 new Format { Id = 31, Name = "Mass Market Paperback", MediaType = MediaTypes.Books },
-                new Format { Id = 32, Name = "Manga", MediaType = MediaTypes.Books }
+                new Format { Id = 32, Name = "Manga", MediaType = MediaTypes.Books },
+                new Format { Id = 33, Name = "Single Issue", MediaType = MediaTypes.Comics },
+                new Format { Id = 34, Name = "Trade Paperback", MediaType = MediaTypes.Comics },
+                new Format { Id = 35, Name = "Graphic Novel", MediaType = MediaTypes.Comics },
+                new Format { Id = 36, Name = "Omnibus", MediaType = MediaTypes.Comics }
             );
 
             // Seed Conditions
@@ -130,7 +134,8 @@ namespace ShelfLifeAPI.Data
                 new Genre { Id = 25, Name = "Romance" },
                 new Genre { Id = 26, Name = "Biography" },
                 new Genre { Id = 27, Name = "History" },
-                new Genre { Id = 28, Name = "Children's" }
+                new Genre { Id = 28, Name = "Children's" },
+                new Genre { Id = 29, Name = "Superhero" }
             );
         }
     }

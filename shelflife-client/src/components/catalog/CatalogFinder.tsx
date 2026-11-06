@@ -14,7 +14,7 @@ import { FormatOptions } from './FormatOptions'
 // The scanner pulls in a ~1 MB decoder, so it only loads when someone opens it.
 const BarcodeScanner = lazy(() => import('./BarcodeScanner'))
 
-const MEDIA_NOUN: Record<MediaType, string> = { Games: 'game', Music: 'album', Movies: 'movie', Books: 'book' }
+const MEDIA_NOUN: Record<MediaType, string> = { Games: 'game', Music: 'album', Movies: 'movie', Books: 'book', Comics: 'comic' }
 
 const LAST_FORMAT_KEY = 'shelflife:last-format'
 
@@ -150,7 +150,7 @@ export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = nul
               }}
               disabled={!formatId}
               autoFocus={!!formatId}
-              placeholder={format ? `Search for a ${MEDIA_NOUN[format.mediaType]}${format.mediaType === 'Music' ? ' or artist' : ''}…` : 'Pick a format first'}
+              placeholder={!format ? 'Pick a format first' : format.mediaType === 'Comics' ? 'Series and issue, like Saga 12' : `Search for a ${MEDIA_NOUN[format.mediaType]}${format.mediaType === 'Music' ? ' or artist' : ''}…`}
               aria-label="Search the catalog"
               className="h-12 w-full rounded-xl border border-white/10 bg-ink-800/80 pl-9 pr-10 text-lg text-zinc-100 placeholder:text-zinc-500 focus:border-neon-cyan/70 focus:outline-none focus:ring-2 focus:ring-neon-cyan/30 disabled:opacity-50 [&::-webkit-search-cancel-button]:hidden"
             />
@@ -168,7 +168,7 @@ export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = nul
         </div>
         {provider && !provider.configured && formatId && (
           <p className="mt-2 text-sm text-zinc-500">
-            {provider.name} lookups aren’t connected yet, so this searches your own titles. You can still scan or add it by hand.
+            {provider.name} isn’t available right now, so this searches your own titles. You can still scan or add it by hand.
           </p>
         )}
         {provider?.configured && <p className="mt-2 font-mono text-xs text-zinc-600">Searching {provider.name}</p>}

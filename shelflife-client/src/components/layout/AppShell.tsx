@@ -54,7 +54,19 @@ function Footer() {
         </div>
         <p className="max-w-lg text-xs leading-relaxed sm:text-right">
           Headlines link to and belong to their publishers. Price estimates come from live eBay listings. Music data from
-          MusicBrainz, cover art from the Cover Art Archive, game data from IGDB. This product uses the TMDB API but is not
+          MusicBrainz, cover art from the Cover Art Archive, game data from IGDB, book data from{' '}
+          <a href="https://openlibrary.org" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
+            Open Library
+          </a>
+          . Comic data from the{' '}
+          <a href="https://www.comics.org" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
+            Grand Comics Database
+          </a>
+          , licensed under{' '}
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
+            CC BY-SA 4.0
+          </a>
+          . This product uses the TMDB API but is not
           endorsed or certified by TMDB.
         </p>
         <nav className="flex gap-4">
