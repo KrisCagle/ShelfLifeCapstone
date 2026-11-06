@@ -66,6 +66,31 @@ namespace ShelfLifeAPI.Controllers
             return CreatedAtAction(nameof(GetById), new { id = item.Id }, ItemDto.From(saved));
         }
 
+        // POST: api/items/batch — a whole haul: every item saves, or none do
+        [HttpPost("batch")]
+        public async Task<IActionResult> CreateBatch([FromBody] ItemBatchDto dto, CancellationToken cancellationToken)
+        {
+            var items = new List<Item>();
+            foreach (var (entry, index) in dto.Items.Select((entry, index) => (entry, index)))
+            {
+                var item = new Item { UserId = GetUserId(), ItemGenres = [] };
+                var error = await ApplyAsync(item, entry, cancellationToken);
+                if (error != null)
+                    return Invalid($"“{entry.Catalog.Title}” (item {index + 1}): {error}");
+
+                _context.Items.Add(item);
+                items.Add(item);
+            }
+
+            // One SaveChanges is one transaction, and none is held open during the
+            // metadata lookups above, which can take a while on a big haul.
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var ids = items.Select(i => i.Id).ToList();
+            var saved = await UserItems().AsNoTracking().Where(i => ids.Contains(i.Id)).ToListAsync(cancellationToken);
+            return Ok(saved.Select(ItemDto.From));
+        }
+
         // PUT: api/items/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] ItemSaveDto dto, CancellationToken cancellationToken)

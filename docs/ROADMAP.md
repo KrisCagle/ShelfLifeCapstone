@@ -108,7 +108,10 @@ Pulled forward because a polished front end matters before anything goes live.
       (`Igdb:ClientId`/`Igdb:ClientSecret`, `Tmdb:ApiKey`); any barcode via UPCitemdb's trial tier.
 - [~] **Hunt mode**: "Scan" in the nav answers *you own this / it's on your wishlist / new to you*
       in one scan. Still to do: installable PWA and offline use.
-- [ ] **Hauls**: log a whole trip at once. Spending by month, store and media type.
+- [x] **Haul mode**: from any scan result, keep the camera open and scan a stack, or read several
+  barcodes from one photo. Review them together, share store and date, split the total, and save
+  all or nothing. The batch is kept on the device until it's added.
+- [ ] **Haul history**: keep each haul as a record, with spending by month, store and media type.
 - [ ] Tags, custom shelves, physical location ("Box 3"), loaned-out tracking.
 - [ ] CSV import and export (export is always free — your data is yours).
 - [ ] Dashboard: counts, spend, and breakdowns by media type and platform.
@@ -117,8 +120,8 @@ Pulled forward because a polished front end matters before anything goes live.
 
 Candidates for the next rounds, roughly in order of payoff:
 
-- **Haul mode**: scan several items in a row at the store; they share store/date/price-split and
-  save as one haul.
+- **Shelf photo reading**: an AI vision pass that reads titles off spines, as a possible Pro feature.
+  It has a per-photo API cost, so try it once there are paying users.
 - **Stats page**: spending over time, by store and by format; most valuable items; biggest gains.
 - **Command palette (Ctrl+K)**: jump to any title, add, scan, or switch views from the keyboard.
 - **Onboarding checklist** for new accounts: add 3 titles, scan a barcode, add a hunt, check a price.

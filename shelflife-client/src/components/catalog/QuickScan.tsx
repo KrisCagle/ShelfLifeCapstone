@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { CircleCheckBig, Heart, PackagePlus, RefreshCw, ScanLine, Sparkles, WifiOff } from 'lucide-react'
+import { CircleCheckBig, Heart, Layers, PackagePlus, RefreshCw, ScanLine, Sparkles, WifiOff } from 'lucide-react'
 import { useBarcodeLookup } from '@/hooks/queries'
 import { cn } from '@/lib/cn'
 import type { Candidate } from '@/lib/types'
@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/Misc'
 import { CandidateCard } from './CandidateCard'
 
 const BarcodeScanner = lazy(() => import('./BarcodeScanner'))
+const HaulScanner = lazy(() => import('./HaulScanner'))
 
 type Verdict = 'owned' | 'wishlist' | 'new' | 'unknown'
 
@@ -26,6 +27,7 @@ export function QuickScan({ open, onClose }: { open: boolean; onClose: () => voi
   const navigate = useNavigate()
   const [barcode, setBarcode] = useState<string | null>(null)
   const [selected, setSelected] = useState<Candidate | null>(null)
+  const [batch, setBatch] = useState(false)
   const lookup = useBarcodeLookup(barcode)
   const results = lookup.data?.results ?? []
 
@@ -41,6 +43,7 @@ export function QuickScan({ open, onClose }: { open: boolean; onClose: () => voi
   const close = () => {
     setBarcode(null)
     setSelected(null)
+    setBatch(false)
     onClose()
   }
   const go = (to: string, state?: unknown) => {
@@ -49,6 +52,13 @@ export function QuickScan({ open, onClose }: { open: boolean; onClose: () => voi
   }
 
   if (!open) return null
+
+  if (batch)
+    return (
+      <Suspense fallback={null}>
+        <HaulScanner seed={barcode ? { barcode, results } : undefined} onClose={close} onReview={() => go('/haul')} />
+      </Suspense>
+    )
 
   if (!barcode)
     return (
@@ -128,6 +138,20 @@ export function QuickScan({ open, onClose }: { open: boolean; onClose: () => voi
               Scan another
             </Button>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setBatch(true)}
+            className="flex w-full items-center gap-3 rounded-xl border border-neon-cyan/40 bg-neon-cyan/5 p-3 text-left transition hover:bg-neon-cyan/10 hover:shadow-glow-cyan"
+          >
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-neon-cyan/15 text-neon-cyan">
+              <Layers className="size-5" />
+            </span>
+            <span>
+              <span className="block font-display text-xl tracking-[0.1em] text-neon-cyan">Got a stack? Scan more in a row</span>
+              <span className="block text-sm text-zinc-400">Keep the camera open, then review and add them all at once.</span>
+            </span>
+          </button>
         </div>
       )}
     </Modal>

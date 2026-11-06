@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { BadgeDollarSign, Grid3x3, LayoutList, Library, Plus, Rows3, Search, SearchX, X } from 'lucide-react'
+import { BadgeDollarSign, Grid3x3, Layers, LayoutList, Library, Plus, Rows3, Search, SearchX, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAttributeDefinitions, useCollectionValue, useItems } from '@/hooks/queries'
 import { cardBadges } from '@/components/catalog/AttributeFields'
@@ -115,9 +115,14 @@ export default function CollectionPage() {
         eyebrow="Your vault"
         title="My collection"
         actions={
-          <ButtonLink to="/items/new" icon={<Plus className="size-4" />}>
-            Add title
-          </ButtonLink>
+          <>
+            <ButtonLink to="/haul" variant="secondary" icon={<Layers className="size-4" />}>
+              Scan a haul
+            </ButtonLink>
+            <ButtonLink to="/items/new" icon={<Plus className="size-4" />}>
+              Add title
+            </ButtonLink>
+          </>
         }
       />
 

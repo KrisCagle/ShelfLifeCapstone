@@ -293,7 +293,7 @@ const FEATURES: { icon: ReactNode; title: string; body: string; color: string; s
   { icon: <BadgeDollarSign />, title: 'What’s it worth?', body: 'Check live market prices for a single title or estimate your whole collection.', color: '#f5a623' },
   { icon: <Heart />, title: 'Wishlist hunts', body: 'Prioritize your grails and move them to the shelf the moment you find them.', color: '#ff4444' },
   { icon: <ScanSearch />, title: 'Find it fast', body: 'Search, filter and sort a collection of thousands in a blink.', color: '#00ff88' },
-  { icon: <Barcode />, title: 'Barcode scanning', body: 'Point your phone at a case and it’s on your shelf.', color: '#8a3cff', soon: true },
+  { icon: <Barcode />, title: 'Barcode scanning', body: 'Point your phone at a case and it’s on your shelf. Got a stack? Scan them all in a row.', color: '#8a3cff' },
   { icon: <BellRing />, title: 'Price alerts', body: 'Get pinged when a wishlist title drops under your price.', color: '#ff4fa3', soon: true },
 ]
 
