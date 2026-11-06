@@ -409,6 +409,18 @@ namespace ShelfLifeAPI.Migrations
                             Id = 12,
                             MediaType = "Games",
                             Name = "Sega Genesis"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            MediaType = "Games",
+                            Name = "Nintendo Switch"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            MediaType = "Games",
+                            Name = "Nintendo Switch 2"
                         });
                 });
 

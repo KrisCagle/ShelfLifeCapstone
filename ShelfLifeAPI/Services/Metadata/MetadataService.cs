@@ -91,20 +91,34 @@ namespace ShelfLifeAPI.Services.Metadata
             if (results.Count == 0)
             {
                 var products = await SafeAsync(() => _upc.LookupBarcodeAsync(barcode, formats, cancellationToken), "UPCitemdb") ?? [];
-                foreach (var product in products.Where(p => p.FormatId != null))
+                foreach (var product in products)
                 {
-                    var format = formats.First(f => f.Id == product.FormatId);
+                    var format = formats.FirstOrDefault(f => f.Id == product.FormatId);
+                    if (format == null)
+                    {
+                        results.Add(product);
+                        continue;
+                    }
+
                     // Retail names trail extra words ("Earthbound Rpg"); if the full name finds
                     // nothing, drop words from the end until something matches.
                     var words = product.Title.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
                     IReadOnlyList<CatalogCandidate> matches = [];
                     for (var take = words.Count; take >= 1 && take > words.Count - 3 && matches.Count == 0; take--)
                         matches = await SearchAsync(string.Join(' ', words.Take(take)), format, cancellationToken);
-                    results.AddRange(matches.Take(2).Select(m => m with { Barcode = barcode }));
+
+                    // A barcode is one product: an exact title is the answer on its own, and
+                    // the raw retail listing is only a fallback when nothing matched.
+                    var exact = matches.Where(m => CatalogService.Normalize(m.Title) == CatalogService.Normalize(product.Title)).Take(1).ToList();
+                    var best = exact.Count > 0 ? exact : matches.Take(2).ToList();
+                    results.AddRange(best.Select(m => m with { Barcode = barcode }));
+                    if (best.Count == 0)
+                        results.Add(product);
                 }
-                results.AddRange(products);
             }
 
+            _logger.LogInformation("Barcode {Barcode}: {Count} result(s): {Results}", barcode, results.Count,
+                string.Join(" | ", results.Select(r => $"[{r.Source}] {r.Title} (format {r.FormatId?.ToString() ?? "?"})")));
             Remember(results);
             _cache.Set(key, (IReadOnlyList<CatalogCandidate>)results, results.Count > 0 ? RecordTtl : TimeSpan.FromMinutes(10));
             return results;

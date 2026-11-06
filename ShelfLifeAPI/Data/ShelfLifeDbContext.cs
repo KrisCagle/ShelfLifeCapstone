@@ -68,7 +68,9 @@ namespace ShelfLifeAPI.Data
                 new Format { Id = 9, Name = "GameBoy", MediaType = MediaTypes.Games },
                 new Format { Id = 10, Name = "GameBoy Advance", MediaType = MediaTypes.Games },
                 new Format { Id = 11, Name = "GameCube", MediaType = MediaTypes.Games },
-                new Format { Id = 12, Name = "Sega Genesis", MediaType = MediaTypes.Games }
+                new Format { Id = 12, Name = "Sega Genesis", MediaType = MediaTypes.Games },
+                new Format { Id = 13, Name = "Nintendo Switch", MediaType = MediaTypes.Games },
+                new Format { Id = 14, Name = "Nintendo Switch 2", MediaType = MediaTypes.Games }
             );
 
             // Seed Conditions

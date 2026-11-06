@@ -161,7 +161,10 @@ export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = nul
             ))}
           </AnimatePresence>
         )}
-        {barcode && !scan.isFetching && results.length === 0 && (
+        {barcode && scan.isError && !scan.isFetching && (
+          <p className="py-4 text-center text-neon-amber">Couldn’t reach ShelfLife to look that up. Check your connection and scan again.</p>
+        )}
+        {barcode && !scan.isError && !scan.isFetching && results.length === 0 && (
           <p className="py-4 text-center text-zinc-400">No match for that barcode. Search by name or add it by hand.</p>
         )}
         {!barcode && !loading && !typing && debounced.trim().length >= 2 && results.length === 0 && (

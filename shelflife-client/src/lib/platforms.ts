@@ -20,6 +20,8 @@ const PLATFORMS: Record<string, PlatformStyle> = {
   'GameBoy Advance': { color: '#00a37a', short: 'GBA', media: 'Games' },
   GameCube: { color: '#8a3cff', short: 'GCN', media: 'Games' },
   'Sega Genesis': { color: '#1f6fd6', short: 'Genesis', media: 'Games' },
+  'Nintendo Switch': { color: '#e60012', short: 'Switch', media: 'Games' },
+  'Nintendo Switch 2': { color: '#ff3b47', short: 'Switch 2', media: 'Games' },
 }
 
 const FALLBACK: PlatformStyle = { color: '#00bfff', media: 'Games' }

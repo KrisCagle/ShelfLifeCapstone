@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { CircleCheckBig, Heart, PackagePlus, ScanLine, Sparkles } from 'lucide-react'
+import { CircleCheckBig, Heart, PackagePlus, RefreshCw, ScanLine, Sparkles, WifiOff } from 'lucide-react'
 import { useBarcodeLookup } from '@/hooks/queries'
 import { cn } from '@/lib/cn'
 import type { Candidate } from '@/lib/types'
@@ -65,6 +65,22 @@ export function QuickScan({ open, onClose }: { open: boolean; onClose: () => voi
           <Skeleton className="h-20 rounded-xl" />
           <Skeleton className="h-[5.5rem] rounded-xl" />
           <p className="text-center font-mono text-sm text-zinc-500">Looking up {barcode}…</p>
+        </div>
+      ) : lookup.isError ? (
+        <div className="space-y-4 text-center">
+          <WifiOff className="mx-auto size-10 text-neon-amber" aria-hidden />
+          <div>
+            <p className="font-display text-3xl tracking-[0.08em] text-neon-amber">Couldn’t look that up</p>
+            <p className="mt-1 text-sm text-zinc-300">We read barcode {barcode}, but couldn’t reach ShelfLife. Check your connection and try again.</p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button onClick={() => lookup.refetch()} loading={lookup.isFetching} icon={<RefreshCw className="size-4" />}>
+              Try again
+            </Button>
+            <Button variant="subtle" onClick={() => setBarcode(null)} icon={<ScanLine className="size-4" />}>
+              Scan another
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

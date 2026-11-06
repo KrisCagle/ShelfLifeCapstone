@@ -10,12 +10,19 @@ namespace ShelfLifeAPI.Services.Metadata
     public partial class UpcItemDbProvider : IBarcodeProvider
     {
         private readonly HttpClient _http;
+        private readonly ILogger<UpcItemDbProvider> _logger;
 
-        public UpcItemDbProvider(HttpClient http) => _http = http;
+        public UpcItemDbProvider(HttpClient http, ILogger<UpcItemDbProvider> logger)
+        {
+            _http = http;
+            _logger = logger;
+        }
 
         // Checked in order: more specific names first (SNES before NES, GBA before GameBoy).
         private static readonly (string Format, Regex Pattern)[] FormatPatterns =
         [
+            ("Nintendo Switch 2", new(@"\b(nintendo )?switch 2\b", RegexOptions.IgnoreCase)),
+            ("Nintendo Switch", new(@"\bnintendo switch\b", RegexOptions.IgnoreCase)),
             ("SNES", new(@"\b(snes|super nintendo|super famicom)\b", RegexOptions.IgnoreCase)),
             ("N64", new(@"\b(n64|nintendo 64)\b", RegexOptions.IgnoreCase)),
             ("NES", new(@"\b(nes|nintendo entertainment system|famicom)\b", RegexOptions.IgnoreCase)),
@@ -34,7 +41,11 @@ namespace ShelfLifeAPI.Services.Metadata
         {
             using var response = await _http.GetAsync($"https://api.upcitemdb.com/prod/trial/lookup?upc={barcode}", cancellationToken);
             if (!response.IsSuccessStatusCode)
+            {
+                // 400 = unknown or invalid code; 429 = the trial tier's rate limit.
+                _logger.LogInformation("UPCitemdb {Status} for barcode {Barcode}", (int)response.StatusCode, barcode);
                 return [];
+            }
             using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
             if (!doc.RootElement.TryGetProperty("items", out var items))
                 return [];
@@ -44,6 +55,8 @@ namespace ShelfLifeAPI.Services.Metadata
                 var raw = item.TryGetProperty("title", out var t) ? t.GetString() ?? "" : "";
                 var category = item.TryGetProperty("category", out var c) ? c.GetString() ?? "" : "";
                 var format = GuessFormat($"{raw} {category}", formats);
+                _logger.LogInformation("UPCitemdb {Barcode}: \"{Title}\" category \"{Category}\" -> format {Format}, cleaned \"{Clean}\"",
+                    barcode, raw, category, format?.Name ?? "(none)", CleanTitle(raw));
                 var image = item.TryGetProperty("images", out var imgs)
                     ? imgs.EnumerateArray().Select(i => i.GetString()).FirstOrDefault(u => u?.StartsWith("https://") == true)
                     : null;
@@ -66,6 +79,8 @@ namespace ShelfLifeAPI.Services.Metadata
         public static string CleanTitle(string raw)
         {
             var title = Parenthetical().Replace(raw, " ");
+            // Sellers pile details after a pipe ("CHAKAN - Boxed | 1990 | Action Platformer").
+            title = title.Split('|')[0];
             foreach (var (_, pattern) in FormatPatterns)
                 title = pattern.Replace(title, " ");
             title = Noise().Replace(title, " ");
@@ -76,8 +91,9 @@ namespace ShelfLifeAPI.Services.Metadata
         [GeneratedRegex(@"\([^)]*\)|\[[^\]]*\]")]
         private static partial Regex Parenthetical();
 
-        // Retail listing noise. Genre words stay out of this list on purpose ("Super Mario RPG").
-        [GeneratedRegex(@"\b(video ?games?|games?|nintendo|sony|sega|brand( new)?|new|sealed|factory|complete( in box)?|cib|cart(ridge)?( only)?|tested|works|working|authentic|genuine|original|rare|htf|vintage|ntsc(-u|-j)?|pal|big box|near[- ]mint|mint|vga|wata|q\d+\+?|widescreen|full ?screen|album|ost|soundtrack|edition|free shipping)\b", RegexOptions.IgnoreCase)]
+        // Retail listing noise. Genre words stay out of this list on purpose ("Super Mario RPG"),
+        // and so does a bare "new" ("New Pokémon Snap", "New Super Mario Bros.").
+        [GeneratedRegex(@"\b(video ?games?|games?|nintendo|sony|sega|brand( new)?|new in box|sealed|factory|complete( in box)?|boxed|loose|cib|cart(ridge)?( only)?|tested|works|working|authentic|genuine|original|rare|htf|vintage|ntsc(-u|-j)?|pal|big box|near[- ]mint|mint|vga|wata|q\d+\+?|widescreen|full ?screen|album|ost|soundtrack|edition|free shipping)\b", RegexOptions.IgnoreCase)]
         private static partial Regex Noise();
 
         [GeneratedRegex(@"[+*#!~/]")]

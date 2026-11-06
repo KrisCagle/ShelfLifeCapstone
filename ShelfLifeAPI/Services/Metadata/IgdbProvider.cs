@@ -22,6 +22,8 @@ namespace ShelfLifeAPI.Services.Metadata
             ["GameBoy Advance"] = 24,
             ["GameCube"] = 21,
             ["Sega Genesis"] = 29,
+            ["Nintendo Switch"] = 130,
+            ["Nintendo Switch 2"] = 508,
         };
 
         private static readonly SemaphoreSlim TokenLock = new(1, 1);
@@ -148,8 +150,14 @@ namespace ShelfLifeAPI.Services.Metadata
                 if (_token != null && DateTime.UtcNow < _tokenExpires)
                     return _token;
 
-                var url = $"https://id.twitch.tv/oauth2/token?client_id={Uri.EscapeDataString(_clientId!)}&client_secret={Uri.EscapeDataString(_clientSecret!)}&grant_type=client_credentials";
-                using var response = await _http.PostAsync(url, null, cancellationToken);
+                // Credentials go in the form body, never the URL: URLs end up in logs.
+                using var form = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["client_id"] = _clientId!,
+                    ["client_secret"] = _clientSecret!,
+                    ["grant_type"] = "client_credentials",
+                });
+                using var response = await _http.PostAsync("https://id.twitch.tv/oauth2/token", form, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
                 _token = doc.RootElement.GetProperty("access_token").GetString();
