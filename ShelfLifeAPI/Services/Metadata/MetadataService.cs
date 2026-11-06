@@ -14,16 +14,18 @@ namespace ShelfLifeAPI.Services.Metadata
 
         private readonly IEnumerable<IMetadataProvider> _providers;
         private readonly MusicBrainzProvider _musicBrainz;
+        private readonly OpenLibraryProvider _openLibrary;
         private readonly UpcItemDbProvider _upc;
         private readonly EbayBarcodeProvider _ebay;
         private readonly IMemoryCache _cache;
         private readonly ILogger<MetadataService> _logger;
 
-        public MetadataService(IEnumerable<IMetadataProvider> providers, MusicBrainzProvider musicBrainz, UpcItemDbProvider upc, EbayBarcodeProvider ebay,
+        public MetadataService(IEnumerable<IMetadataProvider> providers, MusicBrainzProvider musicBrainz, OpenLibraryProvider openLibrary, UpcItemDbProvider upc, EbayBarcodeProvider ebay,
             IMemoryCache cache, ILogger<MetadataService> logger)
         {
             _providers = providers;
             _musicBrainz = musicBrainz;
+            _openLibrary = openLibrary;
             _upc = upc;
             _ebay = ebay;
             _cache = cache;
@@ -77,9 +79,10 @@ namespace ShelfLifeAPI.Services.Metadata
             return record;
         }
 
-        /// Barcode → candidates. Music barcodes resolve exactly through MusicBrainz; anything
-        /// else goes through a generic product lookup whose cleaned-up name is then searched
-        /// in the right metadata source. The raw product match is kept as a fallback.
+        /// Barcode → candidates. ISBNs resolve exactly through Open Library and music barcodes
+        /// through MusicBrainz; anything else goes through a generic product lookup whose
+        /// cleaned-up name is then searched in the right metadata source. The raw product
+        /// match is kept as a fallback.
         public async Task<IReadOnlyList<CatalogCandidate>> LookupBarcodeAsync(string barcode, IReadOnlyList<Format> formats, CancellationToken cancellationToken)
         {
             var key = $"meta:barcode:{barcode}";
@@ -87,8 +90,11 @@ namespace ShelfLifeAPI.Services.Metadata
                 return cached;
 
             var results = new List<CatalogCandidate>();
-            var music = await SafeAsync(() => _musicBrainz.LookupBarcodeAsync(barcode, formats, cancellationToken), "MusicBrainz") ?? [];
-            results.AddRange(music);
+            // An ISBN is never a record, so don't spend MusicBrainz's strict rate limit on it.
+            var exact = OpenLibraryProvider.IsIsbn(barcode)
+                ? await SafeAsync(() => _openLibrary.LookupBarcodeAsync(barcode, formats, cancellationToken), "Open Library")
+                : await SafeAsync(() => _musicBrainz.LookupBarcodeAsync(barcode, formats, cancellationToken), "MusicBrainz");
+            results.AddRange(exact ?? []);
 
             if (results.Count == 0)
             {
@@ -113,8 +119,8 @@ namespace ShelfLifeAPI.Services.Metadata
 
                     // A barcode is one product: an exact title is the answer on its own, and
                     // the raw retail listing is only a fallback when nothing matched.
-                    var exact = matches.Where(m => CatalogService.Normalize(m.Title) == CatalogService.Normalize(product.Title)).Take(1).ToList();
-                    var best = exact.Count > 0 ? exact : matches.Take(2).ToList();
+                    var exactTitle = matches.Where(m => CatalogService.Normalize(m.Title) == CatalogService.Normalize(product.Title)).Take(1).ToList();
+                    var best = exactTitle.Count > 0 ? exactTitle : matches.Take(2).ToList();
                     results.AddRange(best.Select(m => m with { Barcode = barcode }));
                     if (best.Count == 0)
                         results.Add(product);
@@ -128,13 +134,21 @@ namespace ShelfLifeAPI.Services.Metadata
             return results;
         }
 
-        // TMDB search results lack the studio, which only its detail call returns, so movie
-        // records are always fetched fresh when saved instead of reused from a search.
+        // TMDB search results lack the studio and Open Library's lack the description, which
+        // only their detail calls return. Those records are fetched fresh when saved instead
+        // of reused from a search; a book from a barcode lookup is already complete.
         private void Remember(IEnumerable<CatalogCandidate> candidates)
         {
-            foreach (var c in candidates.Where(c => c.FormatId != null && c.Source is not (CatalogSources.Upc or CatalogSources.Tmdb)))
+            foreach (var c in candidates.Where(c => c.FormatId != null && IsComplete(c)))
                 _cache.Set(RecordKey(c.Source, c.ExternalId, c.FormatId!.Value), c, RecordTtl);
         }
+
+        private static bool IsComplete(CatalogCandidate c) => c.Source switch
+        {
+            CatalogSources.Upc or CatalogSources.Tmdb => false,
+            CatalogSources.OpenLibrary => c.Barcode != null,
+            _ => true,
+        };
 
         private static string RecordKey(string source, string externalId, int formatId) => $"meta:record:{source}:{externalId}:{formatId}";
 

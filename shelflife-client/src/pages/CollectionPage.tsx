@@ -8,6 +8,7 @@ import { cardBadges } from '@/components/catalog/AttributeFields'
 import { useElementWidth } from '@/hooks/useElementWidth'
 import { cn } from '@/lib/cn'
 import { formatDate, formatMoney } from '@/lib/format'
+import { MEDIA_TYPES } from '@/lib/platforms'
 import type { AttributeDefinition, Item, MediaType } from '@/lib/types'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Form'
@@ -55,6 +56,7 @@ export default function CollectionPage() {
   const q = params.get('q') ?? ''
   const format = params.get('format') ?? ''
   const genre = params.get('genre') ?? ''
+  const media = MEDIA_TYPES.find((m) => m === params.get('media')) ?? null
   const sort = (params.get('sort') as Sort) in SORTS ? (params.get('sort') as Sort) : 'recent'
   const view = (params.get('view') as View | null) ?? storedView()
   const searchRef = useRef<HTMLInputElement>(null)
@@ -87,15 +89,23 @@ export default function CollectionPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const formats = useMemo(() => [...new Set(items?.map((i) => i.format?.name).filter(Boolean) as string[])].sort(), [items])
+  // Each tab is its own shelf: filters, stats and results all follow it.
+  const shelf = useMemo(() => (media ? items?.filter((i) => i.format?.mediaType === media) : items), [items, media])
+  const mediaCounts = useMemo(() => {
+    const counts = new Map<MediaType, number>()
+    items?.forEach((i) => i.format && counts.set(i.format.mediaType, (counts.get(i.format.mediaType) ?? 0) + 1))
+    return counts
+  }, [items])
+
+  const formats = useMemo(() => [...new Set(shelf?.map((i) => i.format?.name).filter(Boolean) as string[])].sort(), [shelf])
   const genres = useMemo(
-    () => [...new Set(items?.flatMap((i) => i.itemGenres?.map((g) => g.genre?.name) ?? []).filter(Boolean) as string[])].sort(),
-    [items],
+    () => [...new Set(shelf?.flatMap((i) => i.itemGenres?.map((g) => g.genre?.name) ?? []).filter(Boolean) as string[])].sort(),
+    [shelf],
   )
 
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase()
-    return (items ?? [])
+    return (shelf ?? [])
       .filter(
         (i) =>
           (!needle ||
@@ -104,10 +114,10 @@ export default function CollectionPage() {
           (!genre || i.itemGenres?.some((g) => g.genre?.name === genre)),
       )
       .sort(SORTS[sort].compare)
-  }, [items, q, format, genre, sort])
+  }, [shelf, q, format, genre, sort])
 
   const filtersActive = !!(q || format || genre)
-  const invested = items?.reduce((sum, i) => sum + (i.purchasePrice || 0), 0) ?? 0
+  const invested = shelf?.reduce((sum, i) => sum + (i.purchasePrice || 0), 0) ?? 0
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -126,10 +136,31 @@ export default function CollectionPage() {
         }
       />
 
-      <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
-        <Stat label="Titles" value={isLoading ? '…' : (items?.length ?? 0)} />
+      <div className="mt-5 flex flex-wrap gap-1.5" role="group" aria-label="Filter by media type">
+        {[null, ...MEDIA_TYPES].map((tab) => {
+          const count = tab ? (mediaCounts.get(tab) ?? 0) : (items?.length ?? 0)
+          return (
+            <button
+              key={tab ?? 'All'}
+              type="button"
+              aria-pressed={media === tab}
+              onClick={() => update({ media: tab ?? '', format: '', genre: '' })}
+              className={cn(
+                'shrink-0 rounded-lg px-3.5 py-2 font-display text-lg tracking-wider transition',
+                media === tab ? 'bg-neon-cyan text-ink-900 shadow-glow-cyan' : 'text-zinc-400 ring-1 ring-white/10 hover:text-white hover:ring-white/25',
+              )}
+            >
+              {tab ?? 'All'}
+              <span className="ml-1.5 font-mono text-xs opacity-70">{count}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+        <Stat label="Titles" value={isLoading ? '…' : (shelf?.length ?? 0)} />
         <Stat label="Invested" color="#f5a623" value={isLoading ? '…' : formatMoney(invested)} />
-        <ValueStat items={items ?? []} invested={invested} />
+        <ValueStat key={media ?? 'all'} items={shelf ?? []} invested={invested} />
       </div>
 
       {/* Toolbar */}
@@ -183,7 +214,7 @@ export default function CollectionPage() {
 
       <div className="mb-4 mt-5 flex items-center justify-between font-mono text-sm text-zinc-500">
         <span aria-live="polite">
-          {!isLoading && items && (filtersActive ? `${visible.length} of ${items.length} titles` : `${items.length} titles`)}
+          {!isLoading && shelf && (filtersActive ? `${visible.length} of ${shelf.length} titles` : `${shelf.length} titles`)}
         </span>
         {filtersActive && (
           <button onClick={() => update({ q: '', format: '', genre: '' })} className="text-neon-amber hover:underline">
@@ -210,6 +241,19 @@ export default function CollectionPage() {
             action={
               <ButtonLink to="/items/new" size="lg" icon={<Plus className="size-5" />}>
                 Add your first title
+              </ButtonLink>
+            }
+          />
+        </Panel>
+      ) : media && shelf?.length === 0 ? (
+        <Panel>
+          <EmptyState
+            icon={<Library className="size-8" />}
+            title={`No ${media.toLowerCase()} yet`}
+            description="Scan a barcode or search for a title and it'll land on this shelf."
+            action={
+              <ButtonLink to="/items/new" size="lg" icon={<Plus className="size-5" />}>
+                Add a title
               </ButtonLink>
             }
           />

@@ -8,6 +8,8 @@ namespace ShelfLifeAPI.Services
 {
     public class CatalogService
     {
+        public const int MaxDescriptionLength = 4000;
+
         private readonly ShelfLifeDbContext _db;
         private readonly MetadataService _metadata;
 
@@ -63,6 +65,7 @@ namespace ShelfLifeAPI.Services
                         ReleaseYear = record.ReleaseYear,
                         Creator = Truncate(record.Creator, 200),
                         CoverUrl = record.CoverUrl,
+                        Description = Truncate(record.Description, MaxDescriptionLength),
                         Barcode = record.Source == CatalogSources.MusicBrainz ? record.Barcode : null,
                         Source = record.Source,
                         ExternalId = record.ExternalId,

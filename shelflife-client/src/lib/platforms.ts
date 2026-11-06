@@ -1,9 +1,12 @@
-import type { NewsCategory } from './types'
+import type { MediaType } from './types'
+
+/** Every kind of thing people collect, in display order. */
+export const MEDIA_TYPES: MediaType[] = ['Games', 'Music', 'Movies', 'Books']
 
 interface PlatformStyle {
   color: string
   short?: string
-  media: NewsCategory
+  media: MediaType
 }
 
 // Brand colors carried over from the original shelf cards.
@@ -36,6 +39,10 @@ const PLATFORMS: Record<string, PlatformStyle> = {
   'Blu-ray': { color: '#2aa7e6', media: 'Movies' },
   '4K Ultra HD': { color: '#ffcc33', short: '4K', media: 'Movies' },
   Cassette: { color: '#ff8a65', media: 'Music' },
+  Hardcover: { color: '#d4a373', media: 'Books' },
+  Paperback: { color: '#e9c46a', media: 'Books' },
+  'Mass Market Paperback': { color: '#f4a261', short: 'Mass Market', media: 'Books' },
+  Manga: { color: '#ff5c8a', media: 'Books' },
 }
 
 const FALLBACK: PlatformStyle = { color: '#00bfff', media: 'Games' }
@@ -47,17 +54,17 @@ export const platformMedia = (name?: string | null) => platformStyle(name).media
 export const ALL_PLATFORMS = Object.keys(PLATFORMS)
 
 // Genres are one shared list; this decides which ones a format's form shows first.
-const GENRE_MEDIA: Record<string, NewsCategory[]> = {
+const GENRE_MEDIA: Record<string, MediaType[]> = {
   Action: ['Games', 'Movies'],
-  Comedy: ['Movies'],
-  Horror: ['Games', 'Movies'],
+  Comedy: ['Movies', 'Books'],
+  Horror: ['Games', 'Movies', 'Books'],
   Drama: ['Movies'],
-  'Sci-Fi': ['Games', 'Movies'],
+  'Sci-Fi': ['Games', 'Movies', 'Books'],
   RPG: ['Games'],
   Platformer: ['Games'],
   Shooter: ['Games'],
   Sports: ['Games', 'Movies'],
-  Thriller: ['Movies'],
+  Thriller: ['Movies', 'Books'],
   Animation: ['Movies'],
   Documentary: ['Movies'],
   Rock: ['Music'],
@@ -68,10 +75,17 @@ const GENRE_MEDIA: Record<string, NewsCategory[]> = {
   Country: ['Music'],
   'R&B': ['Music'],
   Pop: ['Music'],
+  Fiction: ['Books'],
+  'Non-fiction': ['Books'],
+  Fantasy: ['Books'],
+  Mystery: ['Books', 'Movies'],
+  Romance: ['Books', 'Movies'],
+  Biography: ['Books'],
+  History: ['Books'],
+  "Children's": ['Books'],
 }
 
-export const genreFitsMedia = (genre: string, media: NewsCategory) =>
-  (GENRE_MEDIA[genre] ?? ['Games', 'Music', 'Movies']).includes(media)
+export const genreFitsMedia = (genre: string, media: MediaType) => (GENRE_MEDIA[genre] ?? MEDIA_TYPES).includes(media)
 
 /** Hex color to rgba() with the given alpha, for glows and tints. */
 export function withAlpha(hex: string, alpha: number) {

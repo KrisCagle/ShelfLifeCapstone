@@ -77,8 +77,9 @@ namespace ShelfLifeAPI.Services.Metadata
             var studio = m.TryGetProperty("production_companies", out var companies)
                 ? companies.EnumerateArray().Select(c => c.GetProperty("name").GetString()).FirstOrDefault()
                 : null;
+            var overview = m.TryGetProperty("overview", out var o) && !string.IsNullOrWhiteSpace(o.GetString()) ? o.GetString() : null;
             return new CatalogCandidate(Source, m.GetProperty("id").GetInt32().ToString(), m.GetProperty("title").GetString()!,
-                formatId, year, studio, poster);
+                formatId, year, studio, poster, Description: overview);
         }
 
         private async Task<JsonDocument?> GetJsonAsync(string path, CancellationToken cancellationToken)

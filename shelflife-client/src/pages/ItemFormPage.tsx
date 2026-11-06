@@ -20,7 +20,7 @@ import { PhotoPicker } from '@/components/catalog/PhotoPicker'
 import { AttributeFields, useCardBadges } from '@/components/catalog/AttributeFields'
 
 const CONDITION_COLORS: Record<string, string> = { Sealed: '#00ff88', Good: '#00bfff', Fair: '#f5a623', Poor: '#ff4444' }
-const CREATOR_LABEL: Record<MediaType, string> = { Games: 'Publisher', Music: 'Artist', Movies: 'Studio' }
+const CREATOR_LABEL: Record<MediaType, string> = { Games: 'Publisher', Music: 'Artist', Movies: 'Studio', Books: 'Author' }
 
 /** The title being saved: either fixed (from a source / shared entry) or editable (typed by hand). */
 interface TitleState {
@@ -386,9 +386,22 @@ function DetailsForm({ existing, title, onTitleChange, barcode, onBarcodeChange,
                 <p className="font-display text-3xl leading-none tracking-[0.05em] text-white">{ref.title}</p>
                 <p className="text-zinc-400">{[ref.creator, ref.releaseYear].filter(Boolean).join(' · ')}</p>
                 <div className="flex items-center gap-2">
-                  <PlatformBadge name={format?.name} />
+                  {format && <PlatformBadge name={format.name} />}
                   <span className="font-mono text-[0.7rem] uppercase tracking-wider text-zinc-500">via {SOURCE_LABELS[ref.source]}</span>
                 </div>
+                {/* Some records don't say what binding they are; a scan only knows the title. */}
+                {!format && (
+                  <Field label="Format" error={errors.formatId}>
+                    {({ id, invalid, describedBy }) => (
+                      <Select id={id} invalid={invalid} aria-describedby={describedBy} value="" onChange={(e) => setRef({ formatId: Number(e.target.value) })}>
+                        <option value="" disabled>
+                          Choose a format…
+                        </option>
+                        <FormatOptions formats={formats} />
+                      </Select>
+                    )}
+                  </Field>
+                )}
               </div>
             </div>
           )}

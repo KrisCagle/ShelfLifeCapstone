@@ -42,6 +42,14 @@ namespace ShelfLifeAPI.Services
                     new("colorVariant", "Color / variant", AttributeKind.Text, Placeholder: "Clear red, picture disc…", Formats: ["Vinyl"]),
                     new("catalogNumber", "Catalog number", AttributeKind.Text, Placeholder: "e.g. CS 8163"),
                 ],
+                [MediaTypes.Books] =
+                [
+                    new("edition", "Edition", AttributeKind.Select,
+                        ["First edition", "Later printing", "Book club", "Reprint"], ShowOnCard: true),
+                    new("signed", "Signed", AttributeKind.Toggle),
+                    new("dustJacket", "Has dust jacket", AttributeKind.Toggle, Formats: ["Hardcover"]),
+                    new("publisher", "Publisher", AttributeKind.Text, Placeholder: "Bantam, Penguin…"),
+                ],
                 [MediaTypes.Movies] =
                 [
                     new("caseType", "Case", AttributeKind.Select,
