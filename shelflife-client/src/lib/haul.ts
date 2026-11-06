@@ -17,6 +17,8 @@ export interface HaulRow {
   formatId: number | null
   conditionId: number | null
   price: string
+  /** Older saved drafts don't have this. */
+  photoUrl?: string | null
 }
 
 export interface HaulDraft {
