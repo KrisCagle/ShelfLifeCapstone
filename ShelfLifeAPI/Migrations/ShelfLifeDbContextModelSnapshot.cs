@@ -421,6 +421,90 @@ namespace ShelfLifeAPI.Migrations
                             Id = 14,
                             MediaType = "Games",
                             Name = "Nintendo Switch 2"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            MediaType = "Games",
+                            Name = "PS3"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            MediaType = "Games",
+                            Name = "PS4"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            MediaType = "Games",
+                            Name = "PS5"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            MediaType = "Games",
+                            Name = "Xbox 360"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            MediaType = "Games",
+                            Name = "Xbox One"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            MediaType = "Games",
+                            Name = "Xbox Series X|S"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            MediaType = "Games",
+                            Name = "Wii"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            MediaType = "Games",
+                            Name = "Wii U"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            MediaType = "Games",
+                            Name = "Nintendo DS"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            MediaType = "Games",
+                            Name = "Nintendo 3DS"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            MediaType = "Movies",
+                            Name = "DVD"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            MediaType = "Movies",
+                            Name = "Blu-ray"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            MediaType = "Movies",
+                            Name = "4K Ultra HD"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            MediaType = "Music",
+                            Name = "Cassette"
                         });
                 });
 

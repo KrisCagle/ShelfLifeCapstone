@@ -24,6 +24,16 @@ namespace ShelfLifeAPI.Services.Metadata
             ["Sega Genesis"] = 29,
             ["Nintendo Switch"] = 130,
             ["Nintendo Switch 2"] = 508,
+            ["PS3"] = 9,
+            ["PS4"] = 48,
+            ["PS5"] = 167,
+            ["Xbox 360"] = 12,
+            ["Xbox One"] = 49,
+            ["Xbox Series X|S"] = 169,
+            ["Wii"] = 5,
+            ["Wii U"] = 41,
+            ["Nintendo DS"] = 20,
+            ["Nintendo 3DS"] = 37,
         };
 
         private static readonly SemaphoreSlim TokenLock = new(1, 1);

@@ -70,7 +70,21 @@ namespace ShelfLifeAPI.Data
                 new Format { Id = 11, Name = "GameCube", MediaType = MediaTypes.Games },
                 new Format { Id = 12, Name = "Sega Genesis", MediaType = MediaTypes.Games },
                 new Format { Id = 13, Name = "Nintendo Switch", MediaType = MediaTypes.Games },
-                new Format { Id = 14, Name = "Nintendo Switch 2", MediaType = MediaTypes.Games }
+                new Format { Id = 14, Name = "Nintendo Switch 2", MediaType = MediaTypes.Games },
+                new Format { Id = 15, Name = "PS3", MediaType = MediaTypes.Games },
+                new Format { Id = 16, Name = "PS4", MediaType = MediaTypes.Games },
+                new Format { Id = 17, Name = "PS5", MediaType = MediaTypes.Games },
+                new Format { Id = 18, Name = "Xbox 360", MediaType = MediaTypes.Games },
+                new Format { Id = 19, Name = "Xbox One", MediaType = MediaTypes.Games },
+                new Format { Id = 20, Name = "Xbox Series X|S", MediaType = MediaTypes.Games },
+                new Format { Id = 21, Name = "Wii", MediaType = MediaTypes.Games },
+                new Format { Id = 22, Name = "Wii U", MediaType = MediaTypes.Games },
+                new Format { Id = 23, Name = "Nintendo DS", MediaType = MediaTypes.Games },
+                new Format { Id = 24, Name = "Nintendo 3DS", MediaType = MediaTypes.Games },
+                new Format { Id = 25, Name = "DVD", MediaType = MediaTypes.Movies },
+                new Format { Id = 26, Name = "Blu-ray", MediaType = MediaTypes.Movies },
+                new Format { Id = 27, Name = "4K Ultra HD", MediaType = MediaTypes.Movies },
+                new Format { Id = 28, Name = "Cassette", MediaType = MediaTypes.Music }
             );
 
             // Seed Conditions

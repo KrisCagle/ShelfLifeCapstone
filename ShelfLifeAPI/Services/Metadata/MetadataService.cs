@@ -15,15 +15,17 @@ namespace ShelfLifeAPI.Services.Metadata
         private readonly IEnumerable<IMetadataProvider> _providers;
         private readonly MusicBrainzProvider _musicBrainz;
         private readonly UpcItemDbProvider _upc;
+        private readonly EbayBarcodeProvider _ebay;
         private readonly IMemoryCache _cache;
         private readonly ILogger<MetadataService> _logger;
 
-        public MetadataService(IEnumerable<IMetadataProvider> providers, MusicBrainzProvider musicBrainz, UpcItemDbProvider upc,
+        public MetadataService(IEnumerable<IMetadataProvider> providers, MusicBrainzProvider musicBrainz, UpcItemDbProvider upc, EbayBarcodeProvider ebay,
             IMemoryCache cache, ILogger<MetadataService> logger)
         {
             _providers = providers;
             _musicBrainz = musicBrainz;
             _upc = upc;
+            _ebay = ebay;
             _cache = cache;
             _logger = logger;
         }
@@ -91,6 +93,8 @@ namespace ShelfLifeAPI.Services.Metadata
             if (results.Count == 0)
             {
                 var products = await SafeAsync(() => _upc.LookupBarcodeAsync(barcode, formats, cancellationToken), "UPCitemdb") ?? [];
+                if (products.Count == 0)
+                    products = await SafeAsync(() => _ebay.LookupBarcodeAsync(barcode, formats, cancellationToken), "eBay") ?? [];
                 foreach (var product in products)
                 {
                     var format = formats.FirstOrDefault(f => f.Id == product.FormatId);

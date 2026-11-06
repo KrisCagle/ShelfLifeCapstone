@@ -23,6 +23,20 @@ namespace ShelfLifeAPI.Services.Metadata
         [
             ("Nintendo Switch 2", new(@"\b(nintendo )?switch 2\b", RegexOptions.IgnoreCase)),
             ("Nintendo Switch", new(@"\bnintendo switch\b", RegexOptions.IgnoreCase)),
+            ("Wii U", new(@"\bwii ?u\b", RegexOptions.IgnoreCase)),
+            ("Wii", new(@"\bwii\b", RegexOptions.IgnoreCase)),
+            ("Nintendo 3DS", new(@"\b(nintendo )?3ds\b", RegexOptions.IgnoreCase)),
+            ("Nintendo DS", new(@"\b(nintendo ds|nds)\b", RegexOptions.IgnoreCase)),
+            ("Xbox Series X|S", new(@"\bxbox series( x)?( ?[|/] ?s)?\b", RegexOptions.IgnoreCase)),
+            ("Xbox One", new(@"\bxbox one\b", RegexOptions.IgnoreCase)),
+            ("Xbox 360", new(@"\bxbox 360\b", RegexOptions.IgnoreCase)),
+            ("PS5", new(@"\b(ps ?5|playstation ?5)\b", RegexOptions.IgnoreCase)),
+            ("PS4", new(@"\b(ps ?4|playstation ?4)\b", RegexOptions.IgnoreCase)),
+            ("PS3", new(@"\b(ps ?3|playstation ?3)\b", RegexOptions.IgnoreCase)),
+            ("4K Ultra HD", new(@"\b(4k( ultra hd| uhd)?|ultra hd|uhd)\b", RegexOptions.IgnoreCase)),
+            ("Blu-ray", new(@"\bblu[- ]?ray\b", RegexOptions.IgnoreCase)),
+            ("DVD", new(@"\bdvds?\b", RegexOptions.IgnoreCase)),
+            ("Cassette", new(@"\bcassette\b", RegexOptions.IgnoreCase)),
             ("SNES", new(@"\b(snes|super nintendo|super famicom)\b", RegexOptions.IgnoreCase)),
             ("N64", new(@"\b(n64|nintendo 64)\b", RegexOptions.IgnoreCase)),
             ("NES", new(@"\b(nes|nintendo entertainment system|famicom)\b", RegexOptions.IgnoreCase)),
@@ -54,7 +68,8 @@ namespace ShelfLifeAPI.Services.Metadata
             {
                 var raw = item.TryGetProperty("title", out var t) ? t.GetString() ?? "" : "";
                 var category = item.TryGetProperty("category", out var c) ? c.GetString() ?? "" : "";
-                var format = GuessFormat($"{raw} {category}", formats);
+                // The title wins: categories are broad ("DVD & Blu-ray Players" for any disc).
+                var format = GuessFormat(raw, formats) ?? GuessFormat(category, formats);
                 _logger.LogInformation("UPCitemdb {Barcode}: \"{Title}\" category \"{Category}\" -> format {Format}, cleaned \"{Clean}\"",
                     barcode, raw, category, format?.Name ?? "(none)", CleanTitle(raw));
                 var image = item.TryGetProperty("images", out var imgs)
@@ -93,7 +108,7 @@ namespace ShelfLifeAPI.Services.Metadata
 
         // Retail listing noise. Genre words stay out of this list on purpose ("Super Mario RPG"),
         // and so does a bare "new" ("New Pokémon Snap", "New Super Mario Bros.").
-        [GeneratedRegex(@"\b(video ?games?|games?|nintendo|sony|sega|brand( new)?|new in box|sealed|factory|complete( in box)?|boxed|loose|cib|cart(ridge)?( only)?|tested|works|working|authentic|genuine|original|rare|htf|vintage|ntsc(-u|-j)?|pal|big box|near[- ]mint|mint|vga|wata|q\d+\+?|widescreen|full ?screen|album|ost|soundtrack|edition|free shipping)\b", RegexOptions.IgnoreCase)]
+        [GeneratedRegex(@"\b(video ?games?|games?|nintendo|sony|sega|brand( new)?|new in box|sealed|factory|complete( in box)?|boxed|loose|cib|cart(ridge)?( only)?|tested|works|working|authentic|genuine|original|rare|htf|vintage|ntsc(-u|-j)?|pal|big box|near[- ]mint|mint|vga|wata|q\d+\+?|widescreen|full ?screen|album|ost|soundtrack|edition|free shipping|digital( code| copy)?|combo pack|disc|movie)\b", RegexOptions.IgnoreCase)]
         private static partial Regex Noise();
 
         [GeneratedRegex(@"[+*#!~/]")]

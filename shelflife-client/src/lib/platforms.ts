@@ -22,6 +22,20 @@ const PLATFORMS: Record<string, PlatformStyle> = {
   'Sega Genesis': { color: '#1f6fd6', short: 'Genesis', media: 'Games' },
   'Nintendo Switch': { color: '#e60012', short: 'Switch', media: 'Games' },
   'Nintendo Switch 2': { color: '#ff3b47', short: 'Switch 2', media: 'Games' },
+  PS3: { color: '#7f8cff', media: 'Games' },
+  PS4: { color: '#2f8fe0', media: 'Games' },
+  PS5: { color: '#dbe6ff', media: 'Games' },
+  'Xbox 360': { color: '#8cc63f', short: 'X360', media: 'Games' },
+  'Xbox One': { color: '#2ca02c', short: 'XB1', media: 'Games' },
+  'Xbox Series X|S': { color: '#16c60c', short: 'Series X|S', media: 'Games' },
+  Wii: { color: '#b8c7d9', media: 'Games' },
+  'Wii U': { color: '#00a6d6', media: 'Games' },
+  'Nintendo DS': { color: '#9aa4b1', short: 'DS', media: 'Games' },
+  'Nintendo 3DS': { color: '#d6324a', short: '3DS', media: 'Games' },
+  DVD: { color: '#c77dff', media: 'Movies' },
+  'Blu-ray': { color: '#2aa7e6', media: 'Movies' },
+  '4K Ultra HD': { color: '#ffcc33', short: '4K', media: 'Movies' },
+  Cassette: { color: '#ff8a65', media: 'Music' },
 }
 
 const FALLBACK: PlatformStyle = { color: '#00bfff', media: 'Games' }
