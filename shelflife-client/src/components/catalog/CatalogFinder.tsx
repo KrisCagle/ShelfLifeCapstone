@@ -14,7 +14,7 @@ import { FormatOptions } from './FormatOptions'
 // The scanner pulls in a ~1 MB decoder, so it only loads when someone opens it.
 const BarcodeScanner = lazy(() => import('./BarcodeScanner'))
 
-const MEDIA_NOUN: Record<MediaType, string> = { Games: 'game', Music: 'album', Movies: 'movie' }
+const MEDIA_NOUN: Record<MediaType, string> = { Games: 'game', Music: 'album', Movies: 'movie', Books: 'book' }
 
 const LAST_FORMAT_KEY = 'shelflife:last-format'
 

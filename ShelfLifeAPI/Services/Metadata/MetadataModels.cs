@@ -11,7 +11,8 @@ namespace ShelfLifeAPI.Services.Metadata
         int? ReleaseYear,
         string? Creator,
         string? CoverUrl,
-        string? Barcode = null);
+        string? Barcode = null,
+        string? Description = null);
 
     public interface IMetadataProvider
     {

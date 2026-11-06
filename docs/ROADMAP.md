@@ -114,6 +114,10 @@ Pulled forward because a polished front end matters before anything goes live.
 - [x] **Photos of your copy**: take or choose a photo on any title or haul row. It's shrunk in the
   browser, which also strips its location data, and stored behind an interface so hosting can move
   it to object storage.
+- [x] **Books**: ISBN scanning and title search through Open Library (free, no key), collector
+  fields, and a Books tab. Collection tabs now split every media type into its own shelf, and
+  titles carry a description from their source. Open Library asks not to be a high-traffic
+  commercial backend, so move to its monthly data dumps before that matters.
 - [ ] **Haul history**: keep each haul as a record, with spending by month, store and media type.
 - [ ] Tags, custom shelves, physical location ("Box 3"), loaned-out tracking.
 - [ ] CSV import and export (export is always free — your data is yours).

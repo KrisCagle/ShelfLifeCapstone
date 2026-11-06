@@ -42,9 +42,16 @@ builder.Services.AddHttpClient<IgdbProvider>(Metadata);
 builder.Services.AddHttpClient<TmdbProvider>(Metadata);
 builder.Services.AddHttpClient<UpcItemDbProvider>(Metadata);
 builder.Services.AddHttpClient<EbayBarcodeProvider>(Metadata);
+builder.Services.AddHttpClient<OpenLibraryProvider>(client =>
+{
+    Metadata(client);
+    // A barcode lookup is several calls, and Open Library can be slow.
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<IgdbProvider>());
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<MusicBrainzProvider>());
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<TmdbProvider>());
+builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<OpenLibraryProvider>());
 builder.Services.AddScoped<MetadataService>();
 builder.Services.AddScoped<CatalogService>();
 

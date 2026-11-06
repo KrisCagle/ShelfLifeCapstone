@@ -21,11 +21,12 @@ namespace ShelfLifeAPI.Dtos
         string? CoverUrl,
         string Source,
         string? ExternalId,
-        bool IsPrivate)
+        bool IsPrivate,
+        string? Description)
     {
         public static CatalogEntryDto From(CatalogEntry c) =>
             new(c.Id, c.Title, FormatDto.From(c.Format), c.ReleaseYear, c.Creator, c.Barcode, c.CoverUrl,
-                c.Source, c.ExternalId, c.CreatedByUserId != null);
+                c.Source, c.ExternalId, c.CreatedByUserId != null, c.Description);
     }
 
     public record ItemGenreDto(int GenreId, LookupDto Genre);

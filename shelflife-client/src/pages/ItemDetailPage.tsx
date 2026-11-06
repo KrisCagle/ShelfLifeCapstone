@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { ArrowLeft, BadgeDollarSign, Barcode, CalendarDays, Camera, ExternalLink, PackageSearch, Pencil, Store, Tag as TagIcon, Trash2 } from 'lucide-react'
@@ -8,6 +8,7 @@ import { keys, useDeleteItem, useItem, usePriceCheck } from '@/hooks/queries'
 import { useAttributesFor } from '@/components/catalog/AttributeFields'
 import { SOURCE_LABELS } from '@/components/catalog/CandidateCard'
 import { api, ApiError } from '@/lib/api'
+import { cn } from '@/lib/cn'
 import { formatDate, formatMoney } from '@/lib/format'
 import { platformColor, withAlpha } from '@/lib/platforms'
 import type { Item, ItemSave } from '@/lib/types'
@@ -110,6 +111,8 @@ export default function ItemDetailPage() {
               <Fact icon={<Store />} label="Found at" value={item.storeFound || '—'} className="col-span-2 sm:col-span-1" />
             </div>
 
+            {item.catalogEntry.description && <Description text={item.catalogEntry.description} />}
+
             {attributeDefs.some((d) => item.attributes?.[d.key]) && (
               <dl className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 sm:grid-cols-3">
                 {attributeDefs
@@ -166,6 +169,22 @@ export default function ItemDetailPage() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+/** Long blurbs push the facts off a phone screen, so they start collapsed. */
+function Description({ text }: { text: string }) {
+  const [open, setOpen] = useState(false)
+  const long = text.length > 280
+  return (
+    <div>
+      <p className={cn('whitespace-pre-line leading-relaxed text-zinc-300', long && !open && 'line-clamp-4')}>{text}</p>
+      {long && (
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="mt-1 font-mono text-sm text-neon-cyan hover:underline">
+          {open ? 'Show less' : 'Read more'}
+        </button>
+      )}
     </div>
   )
 }

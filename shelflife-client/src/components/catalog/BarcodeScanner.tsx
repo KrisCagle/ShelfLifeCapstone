@@ -33,7 +33,18 @@ async function createDetector(): Promise<Detector> {
 }
 
 /** US products often read as EAN-13 with a leading 0; databases mostly store the 12-digit UPC. */
+/** Older books print a 10-character ISBN, which can end in X. Lookups all use ISBN-13. */
+function isbn10To13(isbn: string) {
+  const check = [...isbn].reduce((sum, c, i) => sum + (c === 'X' ? 10 : Number(c)) * (10 - i), 0)
+  if (check % 11 !== 0) return null
+  const core = `978${isbn.slice(0, 9)}`
+  const total = [...core].reduce((sum, c, i) => sum + Number(c) * (i % 2 ? 3 : 1), 0)
+  return `${core}${(10 - (total % 10)) % 10}`
+}
+
 export const normalizeBarcode = (raw: string) => {
+  const compact = raw.replace(/[\s-]/g, '').toUpperCase()
+  if (/^\d{9}[\dX]$/.test(compact)) return isbn10To13(compact) ?? compact
   const digits = raw.replace(/\D/g, '')
   return digits.length === 13 && digits.startsWith('0') ? digits.slice(1) : digits
 }
@@ -293,7 +304,7 @@ export default function BarcodeScanner({ open, onClose, onDetected, continuous =
                   onChange={(e) => setManual(e.target.value)}
                   inputMode="numeric"
                   autoFocus
-                  placeholder="Barcode digits (UPC / EAN)"
+                  placeholder="Barcode or ISBN"
                   aria-label="Barcode number"
                   className="h-11 flex-1 rounded-lg border border-white/15 bg-ink-800 px-3 font-mono text-lg tracking-widest text-white placeholder:font-sans placeholder:text-sm placeholder:tracking-normal placeholder:text-zinc-500 focus:border-neon-cyan focus:outline-none"
                 />

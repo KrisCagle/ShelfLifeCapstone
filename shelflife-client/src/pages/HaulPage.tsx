@@ -246,7 +246,7 @@ export default function HaulPage() {
                       />
                     )}
                     <div className="flex flex-wrap items-center gap-1.5">
-                      {locked && <PlatformBadge name={formatName} />}
+                      {locked && c?.formatId && <PlatformBadge name={formatName} />}
                       {c && <OwnershipBadges candidate={c} />}
                       <PhotoPicker compact value={row.photoUrl ?? null} label={`Photo of ${row.title || row.barcode}`} onChange={(photoUrl) => changeRow(row.key, { photoUrl })} />
                       {row.status === 'failed' && (
@@ -274,7 +274,7 @@ export default function HaulPage() {
                       </Select>
                     )}
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                      {!locked && (
+                      {(!locked || !c?.formatId) && (
                         <Select aria-label="Format" invalid={missing && !row.formatId} value={row.formatId ?? ''} className="py-1.5 text-sm" onChange={(e) => changeRow(row.key, { formatId: Number(e.target.value) })}>
                           <option value="" disabled>
                             Format…
