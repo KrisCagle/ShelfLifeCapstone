@@ -1,19 +1,30 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Barcode, Loader2, Plus, ScanLine, Search, X } from 'lucide-react'
-import { useBarcodeLookup, useCatalogSearch, useFormats } from '@/hooks/queries'
+import { useBarcodeLookup, useCatalogSearch, useFormats, useItems } from '@/hooks/queries'
 import { useDebounced } from '@/hooks/useDebounced'
 import { cn } from '@/lib/cn'
 import { platformColor, withAlpha } from '@/lib/platforms'
 import type { Candidate, Format, MediaType } from '@/lib/types'
+import { Select } from '@/components/ui/Form'
 import { Skeleton } from '@/components/ui/Misc'
 import { CandidateCard } from './CandidateCard'
+import { FormatOptions } from './FormatOptions'
 
 // The scanner pulls in a ~1 MB decoder, so it only loads when someone opens it.
 const BarcodeScanner = lazy(() => import('./BarcodeScanner'))
 
-const MEDIA_ORDER: MediaType[] = ['Games', 'Music', 'Movies']
 const MEDIA_NOUN: Record<MediaType, string> = { Games: 'game', Music: 'album', Movies: 'movie' }
+
+const LAST_FORMAT_KEY = 'shelflife:last-format'
+
+const storedFormat = () => {
+  try {
+    return Number(localStorage.getItem(LAST_FORMAT_KEY)) || null
+  } catch {
+    return null
+  }
+}
 
 export interface FinderPick {
   candidate: Candidate
@@ -47,19 +58,38 @@ export const manualCandidate = (title: string, format: Format): Candidate => ({
 /** Step one of adding anything: pick a format, then search, scan, or type it in. */
 export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = null, manualLabel }: CatalogFinderProps) {
   const { data: formats } = useFormats()
-  const [formatId, setFormatId] = useState<number | null>(initialFormatId)
+  const { data: items } = useItems()
+  const [formatId, setFormatId] = useState<number | null>(() => initialFormatId ?? storedFormat())
   const [query, setQuery] = useState(initialQuery)
   const [scanning, setScanning] = useState(false)
   const [barcode, setBarcode] = useState<string | null>(null)
   const debounced = useDebounced(query)
   const search = useCatalogSearch(debounced, formatId)
   const scan = useBarcodeLookup(barcode)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   const format = formats?.find((f) => f.id === formatId)
-  const grouped = useMemo(
-    () => MEDIA_ORDER.map((media) => ({ media, formats: (formats ?? []).filter((f) => f.mediaType === media) })),
-    [formats],
-  )
+
+  // The formats this person actually collects, so the usual ones stay one tap away.
+  const topFormats = useMemo(() => {
+    const counts = new Map<number, number>()
+    items?.forEach((i) => counts.set(i.formatId, (counts.get(i.formatId) ?? 0) + 1))
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([id]) => formats?.find((f) => f.id === id))
+      .filter((f): f is Format => !!f)
+  }, [items, formats])
+
+  const pickFormat = (id: number) => {
+    setFormatId(id)
+    try {
+      localStorage.setItem(LAST_FORMAT_KEY, String(id))
+    } catch {
+      // Storage blocked; it just won't be remembered next time.
+    }
+    requestAnimationFrame(() => searchRef.current?.focus())
+  }
 
   const provider = search.data?.provider
   const results = barcode ? scan.data?.results ?? [] : search.data?.results ?? []
@@ -70,29 +100,39 @@ export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = nul
     <div className="space-y-5">
       <div>
         <p className="mb-2 font-mono text-xs uppercase tracking-[0.18em] text-zinc-400">1 · Format</p>
-        <div className="space-y-2">
-          {grouped.map(({ media, formats: list }) => (
-            <div key={media} className="flex flex-wrap items-center gap-1.5">
-              <span className="w-14 font-mono text-[0.65rem] uppercase tracking-wider text-zinc-600">{media}</span>
-              {list.map((f) => {
-                const active = f.id === formatId
-                const color = platformColor(f.name)
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setFormatId(f.id)}
-                    aria-pressed={active}
-                    className={cn('rounded-md px-2.5 py-1 font-display text-base tracking-wider transition', !active && 'text-zinc-400 ring-1 ring-white/10 hover:text-white hover:ring-white/25')}
-                    style={active ? { color: '#050510', backgroundColor: color, boxShadow: `0 0 16px ${withAlpha(color, 0.5)}` } : undefined}
-                  >
-                    {f.name}
-                  </button>
-                )
-              })}
-            </div>
-          ))}
+        <div className="relative">
+          <span
+            className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-3 -translate-y-1/2 rounded-full transition-colors"
+            style={format ? { backgroundColor: platformColor(format.name), boxShadow: `0 0 10px ${platformColor(format.name)}` } : { backgroundColor: '#3d3d56' }}
+            aria-hidden
+          />
+          <Select aria-label="Format" value={format?.id ?? ''} onChange={(e) => pickFormat(Number(e.target.value))} className="h-12 py-0 pl-9 text-lg font-semibold">
+            <option value="" disabled>
+              Choose a format…
+            </option>
+            <FormatOptions formats={formats} />
+          </Select>
         </div>
+        {topFormats.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5" aria-label="Your most used formats">
+            {topFormats.map((f) => {
+              const active = f.id === formatId
+              const color = platformColor(f.name)
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => pickFormat(f.id)}
+                  aria-pressed={active}
+                  className={cn('rounded-md px-2.5 py-1 font-display text-base tracking-wider transition', !active && 'text-zinc-400 ring-1 ring-white/10 hover:text-white hover:ring-white/25')}
+                  style={active ? { color: '#050510', backgroundColor: color, boxShadow: `0 0 16px ${withAlpha(color, 0.5)}` } : undefined}
+                >
+                  {f.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div>
@@ -101,6 +141,7 @@ export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = nul
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" aria-hidden />
             <input
+              ref={searchRef}
               type="search"
               value={query}
               onChange={(e) => {
@@ -161,7 +202,10 @@ export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = nul
             ))}
           </AnimatePresence>
         )}
-        {barcode && !scan.isFetching && results.length === 0 && (
+        {barcode && scan.isError && !scan.isFetching && (
+          <p className="py-4 text-center text-neon-amber">Couldn’t reach ShelfLife to look that up. Check your connection and scan again.</p>
+        )}
+        {barcode && !scan.isError && !scan.isFetching && results.length === 0 && (
           <p className="py-4 text-center text-zinc-400">No match for that barcode. Search by name or add it by hand.</p>
         )}
         {!barcode && !loading && !typing && debounced.trim().length >= 2 && results.length === 0 && (

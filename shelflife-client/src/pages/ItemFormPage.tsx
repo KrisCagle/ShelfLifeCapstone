@@ -15,6 +15,7 @@ import { Panel, PlatformBadge, Skeleton } from '@/components/ui/Misc'
 import { CaseCard, ShelfPlank } from '@/components/collection/CaseCard'
 import { CatalogFinder, type FinderPick } from '@/components/catalog/CatalogFinder'
 import { CoverThumb, SOURCE_LABELS } from '@/components/catalog/CandidateCard'
+import { FormatOptions } from '@/components/catalog/FormatOptions'
 import { AttributeFields, useCardBadges } from '@/components/catalog/AttributeFields'
 
 const CONDITION_COLORS: Record<string, string> = { Sealed: '#00ff88', Good: '#00bfff', Fair: '#f5a623', Poor: '#ff4444' }
@@ -350,11 +351,7 @@ function DetailsForm({ existing, title, onTitleChange, barcode, onBarcodeChange,
                       <option value="" disabled>
                         Choose a format…
                       </option>
-                      {formats?.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.name}
-                        </option>
-                      ))}
+                      <FormatOptions formats={formats} />
                     </Select>
                   )}
                 </Field>

@@ -39,6 +39,7 @@ builder.Services.AddHttpClient<MusicBrainzProvider>(Metadata);
 builder.Services.AddHttpClient<IgdbProvider>(Metadata);
 builder.Services.AddHttpClient<TmdbProvider>(Metadata);
 builder.Services.AddHttpClient<UpcItemDbProvider>(Metadata);
+builder.Services.AddHttpClient<EbayBarcodeProvider>(Metadata);
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<IgdbProvider>());
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<MusicBrainzProvider>());
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<TmdbProvider>());

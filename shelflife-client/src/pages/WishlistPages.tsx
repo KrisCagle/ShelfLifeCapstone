@@ -15,6 +15,7 @@ import { Field, Input, Segmented, Select, Textarea } from '@/components/ui/Form'
 import { EmptyState, PageHeader, Panel, PlatformBadge, Skeleton } from '@/components/ui/Misc'
 import { PRIORITIES, PriorityPill } from '@/components/collection/PriorityPill'
 import { CoverThumb, SOURCE_LABELS } from '@/components/catalog/CandidateCard'
+import { FormatOptions } from '@/components/catalog/FormatOptions'
 import { CatalogFinder, type FinderPick } from '@/components/catalog/CatalogFinder'
 
 type Filter = 'all' | Priority
@@ -311,11 +312,7 @@ function WishlistForm({ existing, initialPick }: { existing?: WishlistItem; init
                       <option value="" disabled>
                         Choose a format…
                       </option>
-                      {formats?.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.name}
-                        </option>
-                      ))}
+                      <FormatOptions formats={formats} />
                     </Select>
                   )}
                 </Field>

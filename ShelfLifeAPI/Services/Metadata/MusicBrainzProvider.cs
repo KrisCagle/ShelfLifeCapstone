@@ -114,6 +114,7 @@ namespace ShelfLifeAPI.Services.Metadata
         {
             if (mediaFormat == null) return null;
             var name = mediaFormat.Contains("Vinyl", StringComparison.OrdinalIgnoreCase) ? "Vinyl"
+                : mediaFormat.Contains("Cassette", StringComparison.OrdinalIgnoreCase) ? "Cassette"
                 : mediaFormat.Contains("CD", StringComparison.OrdinalIgnoreCase) ? "CD"
                 : null;
             return formats.FirstOrDefault(f => f.Name == name);
