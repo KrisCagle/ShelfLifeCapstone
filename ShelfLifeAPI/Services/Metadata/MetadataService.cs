@@ -134,9 +134,10 @@ namespace ShelfLifeAPI.Services.Metadata
             return results;
         }
 
-        // TMDB search results lack the studio and Open Library's lack the description, which
-        // only their detail calls return. Those records are fetched fresh when saved instead
-        // of reused from a search; a book from a barcode lookup is already complete.
+        // Search results from TMDB lack the studio, and those from Open Library and the GCD
+        // lack the description, which only their detail calls return. Those records are
+        // fetched fresh when saved instead of reused from a search; a book from a barcode
+        // lookup is already complete.
         private void Remember(IEnumerable<CatalogCandidate> candidates)
         {
             foreach (var c in candidates.Where(c => c.FormatId != null && IsComplete(c)))
@@ -145,7 +146,7 @@ namespace ShelfLifeAPI.Services.Metadata
 
         private static bool IsComplete(CatalogCandidate c) => c.Source switch
         {
-            CatalogSources.Upc or CatalogSources.Tmdb => false,
+            CatalogSources.Upc or CatalogSources.Tmdb or CatalogSources.Gcd => false,
             CatalogSources.OpenLibrary => c.Barcode != null,
             _ => true,
         };

@@ -533,6 +533,30 @@ namespace ShelfLifeAPI.Migrations
                             Id = 32,
                             MediaType = "Books",
                             Name = "Manga"
+                        },
+                        new
+                        {
+                            Id = 33,
+                            MediaType = "Comics",
+                            Name = "Single Issue"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            MediaType = "Comics",
+                            Name = "Trade Paperback"
+                        },
+                        new
+                        {
+                            Id = 35,
+                            MediaType = "Comics",
+                            Name = "Graphic Novel"
+                        },
+                        new
+                        {
+                            Id = 36,
+                            MediaType = "Comics",
+                            Name = "Omnibus"
                         });
                 });
 
@@ -692,6 +716,11 @@ namespace ShelfLifeAPI.Migrations
                         {
                             Id = 28,
                             Name = "Children's"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            Name = "Superhero"
                         });
                 });
 

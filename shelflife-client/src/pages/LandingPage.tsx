@@ -117,7 +117,7 @@ function Hero({ user, items, shelves }: { user: Me | null; items?: Item[]; shelv
                 One app for the <span className="text-neon-cyan text-glow-cyan">whole retro shelf.</span>
               </h1>
               <p className="mt-5 max-w-xl text-lg text-zinc-300">
-                Catalog your games, vinyl, tapes and books in one place. See what they’re worth, track what you spent, and never buy a
+                Catalog your games, vinyl, tapes, books and comics in one place. See what they’re worth, track what you spent, and never buy a
                 duplicate at the flea market again.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">

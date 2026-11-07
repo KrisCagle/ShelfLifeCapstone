@@ -20,7 +20,7 @@ import { PhotoPicker } from '@/components/catalog/PhotoPicker'
 import { AttributeFields, useCardBadges } from '@/components/catalog/AttributeFields'
 
 const CONDITION_COLORS: Record<string, string> = { Sealed: '#00ff88', Good: '#00bfff', Fair: '#f5a623', Poor: '#ff4444' }
-const CREATOR_LABEL: Record<MediaType, string> = { Games: 'Publisher', Music: 'Artist', Movies: 'Studio', Books: 'Author' }
+const CREATOR_LABEL: Record<MediaType, string> = { Games: 'Publisher', Music: 'Artist', Movies: 'Studio', Books: 'Author', Comics: 'Writer' }
 
 /** The title being saved: either fixed (from a source / shared entry) or editable (typed by hand). */
 interface TitleState {
