@@ -7,6 +7,7 @@ import { useConditions, useFormats, useSaveBatch } from '@/hooks/queries'
 import { ApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import { formatMoney, todayIso } from '@/lib/format'
+import { collectionPath, mediaForTitle } from '@/lib/platforms'
 import { catalogRefFor, chosenCandidate, clearDraft, isLocked, loadDraft, lookupBarcode, saveDraft, splitTotal, withResults, type HaulDraft, type HaulRow } from '@/lib/haul'
 import type { ItemSave } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
@@ -132,7 +133,9 @@ export default function HaulPage() {
 
     clearDraft(userId)
     toast.success(`${added} ${added === 1 ? 'title' : 'titles'} added to your shelf${crossedOff ? `, ${crossedOff} crossed off your wishlist` : ''}`)
-    navigate('/collection')
+    // Land on the shelf these went to, when they all went to the same one.
+    const destinations = new Set(included.map((r) => collectionPath(formats?.find((f) => f.id === r.formatId)?.mediaType)))
+    navigate(destinations.size === 1 ? [...destinations][0] : '/collection')
   }
 
   const closeScanner = () => {
@@ -279,7 +282,7 @@ export default function HaulPage() {
                           <option value="" disabled>
                             Format…
                           </option>
-                          <FormatOptions formats={formats} />
+                          <FormatOptions formats={formats} only={mediaForTitle(c?.source, row.barcode)} />
                         </Select>
                       )}
                       <Select aria-label="Condition" value={row.conditionId ?? condition ?? ''} className="py-1.5 text-sm" onChange={(e) => changeRow(row.key, { conditionId: Number(e.target.value) })}>

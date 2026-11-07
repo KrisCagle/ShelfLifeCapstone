@@ -7,7 +7,7 @@ import { useConditions, useDeleteWishlistItem, useFormats, useGenres, useItem, u
 import { ApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import { todayIso } from '@/lib/format'
-import { genreFitsMedia, platformColor } from '@/lib/platforms'
+import { genreFitsMedia, mediaForTitle, platformColor, separateCollection } from '@/lib/platforms'
 import type { Candidate, CatalogRef, Item, MediaType } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
 import { Field, Input, Segmented, Select, Textarea } from '@/components/ui/Form'
@@ -63,6 +63,7 @@ export default function ItemFormPage() {
   const location = useLocation()
   const [search] = useSearchParams()
   const fromWishlist = Number(search.get('fromWishlist')) || undefined
+  const media = separateCollection(search.get('media') as MediaType | null)?.media
   const { data: existing, isLoading } = useItem(id ?? NaN)
   const { data: wish, isLoading: wishLoading } = useWishlistItem(fromWishlist ?? NaN)
 
@@ -97,16 +98,18 @@ export default function ItemFormPage() {
       initialQuery={wish?.title ?? search.get('title') ?? ''}
       initialFormatId={wish?.formatId ?? (Number(search.get('formatId')) || null)}
       fromWishlist={fromWishlist}
+      media={media}
     />
   )
 }
 
-function ItemFlow({ existing, initialPick, initialQuery, initialFormatId, fromWishlist }: {
+function ItemFlow({ existing, initialPick, initialQuery, initialFormatId, fromWishlist, media }: {
   existing?: Item
   initialPick?: FinderPick
   initialQuery: string
   initialFormatId: number | null
   fromWishlist?: number
+  media?: MediaType
 }) {
   const [title, setTitle] = useState<TitleState | null>(() =>
     existing ? titleFromItem(existing) : initialPick ? titleFromCandidate(initialPick.candidate) : null,
@@ -114,12 +117,13 @@ function ItemFlow({ existing, initialPick, initialQuery, initialFormatId, fromWi
   const [barcode, setBarcode] = useState(existing?.barcode ?? initialPick?.barcode ?? '')
   const [finding, setFinding] = useState(!existing && !initialPick)
 
-  const heading = existing ? 'Edit title' : fromWishlist ? 'Found it!' : 'Add a title'
+  const collection = separateCollection(media ?? existing?.format?.mediaType)
+  const heading = existing ? 'Edit title' : fromWishlist ? 'Found it!' : collection ? `Add a ${collection.noun}` : 'Add a title'
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <Link to={existing ? `/items/${existing.id}` : '/collection'} className="mb-6 inline-flex items-center gap-1.5 font-mono text-sm text-zinc-400 hover:text-neon-cyan">
-        <ArrowLeft className="size-4" /> {existing ? 'Back to title' : 'Collection'}
+      <Link to={existing ? `/items/${existing.id}` : (collection?.path ?? '/collection')} className="mb-6 inline-flex items-center gap-1.5 font-mono text-sm text-zinc-400 hover:text-neon-cyan">
+        <ArrowLeft className="size-4" /> {existing ? 'Back to title' : (collection?.media ?? 'Collection')}
       </Link>
       <h1 className="mb-2 font-display text-5xl tracking-[0.06em] text-white">{heading}</h1>
       <Steps finding={finding} />
@@ -129,6 +133,7 @@ function ItemFlow({ existing, initialPick, initialQuery, initialFormatId, fromWi
           <motion.div key="find" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.2 }}>
             <Panel className="mt-6 max-w-3xl p-5 sm:p-6">
               <CatalogFinder
+                media={collection?.media}
                 initialQuery={title?.ref.title ?? initialQuery}
                 initialFormatId={title?.ref.formatId || initialFormatId}
                 onPick={(pick) => {
@@ -351,7 +356,7 @@ function DetailsForm({ existing, title, onTitleChange, barcode, onBarcodeChange,
                       <option value="" disabled>
                         Choose a format…
                       </option>
-                      <FormatOptions formats={formats} />
+                      <FormatOptions formats={formats} only={media ? [media] : mediaForTitle(ref.source, barcode)} />
                     </Select>
                   )}
                 </Field>
@@ -397,7 +402,7 @@ function DetailsForm({ existing, title, onTitleChange, barcode, onBarcodeChange,
                         <option value="" disabled>
                           Choose a format…
                         </option>
-                        <FormatOptions formats={formats} />
+                        <FormatOptions formats={formats} only={mediaForTitle(ref.source, barcode)} />
                       </Select>
                     )}
                   </Field>
