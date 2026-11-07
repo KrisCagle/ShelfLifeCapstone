@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, NavLink, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { BadgeDollarSign, Grid3x3, Layers, LayoutList, Library, Plus, Rows3, Search, SearchX, X } from 'lucide-react'
+import { ArrowLeft, BadgeDollarSign, ChevronRight, Grid3x3, Layers, LayoutList, Library, Plus, Rows3, Search, SearchX, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAttributeDefinitions, useCollectionValue, useItems } from '@/hooks/queries'
 import { cardBadges } from '@/components/catalog/AttributeFields'
 import { useElementWidth } from '@/hooks/useElementWidth'
 import { cn } from '@/lib/cn'
 import { formatDate, formatMoney } from '@/lib/format'
-import { MEDIA_TYPES } from '@/lib/platforms'
+import { MAIN_MEDIA, SEPARATE_COLLECTIONS, separateCollection } from '@/lib/platforms'
 import type { AttributeDefinition, Item, MediaType } from '@/lib/types'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Form'
 import { EmptyState, PageHeader, Panel, PlatformBadge, Skeleton, Stat, Tag } from '@/components/ui/Misc'
+import { BookShelf } from '@/components/collection/BookShelf'
 import { CaseArt, CaseCard, caseAspect, ShelfPlank, type CaseCardData } from '@/components/collection/CaseCard'
 
 type View = 'shelf' | 'grid' | 'list'
@@ -27,6 +28,10 @@ const SORTS: Record<Sort, { label: string; compare: (a: Item, b: Item) => number
 }
 
 const VIEW_KEY = 'shelflife:collection-view'
+
+const TAB = 'shrink-0 rounded-lg px-3.5 py-2 font-display text-lg tracking-wider transition'
+const TAB_ACTIVE = 'bg-neon-cyan text-ink-900 shadow-glow-cyan'
+const TAB_IDLE = 'text-zinc-400 ring-1 ring-white/10 hover:text-white hover:ring-white/25'
 const storedView = (): View => {
   try {
     const v = localStorage.getItem(VIEW_KEY)
@@ -49,14 +54,21 @@ const toCard = (item: Item, definitions: Definitions): CaseCardData => ({
   badges: cardBadges(definitions, item.format, item.attributes),
 })
 
-export default function CollectionPage() {
+const SEARCH_HINT: Partial<Record<MediaType, string>> = {
+  Books: 'Search titles, authors, stores…',
+  Comics: 'Search issues, writers, stores…',
+}
+
+/** The main shelf, or with `collection` set, a collection with its own page. */
+export default function CollectionPage({ collection }: { collection?: MediaType }) {
   const { data: items, isLoading, isError, refetch } = useItems()
   const { data: definitions } = useAttributeDefinitions()
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
   const format = params.get('format') ?? ''
   const genre = params.get('genre') ?? ''
-  const media = MEDIA_TYPES.find((m) => m === params.get('media')) ?? null
+  const media = collection ?? MAIN_MEDIA.find((m) => m === params.get('media')) ?? null
+  const own = separateCollection(collection)
   const sort = (params.get('sort') as Sort) in SORTS ? (params.get('sort') as Sort) : 'recent'
   const view = (params.get('view') as View | null) ?? storedView()
   const searchRef = useRef<HTMLInputElement>(null)
@@ -89,8 +101,11 @@ export default function CollectionPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  // Books and comics live on their own pages, so the main shelf leaves them out.
+  const mainItems = useMemo(() => items?.filter((i) => !separateCollection(i.format?.mediaType)), [items])
+
   // Each tab is its own shelf: filters, stats and results all follow it.
-  const shelf = useMemo(() => (media ? items?.filter((i) => i.format?.mediaType === media) : items), [items, media])
+  const shelf = useMemo(() => (media ? items?.filter((i) => i.format?.mediaType === media) : mainItems), [items, mainItems, media])
   const mediaCounts = useMemo(() => {
     const counts = new Map<MediaType, number>()
     items?.forEach((i) => i.format && counts.set(i.format.mediaType, (counts.get(i.format.mediaType) ?? 0) + 1))
@@ -123,38 +138,45 @@ export default function CollectionPage() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <PageHeader
         eyebrow="Your vault"
-        title="My collection"
+        title={own ? `My ${own.noun}s` : 'My collection'}
         actions={
           <>
             <ButtonLink to="/haul" variant="secondary" icon={<Layers className="size-4" />}>
               Scan a haul
             </ButtonLink>
-            <ButtonLink to="/items/new" icon={<Plus className="size-4" />}>
-              Add title
+            <ButtonLink to={own ? `/items/new?media=${own.media}` : '/items/new'} icon={<Plus className="size-4" />}>
+              {own ? `Add a ${own.noun}` : 'Add title'}
             </ButtonLink>
           </>
         }
       />
 
       <div className="mt-5 flex flex-wrap gap-1.5" role="group" aria-label="Filter by media type">
-        {[null, ...MEDIA_TYPES].map((tab) => {
-          const count = tab ? (mediaCounts.get(tab) ?? 0) : (items?.length ?? 0)
-          return (
+        {own ? (
+          <Link to="/collection" className={cn(TAB, TAB_IDLE, 'inline-flex items-center gap-1.5')}>
+            <ArrowLeft className="size-4" /> Collection
+          </Link>
+        ) : (
+          [null, ...MAIN_MEDIA].map((tab) => (
             <button
               key={tab ?? 'All'}
               type="button"
               aria-pressed={media === tab}
               onClick={() => update({ media: tab ?? '', format: '', genre: '' })}
-              className={cn(
-                'shrink-0 rounded-lg px-3.5 py-2 font-display text-lg tracking-wider transition',
-                media === tab ? 'bg-neon-cyan text-ink-900 shadow-glow-cyan' : 'text-zinc-400 ring-1 ring-white/10 hover:text-white hover:ring-white/25',
-              )}
+              className={cn(TAB, media === tab ? TAB_ACTIVE : TAB_IDLE)}
             >
               {tab ?? 'All'}
-              <span className="ml-1.5 font-mono text-xs opacity-70">{count}</span>
+              <span className="ml-1.5 font-mono text-xs opacity-70">{tab ? (mediaCounts.get(tab) ?? 0) : (mainItems?.length ?? 0)}</span>
             </button>
-          )
-        })}
+          ))
+        )}
+        {SEPARATE_COLLECTIONS.map((c) => (
+          <NavLink key={c.path} to={c.path} className={({ isActive }) => cn(TAB, 'inline-flex items-center', isActive ? TAB_ACTIVE : TAB_IDLE)}>
+            {c.media}
+            <span className="ml-1.5 font-mono text-xs opacity-70">{mediaCounts.get(c.media) ?? 0}</span>
+            {!own && <ChevronRight className="-mr-1 ml-0.5 size-4 opacity-60" />}
+          </NavLink>
+        ))}
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
@@ -174,7 +196,7 @@ export default function CollectionPage() {
             value={q}
             onChange={(e) => update({ q: e.target.value })}
             onKeyDown={(e) => e.key === 'Escape' && update({ q: '' })}
-            placeholder="Search titles, artists, stores…"
+            placeholder={(collection && SEARCH_HINT[collection]) ?? 'Search titles, artists, stores…'}
             aria-label="Search collection"
             className="h-10 w-full rounded-lg border border-white/10 bg-ink-800/80 pl-9 pr-16 text-zinc-100 placeholder:text-zinc-500 focus:border-neon-cyan/70 focus:outline-none focus:ring-2 focus:ring-neon-cyan/30 [&::-webkit-search-cancel-button]:hidden"
           />
@@ -214,7 +236,7 @@ export default function CollectionPage() {
 
       <div className="mb-4 mt-5 flex items-center justify-between font-mono text-sm text-zinc-500">
         <span aria-live="polite">
-          {!isLoading && shelf && (filtersActive ? `${visible.length} of ${shelf.length} titles` : `${shelf.length} titles`)}
+          {!isLoading && shelf && (filtersActive ? `${visible.length} of ${shelf.length} titles` : `${shelf.length} ${shelf.length === 1 ? 'title' : 'titles'}`)}
         </span>
         {filtersActive && (
           <button onClick={() => update({ q: '', format: '', genre: '' })} className="text-neon-amber hover:underline">
@@ -232,7 +254,7 @@ export default function CollectionPage() {
             Try again
           </Button>
         </Panel>
-      ) : items?.length === 0 ? (
+      ) : !media && shelf?.length === 0 ? (
         <Panel>
           <EmptyState
             icon={<Library className="size-8" />}
@@ -252,8 +274,8 @@ export default function CollectionPage() {
             title={`No ${media.toLowerCase()} yet`}
             description="Scan a barcode or search for a title and it'll land on this shelf."
             action={
-              <ButtonLink to="/items/new" size="lg" icon={<Plus className="size-5" />}>
-                Add a title
+              <ButtonLink to={own ? `/items/new?media=${own.media}` : '/items/new'} size="lg" icon={<Plus className="size-5" />}>
+                {own ? `Add your first ${own.noun}` : 'Add a title'}
               </ButtonLink>
             }
           />
@@ -273,6 +295,8 @@ export default function CollectionPage() {
         </Panel>
       ) : view === 'list' ? (
         <ListView items={visible} />
+      ) : view === 'shelf' && collection === 'Books' ? (
+        <BookShelf items={visible} />
       ) : (
         <ShelfView items={visible} dense={view === 'grid'} definitions={definitions} />
       )}

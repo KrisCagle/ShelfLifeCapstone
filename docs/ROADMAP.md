@@ -129,6 +129,8 @@ Pulled forward because a polished front end matters before anything goes live.
   within a few dozen requests, and all users would share that allowance from one server. Use a
   GCD account or import its data downloads, and confirm its terms for an app like this and what
   share-alike means for the shared catalog.
+- [x] **Separate book and comic collections**: each has its own page under Collection, kept off the
+  main shelf, and adding from one offers only its formats. Books stand spine-out on a bookshelf.
 - [ ] **Haul history**: keep each haul as a record, with spending by month, store and media type.
 - [ ] Tags, custom shelves, physical location ("Box 3"), loaned-out tracking.
 - [ ] CSV import and export (export is always free — your data is yours).

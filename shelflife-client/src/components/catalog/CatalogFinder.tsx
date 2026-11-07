@@ -18,9 +18,14 @@ const MEDIA_NOUN: Record<MediaType, string> = { Games: 'game', Music: 'album', M
 
 const LAST_FORMAT_KEY = 'shelflife:last-format'
 
-const storedFormat = () => {
+/** Ready to search straight away when adding to a collection of one kind. */
+const DEFAULT_FORMAT: Partial<Record<MediaType, string>> = { Books: 'Paperback', Comics: 'Single Issue' }
+
+const formatKey = (media?: MediaType) => (media ? `${LAST_FORMAT_KEY}:${media}` : LAST_FORMAT_KEY)
+
+const storedFormat = (media?: MediaType) => {
   try {
-    return Number(localStorage.getItem(LAST_FORMAT_KEY)) || null
+    return Number(localStorage.getItem(formatKey(media))) || null
   } catch {
     return null
   }
@@ -37,6 +42,8 @@ interface CatalogFinderProps {
   initialFormatId?: number | null
   /** Text for the manual-entry fallback, e.g. "Add it by hand". */
   manualLabel?: string
+  /** Limits the formats on offer, when adding to one collection. */
+  media?: MediaType
 }
 
 export const manualCandidate = (title: string, format: Format): Candidate => ({
@@ -56,10 +63,13 @@ export const manualCandidate = (title: string, format: Format): Candidate => ({
 })
 
 /** Step one of adding anything: pick a format, then search, scan, or type it in. */
-export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = null, manualLabel }: CatalogFinderProps) {
+export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = null, manualLabel, media }: CatalogFinderProps) {
   const { data: formats } = useFormats()
   const { data: items } = useItems()
-  const [formatId, setFormatId] = useState<number | null>(() => initialFormatId ?? storedFormat())
+  const [pickedFormatId, setFormatId] = useState<number | null>(() => initialFormatId ?? storedFormat(media))
+  const allowed = useMemo(() => (media ? formats?.filter((f) => f.mediaType === media) : formats), [formats, media])
+  const picked = allowed?.find((f) => f.id === pickedFormatId)
+  const formatId = media ? (picked ?? allowed?.find((f) => f.name === DEFAULT_FORMAT[media]) ?? allowed?.[0])?.id ?? null : pickedFormatId
   const [query, setQuery] = useState(initialQuery)
   const [scanning, setScanning] = useState(false)
   const [barcode, setBarcode] = useState<string | null>(null)
@@ -81,10 +91,13 @@ export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = nul
       .filter((f): f is Format => !!f)
   }, [items, formats])
 
+  // A collection of one kind has few enough formats to just show them all.
+  const chips = media ? (allowed ?? []) : topFormats
+
   const pickFormat = (id: number) => {
     setFormatId(id)
     try {
-      localStorage.setItem(LAST_FORMAT_KEY, String(id))
+      localStorage.setItem(formatKey(media), String(id))
     } catch {
       // Storage blocked; it just won't be remembered next time.
     }
@@ -100,7 +113,7 @@ export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = nul
     <div className="space-y-5">
       <div>
         <p className="mb-2 font-mono text-xs uppercase tracking-[0.18em] text-zinc-400">1 · Format</p>
-        <div className="relative">
+        <div className={cn('relative', media && 'hidden')}>
           <span
             className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-3 -translate-y-1/2 rounded-full transition-colors"
             style={format ? { backgroundColor: platformColor(format.name), boxShadow: `0 0 10px ${platformColor(format.name)}` } : { backgroundColor: '#3d3d56' }}
@@ -113,9 +126,9 @@ export function CatalogFinder({ onPick, initialQuery = '', initialFormatId = nul
             <FormatOptions formats={formats} />
           </Select>
         </div>
-        {topFormats.length > 0 && (
-          <div className="mt-2 flex flex-wrap items-center gap-1.5" aria-label="Your most used formats">
-            {topFormats.map((f) => {
+        {chips.length > 0 && (
+          <div className={cn('flex flex-wrap items-center gap-1.5', !media && 'mt-2')} aria-label={media ? 'Format' : 'Your most used formats'}>
+            {chips.map((f) => {
               const active = f.id === formatId
               const color = platformColor(f.name)
               return (

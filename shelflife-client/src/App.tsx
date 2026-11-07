@@ -45,6 +45,8 @@ const router = createBrowserRouter([
         element: <RequireAuth />,
         children: [
           { path: '/collection', element: <CollectionPage /> },
+          { path: '/collection/books', element: <CollectionPage key="books" collection="Books" /> },
+          { path: '/collection/comics', element: <CollectionPage key="comics" collection="Comics" /> },
           { path: '/haul', element: <HaulPage /> },
           { path: '/items/new', element: <ItemFormPage /> },
           { path: '/items/:id', element: <ItemDetailPage /> },

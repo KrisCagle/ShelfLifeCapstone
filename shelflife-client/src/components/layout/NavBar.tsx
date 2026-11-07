@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { Heart, Home, Library, LogOut, Megaphone, Menu, Plus, ScanLine, X } from 'lucide-react'
+import { BookOpen, Heart, Home, Library, LogOut, Megaphone, Menu, Plus, ScanLine, X, Zap } from 'lucide-react'
 import { QuickScan } from '@/components/catalog/QuickScan'
 import { toast } from 'sonner'
 import { useAuth } from '@/auth/AuthProvider'
@@ -9,12 +9,15 @@ import { Logo } from '@/components/ui/Logo'
 import { ButtonLink, buttonClasses } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
 import { initials } from '@/lib/format'
+import { SEPARATE_COLLECTIONS } from '@/lib/platforms'
 
 const links = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/collection', label: 'Collection', icon: Library },
   { to: '/wishlist', label: 'Wishlist', icon: Heart },
 ]
+
+const SUB_ICONS = { Books: BookOpen, Comics: Zap } as Record<string, typeof BookOpen>
 
 export function NavBar() {
   const { user, logout } = useAuth()
@@ -58,6 +61,10 @@ export function NavBar() {
 
   const visibleLinks = user ? links : links.slice(0, 1)
 
+  // Adding from a book or comic shelf stays in that collection.
+  const here = SEPARATE_COLLECTIONS.find((c) => location.pathname.startsWith(c.path))
+  const addLink = { to: here ? `/items/new?media=${here.media}` : '/items/new', label: here ? `Add ${here.noun}` : 'Add title' }
+
   return (
     <header
       className={cn(
@@ -72,21 +79,35 @@ export function NavBar() {
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
           {visibleLinks.map(({ to, label, end }) => (
-            <NavLink key={to} to={to} end={end} className="relative px-3 py-2">
-              {({ isActive }) => (
-                <>
-                  <span className={cn('font-display text-lg tracking-[0.12em] transition-colors', isActive ? 'text-neon-cyan text-glow-cyan' : 'text-zinc-400 hover:text-zinc-100')}>
-                    {label}
-                  </span>
-                  {isActive && (
-                    <motion.span
-                      layoutId="nav-underline"
-                      className="absolute inset-x-3 -bottom-[1px] h-[2px] rounded-full bg-neon-cyan shadow-glow-cyan"
-                    />
-                  )}
-                </>
+            <div key={to} className="group relative">
+              <NavLink to={to} end={end} className="relative block px-3 py-2">
+                {({ isActive }) => (
+                  <>
+                    <span className={cn('font-display text-lg tracking-[0.12em] transition-colors', isActive ? 'text-neon-cyan text-glow-cyan' : 'text-zinc-400 hover:text-zinc-100')}>
+                      {label}
+                    </span>
+                    {isActive && (
+                      <motion.span
+                        layoutId="nav-underline"
+                        className="absolute inset-x-3 -bottom-[1px] h-[2px] rounded-full bg-neon-cyan shadow-glow-cyan"
+                      />
+                    )}
+                  </>
+                )}
+              </NavLink>
+              {to === '/collection' && (
+                <div className="glass invisible absolute left-0 top-full z-50 w-44 rounded-xl !bg-ink-900/[0.97] p-1.5 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+                  {SEPARATE_COLLECTIONS.map((c) => {
+                    const Icon = SUB_ICONS[c.media]
+                    return (
+                      <Link key={c.path} to={c.path} className="flex items-center gap-2 rounded-lg px-3 py-2 text-zinc-300 hover:bg-white/5 hover:text-white">
+                        <Icon className="size-4" /> {c.media}
+                      </Link>
+                    )
+                  })}
+                </div>
               )}
-            </NavLink>
+            </div>
           ))}
         </nav>
 
@@ -101,8 +122,8 @@ export function NavBar() {
               >
                 <ScanLine className="size-4" /> <span className="hidden lg:inline">Scan</span>
               </button>
-              <ButtonLink to="/items/new" size="sm" icon={<Plus className="size-4" />} className="hidden sm:inline-flex">
-                Add title
+              <ButtonLink to={addLink.to} size="sm" icon={<Plus className="size-4" />} className="hidden sm:inline-flex">
+                {addLink.label}
               </ButtonLink>
               <div ref={menuRef} className="relative hidden md:block">
                 <button
@@ -177,18 +198,37 @@ export function NavBar() {
             className="overflow-hidden border-t border-white/5 md:hidden"
           >
             <div className="space-y-1 px-4 py-3">
-              {[...links, { to: '/items/new', label: 'Add title', icon: Plus, end: false }].map(({ to, label, icon: Icon, end }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end={end}
-                  className={({ isActive }) =>
-                    cn('flex items-center gap-3 rounded-lg px-3 py-3 font-display text-xl tracking-[0.12em]', isActive ? 'bg-neon-cyan/10 text-neon-cyan' : 'text-zinc-300')
-                  }
-                >
-                  <Icon className="size-5" /> {label}
-                </NavLink>
+              {links.map(({ to, label, icon: Icon }) => (
+                <div key={to} className="space-y-1">
+                  <NavLink
+                    to={to}
+                    end
+                    className={({ isActive }) =>
+                      cn('flex items-center gap-3 rounded-lg px-3 py-3 font-display text-xl tracking-[0.12em]', isActive ? 'bg-neon-cyan/10 text-neon-cyan' : 'text-zinc-300')
+                    }
+                  >
+                    <Icon className="size-5" /> {label}
+                  </NavLink>
+                  {to === '/collection' &&
+                    SEPARATE_COLLECTIONS.map((c) => {
+                      const Sub = SUB_ICONS[c.media]
+                      return (
+                        <NavLink
+                          key={c.path}
+                          to={c.path}
+                          className={({ isActive }) =>
+                            cn('ml-8 flex items-center gap-3 rounded-lg px-3 py-2 font-display text-lg tracking-[0.12em]', isActive ? 'bg-neon-cyan/10 text-neon-cyan' : 'text-zinc-400')
+                          }
+                        >
+                          <Sub className="size-4" /> {c.media}
+                        </NavLink>
+                      )
+                    })}
+                </div>
               ))}
+              <NavLink to={addLink.to} className="flex items-center gap-3 rounded-lg px-3 py-3 font-display text-xl tracking-[0.12em] text-zinc-300">
+                <Plus className="size-5" /> {addLink.label}
+              </NavLink>
               {user.isAdmin && (
                 <NavLink to="/admin/news" className="flex items-center gap-3 rounded-lg px-3 py-3 font-display text-xl tracking-[0.12em] text-zinc-300">
                   <Megaphone className="size-5" /> Manage news

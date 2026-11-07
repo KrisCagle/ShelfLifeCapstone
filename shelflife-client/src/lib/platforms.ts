@@ -3,6 +3,27 @@ import type { MediaType } from './types'
 /** Every kind of thing people collect, in display order. */
 export const MEDIA_TYPES: MediaType[] = ['Games', 'Music', 'Movies', 'Books', 'Comics']
 
+/** Share the main shelf, with a tab each. */
+export const MAIN_MEDIA: MediaType[] = ['Games', 'Music', 'Movies']
+
+/** Collections with a page and shelf of their own under Collection. */
+export const SEPARATE_COLLECTIONS: { media: MediaType; path: string; noun: string }[] = [
+  { media: 'Books', path: '/collection/books', noun: 'book' },
+  { media: 'Comics', path: '/collection/comics', noun: 'comic' },
+]
+
+export const separateCollection = (media?: MediaType | null) => SEPARATE_COLLECTIONS.find((c) => c.media === media)
+
+/** The page a title lives on. */
+export const collectionPath = (media?: MediaType | null) => separateCollection(media)?.path ?? '/collection'
+
+/** Which formats make sense for a title, from where it came from. Undefined means any. */
+export function mediaForTitle(source?: string | null, barcode?: string | null): MediaType[] | undefined {
+  if (source === 'openlibrary') return ['Books']
+  if (source === 'gcd') return ['Comics']
+  return barcode && /^97[89]\d{10}$/.test(barcode) ? ['Books', 'Comics'] : undefined
+}
+
 interface PlatformStyle {
   color: string
   short?: string

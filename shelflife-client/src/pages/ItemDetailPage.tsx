@@ -10,7 +10,7 @@ import { SOURCE_LABELS } from '@/components/catalog/CandidateCard'
 import { api, ApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import { formatDate, formatMoney } from '@/lib/format'
-import { platformColor, withAlpha } from '@/lib/platforms'
+import { collectionPath, platformColor, separateCollection, withAlpha } from '@/lib/platforms'
 import type { Item, ItemSave } from '@/lib/types'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { EmptyState, Panel, PlatformBadge, Skeleton, Tag } from '@/components/ui/Misc'
@@ -61,7 +61,7 @@ export default function ItemDetailPage() {
     const snapshot = toSave(item)
     deleteItem.mutate(item.id, {
       onSuccess: () => {
-        navigate('/collection')
+        navigate(collectionPath(item.format?.mediaType))
         toast(`Removed “${item.title}”`, {
           duration: 8000,
           action: {
@@ -84,8 +84,8 @@ export default function ItemDetailPage() {
     <div className="relative">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[28rem]" style={{ background: `radial-gradient(ellipse at 25% 0%, ${withAlpha(color, 0.18)}, transparent 60%)` }} />
       <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <Link to="/collection" className="mb-6 inline-flex items-center gap-1.5 font-mono text-sm text-zinc-400 hover:text-neon-cyan">
-          <ArrowLeft className="size-4" /> Collection
+        <Link to={collectionPath(item.format?.mediaType)} className="mb-6 inline-flex items-center gap-1.5 font-mono text-sm text-zinc-400 hover:text-neon-cyan">
+          <ArrowLeft className="size-4" /> {separateCollection(item.format?.mediaType)?.media ?? 'Collection'}
         </Link>
 
         <div className="grid gap-8 md:grid-cols-[minmax(0,20rem)_1fr] lg:gap-12">
