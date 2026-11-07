@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +47,17 @@ builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<Mus
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<TmdbProvider>());
 builder.Services.AddScoped<MetadataService>();
 builder.Services.AddScoped<CatalogService>();
+
+builder.Services.AddSingleton<IPhotoStorage, LocalPhotoStorage>();
+
+// Enough for a big haul with a photo of everything, but not for filling the disk.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("photos", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 200, Window = TimeSpan.FromHours(1) }));
+});
 
 // The React app reaches the API through a same-origin proxy (Vite in dev, Vercel
 // rewrites in production), so browsers normally never make cross-origin calls.
@@ -132,6 +145,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowReact");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 
 app.Run();

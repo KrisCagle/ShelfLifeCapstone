@@ -116,7 +116,7 @@ namespace ShelfLifeAPI.Dtos
         [MaxLength(2000)]
         public string? Notes { get; set; }
 
-        [Url, MaxLength(500)]
+        [PhotoUrl, MaxLength(500)]
         public string? PhotoUrl { get; set; }
 
         [RegularExpression(@"^\d{8,14}$", ErrorMessage = "A barcode is 8 to 14 digits.")]

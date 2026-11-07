@@ -14,6 +14,7 @@ import { Field, Input, Segmented, Select } from '@/components/ui/Form'
 import { EmptyState, PageHeader, Panel, PlatformBadge } from '@/components/ui/Misc'
 import { CoverThumb, OwnershipBadges } from '@/components/catalog/CandidateCard'
 import { FormatOptions } from '@/components/catalog/FormatOptions'
+import { PhotoPicker } from '@/components/catalog/PhotoPicker'
 
 const HaulScanner = lazy(() => import('@/components/catalog/HaulScanner'))
 
@@ -102,6 +103,7 @@ export default function HaulPage() {
       purchasePrice: Number(row.price) || 0,
       dateAcquired: draft.date,
       storeFound: draft.store.trim(),
+      photoUrl: row.photoUrl ?? null,
       barcode: row.barcode,
       genreIds: [],
       attributes: {},
@@ -227,7 +229,7 @@ export default function HaulPage() {
                       {row.include && <Check className="size-4" />}
                     </span>
                   </label>
-                  <CoverThumb src={c?.coverUrl ?? null} title={row.title || '?'} format={formatName} className="w-14" />
+                  <CoverThumb key={row.photoUrl ?? c?.coverUrl} src={row.photoUrl ?? c?.coverUrl ?? null} title={row.title || '?'} format={formatName} className="w-14" />
                   <div className="min-w-0 flex-1 space-y-2">
                     {locked ? (
                       <div>
@@ -246,6 +248,7 @@ export default function HaulPage() {
                     <div className="flex flex-wrap items-center gap-1.5">
                       {locked && <PlatformBadge name={formatName} />}
                       {c && <OwnershipBadges candidate={c} />}
+                      <PhotoPicker compact value={row.photoUrl ?? null} label={`Photo of ${row.title || row.barcode}`} onChange={(photoUrl) => changeRow(row.key, { photoUrl })} />
                       {row.status === 'failed' && (
                         <button type="button" onClick={() => retry(row)} className="inline-flex items-center gap-1 font-mono text-xs text-neon-cyan hover:underline">
                           <RefreshCw className="size-3" /> Retry lookup

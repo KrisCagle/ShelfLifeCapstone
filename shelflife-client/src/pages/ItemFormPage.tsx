@@ -16,6 +16,7 @@ import { CaseCard, ShelfPlank } from '@/components/collection/CaseCard'
 import { CatalogFinder, type FinderPick } from '@/components/catalog/CatalogFinder'
 import { CoverThumb, SOURCE_LABELS } from '@/components/catalog/CandidateCard'
 import { FormatOptions } from '@/components/catalog/FormatOptions'
+import { PhotoPicker } from '@/components/catalog/PhotoPicker'
 import { AttributeFields, useCardBadges } from '@/components/catalog/AttributeFields'
 
 const CONDITION_COLORS: Record<string, string> = { Sealed: '#00ff88', Good: '#00bfff', Fair: '#f5a623', Poor: '#ff4444' }
@@ -189,7 +190,7 @@ interface CopyState {
   attributes: Record<string, string>
 }
 
-type Errors = Partial<Record<'title' | 'formatId' | 'coverUrl' | 'conditionId' | 'purchasePrice' | 'dateAcquired' | 'photoUrl' | 'barcode' | 'form', string>>
+type Errors = Partial<Record<'title' | 'formatId' | 'coverUrl' | 'conditionId' | 'purchasePrice' | 'dateAcquired' | 'barcode' | 'form', string>>
 
 const isUrl = (v: string) => /^https?:\/\/\S+$/i.test(v)
 
@@ -237,7 +238,6 @@ function DetailsForm({ existing, title, onTitleChange, barcode, onBarcodeChange,
     if (Number.isNaN(price) || price < 0) found.purchasePrice = 'Enter a price of 0 or more.'
     if (!copy.dateAcquired) found.dateAcquired = 'When did you get it?'
     else if (copy.dateAcquired > todayIso()) found.dateAcquired = 'That date is in the future.'
-    if (copy.photoUrl && !isUrl(copy.photoUrl)) found.photoUrl = 'Use a full link starting with http(s)://'
     if (barcode && !/^\d{8,14}$/.test(barcode)) found.barcode = 'A barcode is 8 to 14 digits.'
     return found
   }
@@ -462,10 +462,8 @@ function DetailsForm({ existing, title, onTitleChange, barcode, onBarcodeChange,
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Photo of your copy" optional error={errors.photoUrl} hint="Shown instead of the stock cover.">
-              {({ id, invalid, describedBy }) => (
-                <Input id={id} invalid={invalid} aria-describedby={describedBy} type="url" placeholder="https://…" value={copy.photoUrl} onChange={(e) => set('photoUrl', e.target.value)} />
-              )}
+            <Field label="Photo of your copy" optional hint="Shown instead of the stock cover.">
+              {() => <PhotoPicker value={copy.photoUrl || null} onChange={(url) => set('photoUrl', url ?? '')} />}
             </Field>
             <Field label="Barcode" optional error={errors.barcode} hint={barcode ? 'Scanned from your copy.' : undefined}>
               {({ id, invalid, describedBy }) => (
@@ -501,7 +499,7 @@ function DetailsForm({ existing, title, onTitleChange, barcode, onBarcodeChange,
                 format: format?.name,
                 condition: condition?.name,
                 price: Number(copy.purchasePrice || 0),
-                imageUrl: isUrl(copy.photoUrl) ? copy.photoUrl : ref.coverUrl && isUrl(ref.coverUrl) ? ref.coverUrl : null,
+                imageUrl: copy.photoUrl ? copy.photoUrl : ref.coverUrl && isUrl(ref.coverUrl) ? ref.coverUrl : null,
                 genres: genres?.filter((g) => copy.genreIds.includes(g.id)).map((g) => g.name),
                 badges,
               }}

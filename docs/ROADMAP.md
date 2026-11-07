@@ -111,6 +111,9 @@ Pulled forward because a polished front end matters before anything goes live.
 - [x] **Haul mode**: from any scan result, keep the camera open and scan a stack, or read several
   barcodes from one photo. Review them together, share store and date, split the total, and save
   all or nothing. The batch is kept on the device until it's added.
+- [x] **Photos of your copy**: take or choose a photo on any title or haul row. It's shrunk in the
+  browser, which also strips its location data, and stored behind an interface so hosting can move
+  it to object storage.
 - [ ] **Haul history**: keep each haul as a record, with spending by month, store and media type.
 - [ ] Tags, custom shelves, physical location ("Box 3"), loaned-out tracking.
 - [ ] CSV import and export (export is always free — your data is yours).
@@ -129,7 +132,6 @@ Candidates for the next rounds, roughly in order of payoff:
 - **Shelf locations**: "Box 3", "Living room shelf A", and a filter for them.
 - **Shareable showcase**: a read-only public link to a shelf or the whole collection.
 - **Trade list**: mark duplicates or spare copies as available for trade.
-- **Photo upload** (Supabase Storage) instead of pasted image links.
 - **Keyboard shortcut help** (`?`) and more shortcuts (`n` new, `s` scan).
 - **Theme variants** (CRT green, synthwave pink) — a natural Pro perk.
 
