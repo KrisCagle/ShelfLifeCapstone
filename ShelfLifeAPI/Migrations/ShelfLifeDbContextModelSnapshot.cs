@@ -243,6 +243,10 @@ namespace ShelfLifeAPI.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
                     b.Property<string>("ExternalId")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -505,6 +509,30 @@ namespace ShelfLifeAPI.Migrations
                             Id = 28,
                             MediaType = "Music",
                             Name = "Cassette"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            MediaType = "Books",
+                            Name = "Hardcover"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            MediaType = "Books",
+                            Name = "Paperback"
+                        },
+                        new
+                        {
+                            Id = 31,
+                            MediaType = "Books",
+                            Name = "Mass Market Paperback"
+                        },
+                        new
+                        {
+                            Id = 32,
+                            MediaType = "Books",
+                            Name = "Manga"
                         });
                 });
 
@@ -624,6 +652,46 @@ namespace ShelfLifeAPI.Migrations
                         {
                             Id = 20,
                             Name = "Pop"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Name = "Fiction"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Name = "Non-fiction"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            Name = "Fantasy"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            Name = "Mystery"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            Name = "Romance"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            Name = "Biography"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            Name = "History"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            Name = "Children's"
                         });
                 });
 

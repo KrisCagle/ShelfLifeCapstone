@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ShelfLifeAPI.Models;
+using ShelfLifeAPI.Services;
 
 namespace ShelfLifeAPI.Data
 {
@@ -38,6 +39,7 @@ namespace ShelfLifeAPI.Data
             {
                 entry.Property(c => c.Title).HasMaxLength(200);
                 entry.Property(c => c.Creator).HasMaxLength(200);
+                entry.Property(c => c.Description).HasMaxLength(CatalogService.MaxDescriptionLength);
                 entry.Property(c => c.Barcode).HasMaxLength(32);
                 entry.Property(c => c.Source).HasMaxLength(20);
                 entry.Property(c => c.ExternalId).HasMaxLength(64);
@@ -84,7 +86,11 @@ namespace ShelfLifeAPI.Data
                 new Format { Id = 25, Name = "DVD", MediaType = MediaTypes.Movies },
                 new Format { Id = 26, Name = "Blu-ray", MediaType = MediaTypes.Movies },
                 new Format { Id = 27, Name = "4K Ultra HD", MediaType = MediaTypes.Movies },
-                new Format { Id = 28, Name = "Cassette", MediaType = MediaTypes.Music }
+                new Format { Id = 28, Name = "Cassette", MediaType = MediaTypes.Music },
+                new Format { Id = 29, Name = "Hardcover", MediaType = MediaTypes.Books },
+                new Format { Id = 30, Name = "Paperback", MediaType = MediaTypes.Books },
+                new Format { Id = 31, Name = "Mass Market Paperback", MediaType = MediaTypes.Books },
+                new Format { Id = 32, Name = "Manga", MediaType = MediaTypes.Books }
             );
 
             // Seed Conditions
@@ -116,7 +122,15 @@ namespace ShelfLifeAPI.Data
                 new Genre { Id = 17, Name = "Classical" },
                 new Genre { Id = 18, Name = "Country" },
                 new Genre { Id = 19, Name = "R&B" },
-                new Genre { Id = 20, Name = "Pop" }
+                new Genre { Id = 20, Name = "Pop" },
+                new Genre { Id = 21, Name = "Fiction" },
+                new Genre { Id = 22, Name = "Non-fiction" },
+                new Genre { Id = 23, Name = "Fantasy" },
+                new Genre { Id = 24, Name = "Mystery" },
+                new Genre { Id = 25, Name = "Romance" },
+                new Genre { Id = 26, Name = "Biography" },
+                new Genre { Id = 27, Name = "History" },
+                new Genre { Id = 28, Name = "Children's" }
             );
         }
     }

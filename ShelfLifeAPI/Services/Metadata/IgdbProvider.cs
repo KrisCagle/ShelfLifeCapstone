@@ -8,7 +8,7 @@ namespace ShelfLifeAPI.Services.Metadata
     // set Igdb:ClientId and Igdb:ClientSecret (user secrets locally).
     public class IgdbProvider : IMetadataProvider
     {
-        private const string Fields = "fields name,first_release_date,total_rating_count,cover.image_id,involved_companies.company.id,involved_companies.company.name,involved_companies.developer,involved_companies.publisher;";
+        private const string Fields = "fields name,summary,first_release_date,total_rating_count,cover.image_id,involved_companies.company.id,involved_companies.company.name,involved_companies.developer,involved_companies.publisher;";
 
         // IGDB platform ids for the formats we carry.
         private static readonly Dictionary<string, int> PlatformIds = new()
@@ -124,8 +124,9 @@ namespace ShelfLifeAPI.Services.Metadata
                     ? DateTimeOffset.FromUnixTimeSeconds(d.GetInt64()).Year
                     : null;
                 var ratings = g.TryGetProperty("total_rating_count", out var r) ? r.GetInt32() : 0;
+                var summary = g.TryGetProperty("summary", out var s) ? s.GetString() : null;
                 return new IgdbGame(new CatalogCandidate(Source, g.GetProperty("id").GetInt64().ToString(), g.GetProperty("name").GetString()!,
-                    format.Id, year, Developer(g), cover), ratings);
+                    format.Id, year, Developer(g), cover, Description: summary), ratings);
             }).ToList();
         }
 

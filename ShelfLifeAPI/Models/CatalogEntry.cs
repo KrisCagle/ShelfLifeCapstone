@@ -15,6 +15,7 @@ namespace ShelfLifeAPI.Models
         public string? Creator { get; set; }
         public string? Barcode { get; set; }
         public string? CoverUrl { get; set; }
+        public string? Description { get; set; }
 
         // "manual", "igdb", "musicbrainz", "tmdb" or "upc"; ExternalId is that source's id.
         public string Source { get; set; } = CatalogSources.Manual;
@@ -33,6 +34,7 @@ namespace ShelfLifeAPI.Models
         public const string Igdb = "igdb";
         public const string MusicBrainz = "musicbrainz";
         public const string Tmdb = "tmdb";
+        public const string OpenLibrary = "openlibrary";
         public const string Upc = "upc";
     }
 }
