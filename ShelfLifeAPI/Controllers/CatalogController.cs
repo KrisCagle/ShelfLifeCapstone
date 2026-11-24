@@ -115,8 +115,7 @@ namespace ShelfLifeAPI.Controllers
             return Ok(new { barcode = code, results });
         }
 
-        private object? ProviderFor(Format format) =>
-            _metadata.Providers.FirstOrDefault(p => p.MediaType == format.MediaType);
+        private object? ProviderFor(Format format) => _metadata.InfoFor(format);
 
         // Merges local entries with source results (a source record already in the
         // catalog shows up once, with its entry id) and marks what the user already owns

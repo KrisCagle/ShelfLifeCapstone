@@ -14,7 +14,7 @@ export interface ItemGenre {
   genre?: Lookup | null
 }
 
-export type CatalogSource = 'manual' | 'igdb' | 'musicbrainz' | 'tmdb' | 'openlibrary' | 'gcd' | 'upc'
+export type CatalogSource = 'manual' | 'igdb' | 'musicbrainz' | 'tmdb' | 'openlibrary' | 'gcd' | 'wikidata' | 'upc'
 
 export interface CatalogEntry {
   id: number

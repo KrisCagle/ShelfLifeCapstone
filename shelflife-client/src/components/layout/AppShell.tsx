@@ -54,7 +54,11 @@ function Footer() {
         </div>
         <p className="max-w-lg text-xs leading-relaxed sm:text-right">
           Headlines link to and belong to their publishers. “Collectors paid” comes from prices ShelfLife users log. eBay links may earn ShelfLife a commission. Music data from
-          MusicBrainz, cover art from the Cover Art Archive, game data from IGDB, book data from{' '}
+          MusicBrainz, cover art from the Cover Art Archive, game and movie data from{' '}
+          <a href="https://www.wikidata.org" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
+            Wikidata
+          </a>
+          , book data from{' '}
           <a href="https://openlibrary.org" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
             Open Library
           </a>
@@ -66,8 +70,7 @@ function Footer() {
           <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
             CC BY-SA 4.0
           </a>
-          . This product uses the TMDB API but is not
-          endorsed or certified by TMDB.
+          .
         </p>
         <nav className="flex gap-4">
           <Link to="/" className="hover:text-zinc-300">Home</Link>

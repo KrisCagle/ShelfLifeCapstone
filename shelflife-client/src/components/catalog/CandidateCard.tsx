@@ -11,6 +11,7 @@ export const SOURCE_LABELS: Record<CatalogSource, string> = {
   tmdb: 'TMDB',
   openlibrary: 'Open Library',
   gcd: 'GCD',
+  wikidata: 'Wikidata',
   upc: 'Product lookup',
   manual: 'Your entry',
 }
