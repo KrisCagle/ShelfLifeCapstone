@@ -1,4 +1,6 @@
 ShelfLifeAPI/obj/
 ShelfLifeAPI/bin/
+tools/*/obj/
+tools/*/bin/
 ShelfLifeAPI/appsettings.Production.json
 ShelfLifeAPI/App_Data/

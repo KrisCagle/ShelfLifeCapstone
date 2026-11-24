@@ -15,6 +15,7 @@ namespace ShelfLifeAPI.Services.Metadata
         private readonly IEnumerable<IMetadataProvider> _providers;
         private readonly MusicBrainzProvider _musicBrainz;
         private readonly OpenLibraryProvider _openLibrary;
+        private readonly GcdProvider _gcd;
         private readonly UpcItemDbProvider _upc;
         private readonly EbayBarcodeProvider _ebay;
         private readonly IMemoryCache _cache;
@@ -22,12 +23,13 @@ namespace ShelfLifeAPI.Services.Metadata
         private readonly bool _ebayFallback;
         private readonly IConfiguration _configuration;
 
-        public MetadataService(IEnumerable<IMetadataProvider> providers, MusicBrainzProvider musicBrainz, OpenLibraryProvider openLibrary, UpcItemDbProvider upc, EbayBarcodeProvider ebay,
+        public MetadataService(IEnumerable<IMetadataProvider> providers, MusicBrainzProvider musicBrainz, OpenLibraryProvider openLibrary, GcdProvider gcd, UpcItemDbProvider upc, EbayBarcodeProvider ebay,
             IMemoryCache cache, ILogger<MetadataService> logger, IConfiguration configuration)
         {
             _providers = providers;
             _musicBrainz = musicBrainz;
             _openLibrary = openLibrary;
+            _gcd = gcd;
             _upc = upc;
             _ebay = ebay;
             _cache = cache;
@@ -111,11 +113,15 @@ namespace ShelfLifeAPI.Services.Metadata
             if (_cache.TryGetValue(key, out IReadOnlyList<CatalogCandidate>? cached) && cached != null)
                 return cached;
 
-            var results = new List<CatalogCandidate>();
+            // Comics come from ShelfLife's own copy of the GCD, so checking them costs no
+            // outside call. An ISBN can be a book or a trade paperback, so it asks both.
+            var results = new List<CatalogCandidate>(await _gcd.LookupBarcodeAsync(barcode, formats, cancellationToken));
             // An ISBN is never a record, so don't spend MusicBrainz's strict rate limit on it.
             var exact = OpenLibraryProvider.IsIsbn(barcode)
                 ? await SafeAsync(() => _openLibrary.LookupBarcodeAsync(barcode, formats, cancellationToken), "Open Library")
-                : await SafeAsync(() => _musicBrainz.LookupBarcodeAsync(barcode, formats, cancellationToken), "MusicBrainz");
+                : results.Count > 0
+                    ? null
+                    : await SafeAsync(() => _musicBrainz.LookupBarcodeAsync(barcode, formats, cancellationToken), "MusicBrainz");
             results.AddRange(exact ?? []);
 
             if (results.Count == 0)
@@ -156,8 +162,8 @@ namespace ShelfLifeAPI.Services.Metadata
             return results;
         }
 
-        // Search results from TMDB lack the studio, and those from Open Library and the GCD
-        // lack the description, which only their detail calls return. Those records are
+        // Search results from TMDB lack the studio, and those from Open Library lack the
+        // description, which only their detail calls return. Those records are
         // fetched fresh when saved instead of reused from a search; a book from a barcode
         // lookup is already complete.
         private void Remember(IEnumerable<CatalogCandidate> candidates)
@@ -168,7 +174,7 @@ namespace ShelfLifeAPI.Services.Metadata
 
         private static bool IsComplete(CatalogCandidate c) => c.Source switch
         {
-            CatalogSources.Upc or CatalogSources.Tmdb or CatalogSources.Gcd => false,
+            CatalogSources.Upc or CatalogSources.Tmdb => false,
             CatalogSources.OpenLibrary => c.Barcode != null,
             _ => true,
         };

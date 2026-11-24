@@ -215,7 +215,7 @@ export default function BarcodeScanner({ open, onClose, onDetected, continuous =
   const submitManual = (e: FormEvent) => {
     e.preventDefault()
     const code = normalizeBarcode(manual)
-    if (code.length >= 8 && code.length <= 14) {
+    if (code.length >= 8 && code.length <= 18) {
       finish(code)
       setManual('')
     }

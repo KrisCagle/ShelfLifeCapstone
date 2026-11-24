@@ -16,6 +16,8 @@ namespace ShelfLifeAPI.Data
         public DbSet<WishlistItem> WishlistItems { get; set; }
         public DbSet<NewsPost> NewsPosts { get; set; }
         public DbSet<CatalogEntry> CatalogEntries { get; set; }
+        public DbSet<ComicSeries> ComicSeries { get; set; }
+        public DbSet<ComicIssue> ComicIssues { get; set; }
         public ShelfLifeDbContext(DbContextOptions<ShelfLifeDbContext> options) : base(options)
         {
         }
@@ -23,6 +25,35 @@ namespace ShelfLifeAPI.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Fuzzy, case-insensitive series-name search for comics.
+            modelBuilder.HasPostgresExtension("pg_trgm");
+            modelBuilder.Entity<ComicSeries>(series =>
+            {
+                series.Property(s => s.Id).ValueGeneratedNever();
+                series.Property(s => s.Name).HasMaxLength(255);
+                series.Property(s => s.Publisher).HasMaxLength(255);
+                series.Property(s => s.Language).HasMaxLength(8);
+                series.HasIndex(s => s.Name).HasMethod("gin").HasOperators("gin_trgm_ops");
+                // A stored generated column: the importer never writes it, and it can't drift.
+                series.Property(s => s.NameKey)
+                    .HasComputedColumnSql("""lower(regexp_replace("Name", '[^[:alnum:]]', '', 'g'))""", stored: true);
+            });
+            modelBuilder.Entity<ComicIssue>(issue =>
+            {
+                issue.Property(i => i.Id).ValueGeneratedNever();
+                issue.Property(i => i.Number).HasMaxLength(50);
+                issue.Property(i => i.VariantName).HasMaxLength(255);
+                issue.Property(i => i.Title).HasMaxLength(255);
+                issue.Property(i => i.Barcode).HasMaxLength(20);
+                issue.Property(i => i.BarcodeMain).HasMaxLength(14);
+                issue.Property(i => i.Isbn).HasMaxLength(13);
+                issue.HasOne(i => i.Series).WithMany().HasForeignKey(i => i.SeriesId).OnDelete(DeleteBehavior.Cascade);
+                issue.HasIndex(i => new { i.SeriesId, i.Number });
+                issue.HasIndex(i => i.Barcode);
+                issue.HasIndex(i => i.BarcodeMain);
+                issue.HasIndex(i => i.Isbn);
+            });
             modelBuilder.Entity<Item>()
                 .Property(i => i.PurchasePrice)
                 .HasColumnType("decimal(18,2)");

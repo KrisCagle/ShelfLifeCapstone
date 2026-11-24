@@ -20,6 +20,7 @@ namespace ShelfLifeAPI.Migrations
                 .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -280,6 +281,101 @@ namespace ShelfLifeAPI.Migrations
                         .HasFilter("\"ExternalId\" IS NOT NULL");
 
                     b.ToTable("CatalogEntries");
+                });
+
+            modelBuilder.Entity("ShelfLifeAPI.Models.ComicIssue", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("BarcodeMain")
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)");
+
+                    b.Property<string>("Isbn")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("VariantName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<int?>("VariantOfId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Barcode");
+
+                    b.HasIndex("BarcodeMain");
+
+                    b.HasIndex("Isbn");
+
+                    b.HasIndex("SeriesId", "Number");
+
+                    b.ToTable("ComicIssues");
+                });
+
+            modelBuilder.Entity("ShelfLifeAPI.Models.ComicSeries", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FirstIssueId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IssueCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("NameKey")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("text")
+                        .HasComputedColumnSql("lower(regexp_replace(\"Name\", '[^[:alnum:]]', '', 'g'))", true);
+
+                    b.Property<string>("Publisher")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<int?>("YearBegan")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Name"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("Name"), new[] { "gin_trgm_ops" });
+
+                    b.ToTable("ComicSeries");
                 });
 
             modelBuilder.Entity("ShelfLifeAPI.Models.Condition", b =>
@@ -965,6 +1061,17 @@ namespace ShelfLifeAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Format");
+                });
+
+            modelBuilder.Entity("ShelfLifeAPI.Models.ComicIssue", b =>
+                {
+                    b.HasOne("ShelfLifeAPI.Models.ComicSeries", "Series")
+                        .WithMany()
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Series");
                 });
 
             modelBuilder.Entity("ShelfLifeAPI.Models.Item", b =>

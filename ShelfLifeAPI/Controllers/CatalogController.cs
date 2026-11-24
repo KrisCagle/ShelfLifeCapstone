@@ -82,7 +82,7 @@ namespace ShelfLifeAPI.Controllers
         public async Task<IActionResult> Barcode(string code, CancellationToken cancellationToken)
         {
             if (!BarcodePattern().IsMatch(code))
-                return BadRequest("A barcode is 8 to 14 digits.");
+                return BadRequest("A barcode is 8 to 18 digits.");
 
             var local = await _catalog.VisibleTo(UserId)
                 .Include(c => c.Format)
@@ -186,7 +186,8 @@ namespace ShelfLifeAPI.Controllers
         [GeneratedRegex(@"[\\%_]")]
         private static partial Regex LikeSpecial();
 
-        [GeneratedRegex(@"^\d{8,14}$")]
+        // Up to 18: comics print a 5-digit add-on after a 12- or 13-digit code.
+        [GeneratedRegex(@"^\d{8,18}$")]
         private static partial Regex BarcodePattern();
     }
 }

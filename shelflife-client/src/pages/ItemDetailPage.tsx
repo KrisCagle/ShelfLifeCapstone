@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { keys, useDeleteItem, useItem } from '@/hooks/queries'
 import { useAttributesFor } from '@/components/catalog/AttributeFields'
-import { SOURCE_LABELS } from '@/components/catalog/CandidateCard'
+import { gcdIssueUrl, SOURCE_LABELS } from '@/components/catalog/CandidateCard'
 import { api, ApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import { formatDate, formatMoney } from '@/lib/format'
@@ -147,7 +147,20 @@ export default function ItemDetailPage() {
                   <Camera className="size-3.5" /> Your photo
                 </span>
               )}
-              {item.catalogEntry.source !== 'manual' && <span>Title data via {SOURCE_LABELS[item.catalogEntry.source]}</span>}
+              {item.catalogEntry.source === 'gcd' ? (
+                <span>
+                  Data courtesy of the{' '}
+                  <a href={gcdIssueUrl(item.catalogEntry.externalId) ?? 'https://www.comics.org'} target="_blank" rel="noopener noreferrer" className="underline hover:text-neon-cyan">
+                    Grand Comics Database™
+                  </a>{' '}
+                  under a{' '}
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer" className="underline hover:text-neon-cyan">
+                    CC BY-SA license
+                  </a>
+                </span>
+              ) : (
+                item.catalogEntry.source !== 'manual' && <span>Title data via {SOURCE_LABELS[item.catalogEntry.source]}</span>
+              )}
             </div>
 
             {item.notes && (

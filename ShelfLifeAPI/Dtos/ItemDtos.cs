@@ -120,7 +120,7 @@ namespace ShelfLifeAPI.Dtos
         [PhotoUrl, MaxLength(500)]
         public string? PhotoUrl { get; set; }
 
-        [RegularExpression(@"^\d{8,14}$", ErrorMessage = "A barcode is 8 to 14 digits.")]
+        [RegularExpression(@"^\d{8,18}$", ErrorMessage = "A barcode is 8 to 18 digits.")]
         public string? Barcode { get; set; }
 
         public List<int>? GenreIds { get; set; }

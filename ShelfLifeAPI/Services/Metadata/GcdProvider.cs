@@ -1,188 +1,130 @@
-using System.Net;
-using System.Text.Json;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.EntityFrameworkCore;
+using ShelfLifeAPI.Data;
 using ShelfLifeAPI.Models;
 
 namespace ShelfLifeAPI.Services.Metadata
 {
-    // Comic issues from the Grand Comics Database, a volunteer project. Its data is
-    // CC BY-SA 4.0, so the app credits it, and shared data built from it stays under that
-    // licence. Its covers aren't part of that, so they aren't used: people add their own.
+    // Comic issues from ShelfLife's own copy of the Grand Comics Database, imported from its
+    // data dump by tools/GcdImport (docs/DATA_SOURCES.md, Phase B). Reading our own tables
+    // means no rate limit, no outside call, and no dependence on GCD's API staying open.
     //
-    // The API allows anonymous use for now but warns that may end and that its fields can
-    // change. Any failure here just means no results, and manual entry still works.
-    //
-    // Its anonymous limit is small, and every user of this app shares it because requests
-    // come from one server. Going live needs an account or GCD's data downloads.
-    public partial class GcdProvider : IMetadataProvider
+    // The data is CC BY-SA 4.0. GCD asks for a credit on every page showing its data (the
+    // site footer) and a link to the relevant GCD page for each record listed, which the
+    // app builds from the issue id in ExternalId: https://www.comics.org/issue/{id}/.
+    // GCD's covers aren't part of that licence and aren't imported: people add their own.
+    public partial class GcdProvider : IMetadataProvider, IBarcodeProvider
     {
-        private const string Api = "https://www.comics.org/api";
+        private const int Limit = 12;
 
-        // Series searches return 50 results a page in alphabetical order, so a common word
-        // can match for many pages. Three keeps one search from being a burst of requests.
-        private const int MaxPages = 3;
+        private readonly ShelfLifeDbContext _db;
 
-        private const string BlockedKey = "meta:gcd:blocked";
-        private static readonly TimeSpan DefaultBackOff = TimeSpan.FromMinutes(15);
-        private static readonly TimeSpan MaxBackOff = TimeSpan.FromHours(1);
-
-        private readonly HttpClient _http;
-        private readonly IMemoryCache _cache;
-        private readonly ILogger<GcdProvider> _logger;
-
-        public GcdProvider(HttpClient http, IMemoryCache cache, ILogger<GcdProvider> logger)
-        {
-            _http = http;
-            _cache = cache;
-            _logger = logger;
-        }
+        public GcdProvider(ShelfLifeDbContext db) => _db = db;
 
         public string Source => CatalogSources.Gcd;
         public string DisplayName => "Grand Comics Database";
         public string MediaType => MediaTypes.Comics;
-
-        // Reports false while backing off, so nothing calls a server that asked us to stop.
-        public bool IsConfigured => !_cache.TryGetValue(BlockedKey, out _);
+        public bool IsConfigured => true;
 
         public async Task<IReadOnlyList<CatalogCandidate>> SearchAsync(string query, Format format, CancellationToken cancellationToken)
         {
-            // "Saga 12" or "Saga #12". With no number, start from each series' first issue.
+            // "Saga 12" or "Saga #12". Without a number, each series' first issue stands in for it.
             var match = SeriesAndIssue().Match(query.Trim());
-            var series = match.Success ? match.Groups[1].Value.Trim() : query.Trim();
-            var number = match.Success ? match.Groups[2].Value : "1";
-            if (series.Length < 2)
+            var name = (match.Success ? match.Groups[1].Value : query).Trim();
+            var number = match.Success ? match.Groups[2].Value : null;
+            if (name.Length < 2)
                 return [];
 
-            // A slash would be read as part of the URL path ("Batman/Superman").
-            var name = Uri.EscapeDataString(series.Replace('/', ' '));
-            var wanted = CatalogService.Normalize(series);
-            var found = new List<(CatalogCandidate Issue, string Series, bool IsVariant)>();
-            for (var page = 1; page <= MaxPages; page++)
-            {
-                using var doc = await GetJsonAsync($"{Api}/series/name/{name}/issue/{number}/?format=json&page={page}", cancellationToken);
-                if (doc == null || !doc.RootElement.TryGetProperty("results", out var results))
-                    break;
-                foreach (var issue in results.EnumerateArray())
-                    if (FromListing(issue, format.Id) is { } listing)
-                        found.Add(listing);
-                // Finding the exact series means more pages can't improve the answer.
-                if (found.Any(f => IsSameSeries(f.Series, wanted)))
-                    break;
-                if (!doc.RootElement.TryGetProperty("next", out var next) || next.ValueKind == JsonValueKind.Null)
-                    break;
-            }
+            // Word by word, ignoring punctuation and spacing: "batman/superman" also finds
+            // "Batman / Superman".
+            var words = Words().Matches(name.ToLowerInvariant()).Select(m => m.Value).ToList();
+            if (words.Count == 0)
+                return [];
+            var pattern = $"%{string.Join('%', words.Select(EscapeLike))}%";
+            var key = string.Concat(words);
+            var series = await _db.ComicSeries
+                .Where(s => EF.Functions.ILike(s.Name, pattern, "\\"))
+                // The exact series first, then names that start with the search, then English
+                // editions, then the longest runs: "saga" should find Saga, not Batman Saga.
+                .OrderByDescending(s => s.NameKey == key || s.NameKey == "the" + key)
+                .ThenByDescending(s => s.NameKey.StartsWith(key) || s.NameKey.StartsWith("the" + key))
+                .ThenByDescending(s => s.Language == "en")
+                .ThenByDescending(s => s.IssueCount)
+                .Take(30)
+                .ToListAsync(cancellationToken);
+            if (series.Count == 0)
+                return [];
 
-            // Results are alphabetical, so rank them: the exact series, then titles that start
-            // with the search, then main editions ahead of their variants.
-            return found
-                .OrderByDescending(f => IsSameSeries(f.Series, wanted))
-                .ThenByDescending(f => CatalogService.Normalize(f.Series).StartsWith(wanted))
-                .ThenBy(f => f.IsVariant)
-                .Take(12)
-                .Select(f => f.Issue)
+            var rank = series.Select((s, i) => (s.Id, i)).ToDictionary(x => x.Id, x => x.i);
+            var ids = series.Select(s => s.Id).ToList();
+            var firstIssues = series.Select(s => s.FirstIssueId).OfType<int>().ToList();
+            var issues = await _db.ComicIssues
+                .Include(i => i.Series)
+                .Where(i => ids.Contains(i.SeriesId) && (number != null ? i.Number == number : firstIssues.Contains(i.Id)))
+                .ToListAsync(cancellationToken);
+
+            return issues
+                .OrderBy(i => rank[i.SeriesId])
+                .ThenBy(i => i.VariantOfId != null)
+                .ThenBy(i => i.Id)
+                .Take(Limit)
+                .Select(i => ToCandidate(i, format.Id))
                 .ToList();
         }
 
         public async Task<CatalogCandidate?> GetAsync(string externalId, Format format, CancellationToken cancellationToken)
         {
-            if (!long.TryParse(externalId, out var id))
+            if (!int.TryParse(externalId, out var id))
                 return null;
-            using var doc = await GetJsonAsync($"{Api}/issue/{id}/?format=json", cancellationToken);
-            if (doc == null || FromListing(doc.RootElement, format.Id) is not { } listing)
-                return null;
-
-            var issue = doc.RootElement;
-            var story = MainStory(issue);
-
-            // A variant (Newsstand, a second cover) holds no stories of its own; it's the same
-            // comic as the issue it points at.
-            using var parent = story.ValueKind == JsonValueKind.Undefined && IssueId().Match(Text(issue, "variant_of") ?? string.Empty) is { Success: true } link
-                ? await GetJsonAsync($"{Api}/issue/{link.Groups[1].Value}/?format=json", cancellationToken)
-                : null;
-            if (parent != null)
-                story = MainStory(parent.RootElement);
-
-            var creator = CleanCredit(Text(story, "script")) ?? Text(issue, "indicia_publisher");
-            return listing.Issue with { Creator = creator, Description = Text(story, "synopsis") };
+            var issue = await _db.ComicIssues.Include(i => i.Series).FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
+            return issue == null ? null : ToCandidate(issue, format.Id);
         }
 
-        private static JsonElement MainStory(JsonElement issue) =>
-            issue.TryGetProperty("story_set", out var stories)
-                ? stories.EnumerateArray().FirstOrDefault(s => Text(s, "type") == "comic story")
-                : default;
-
-        private (CatalogCandidate Issue, string Series, bool IsVariant)? FromListing(JsonElement issue, int formatId)
+        /// A comic's barcode. With the 5-digit add-on it names the exact issue; without it,
+        /// only the series, so the series' issues come back newest first to choose from.
+        /// ISBNs find trade paperbacks and graphic novels.
+        public async Task<IReadOnlyList<CatalogCandidate>> LookupBarcodeAsync(string barcode, IReadOnlyList<Format> formats, CancellationToken cancellationToken)
         {
-            var id = IssueId().Match(Text(issue, "api_url") ?? string.Empty);
-            var seriesName = Text(issue, "series_name");
-            var descriptor = Text(issue, "descriptor");
-            if (!id.Success || seriesName == null || descriptor == null)
-                return null;
+            var isIsbn = OpenLibraryProvider.IsIsbn(barcode);
+            var issues = isIsbn
+                ? await Issues(i => i.Isbn == barcode, cancellationToken)
+                : await Issues(i => i.Barcode == barcode, cancellationToken);
+            if (issues.Count == 0 && !isIsbn)
+                issues = await Issues(i => i.BarcodeMain == barcode, cancellationToken);
 
-            var series = SeriesYear().Replace(seriesName, string.Empty).Trim();
-            // Several series can share a name, and collectors tell them apart by start year
-            // ("Amazing Spider-Man (1963)"). The writer replaces this once the issue is saved.
-            var started = SeriesYear().Match(seriesName) is { Success: true } m ? $"{m.Groups[1].Value} series" : null;
-            var date = Text(issue, "publication_date");
-            var year = date != null && Year().Match(date) is { Success: true } y ? int.Parse(y.Value) : (int?)null;
-            var isVariant = issue.TryGetProperty("variant_of", out var parent) && parent.ValueKind != JsonValueKind.Null;
-            return (new CatalogCandidate(Source, id.Groups[1].Value, $"{series} #{descriptor}", formatId, year, started, null), series, isVariant);
+            var formatName = isIsbn ? "Trade Paperback" : "Single Issue";
+            var formatId = formats.FirstOrDefault(f => f.Name == formatName)?.Id;
+            return issues.Select(i => ToCandidate(i, formatId) with { Barcode = barcode }).ToList();
         }
 
-        private static bool IsSameSeries(string series, string wanted)
+        private Task<List<ComicIssue>> Issues(System.Linq.Expressions.Expression<Func<ComicIssue, bool>> where, CancellationToken cancellationToken) =>
+            _db.ComicIssues
+                .Include(i => i.Series)
+                .Where(where)
+                .OrderByDescending(i => i.Year)
+                .ThenBy(i => i.VariantOfId != null)
+                .Take(Limit)
+                .ToListAsync(cancellationToken);
+
+        // "The Amazing Spider-Man (1963) #300 [Newsstand]": the start year tells same-named
+        // series apart, and Direct and Newsstand editions are collected separately.
+        private CatalogCandidate ToCandidate(ComicIssue issue, int? formatId)
         {
-            var name = CatalogService.Normalize(series);
-            return name == wanted || name == $"the {wanted}";
+            var year = issue.Series.YearBegan is int began ? $" ({began})" : "";
+            var variant = issue.VariantName is { } v ? $" [{v}]" : "";
+            var title = $"{issue.Series.Name}{year} #{issue.Number}{variant}";
+            if (title.Length > 200)
+                title = title[..200];
+            return new CatalogCandidate(Source, issue.Id.ToString(), title, formatId, issue.Year ?? issue.Series.YearBegan, issue.Series.Publisher, null,
+                Description: issue.Title);
         }
 
-        // Credits carry notes ("Stan Lee (plot); Gerry Conway [as G.C.]"); only the first name fits here.
-        private static string? CleanCredit(string? credit)
-        {
-            var first = credit?.Split(';')[0];
-            var name = first == null ? null : CreditNote().Replace(first, string.Empty).Trim();
-            return string.IsNullOrEmpty(name) || name == "?" ? null : name;
-        }
+        private static string EscapeLike(string value) => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 
-        private static string? Text(JsonElement element, string property) =>
-            element.ValueKind == JsonValueKind.Object && element.TryGetProperty(property, out var value)
-            && value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString())
-                ? value.GetString()
-                : null;
+        [GeneratedRegex(@"[\p{L}\p{N}]+")]
+        private static partial Regex Words();
 
-        // A 404 means no such issue, which isn't a failure. A 429 keeps any pages already
-        // read, and stops all requests for as long as the server asks.
-        private async Task<JsonDocument?> GetJsonAsync(string url, CancellationToken cancellationToken)
-        {
-            using var response = await _http.GetAsync(url, cancellationToken);
-            if (response.StatusCode == HttpStatusCode.NotFound)
-                return null;
-            if (response.StatusCode == HttpStatusCode.TooManyRequests)
-            {
-                var wait = response.Headers.RetryAfter?.Delta ?? DefaultBackOff;
-                wait = wait > MaxBackOff ? MaxBackOff : wait;
-                _cache.Set(BlockedKey, true, wait);
-                _logger.LogWarning("Grand Comics Database rate limit reached; pausing lookups for {Minutes:F0} minutes", wait.TotalMinutes);
-                return null;
-            }
-            response.EnsureSuccessStatusCode();
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
-        }
-
-        [GeneratedRegex(@"^(.*\S)\s+#?(\d+)$")]
+        [GeneratedRegex(@"^(.*\S)\s+#?(\d+[A-Za-z]?)$")]
         private static partial Regex SeriesAndIssue();
-
-        [GeneratedRegex(@"/issue/(\d+)/")]
-        private static partial Regex IssueId();
-
-        [GeneratedRegex(@"\s*\((\d{4}) series\)$")]
-        private static partial Regex SeriesYear();
-
-        [GeneratedRegex(@"\b(1[89]\d{2}|20\d{2})\b")]
-        private static partial Regex Year();
-
-        [GeneratedRegex(@"\s*[\(\[].*$")]
-        private static partial Regex CreditNote();
     }
 }
