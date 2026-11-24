@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { BookOpen, Heart, Home, Library, LogOut, Megaphone, Menu, Plus, ScanLine, X, Zap } from 'lucide-react'
+import { BookOpen, Heart, Home, Library, LogOut, Megaphone, Menu, Plus, ScanLine, UserRound, X, Zap } from 'lucide-react'
 import { QuickScan } from '@/components/catalog/QuickScan'
 import { toast } from 'sonner'
 import { useAuth } from '@/auth/AuthProvider'
@@ -157,6 +157,9 @@ export function NavBar() {
                           <Megaphone className="size-4" /> Manage news
                         </Link>
                       )}
+                      <Link to="/account" role="menuitem" className="flex items-center gap-2 rounded-lg px-3 py-2 text-zinc-300 hover:bg-white/5 hover:text-white">
+                        <UserRound className="size-4" /> Account
+                      </Link>
                       <button onClick={handleLogout} role="menuitem" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-zinc-300 hover:bg-white/5 hover:text-white">
                         <LogOut className="size-4" /> Sign out
                       </button>
@@ -234,6 +237,9 @@ export function NavBar() {
                   <Megaphone className="size-5" /> Manage news
                 </NavLink>
               )}
+              <NavLink to="/account" className="flex items-center gap-3 rounded-lg px-3 py-3 font-display text-xl tracking-[0.12em] text-zinc-300">
+                <UserRound className="size-5" /> Account
+              </NavLink>
               <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-lg px-3 py-3 font-display text-xl tracking-[0.12em] text-zinc-500">
                 <LogOut className="size-5" /> Sign out
               </button>

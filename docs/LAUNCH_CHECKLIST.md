@@ -12,24 +12,26 @@ licensing is covered separately in [DATA_SOURCES.md](DATA_SOURCES.md).
 
 These protect real people's accounts and data.
 
-- [ ] 🤖 **Brute-force protection on login.** Login checks the password with a call that never
-  counts failed attempts, and only photo uploads are rate-limited. Switch to Identity lockout
-  (`CheckPasswordSignInAsync(..., lockoutOnFailure: true)`), add per-IP limits on login and
-  register, and read the real client IP from the forwarded headers set by the hosting proxy.
-- [ ] 🤖 **Stronger passwords.** The minimum is 6 characters. Raise it to 10 or more.
-- [ ] 🤖 **Secure login cookie.** The cookie's Secure flag isn't set, so behind a proxy it can
-  go out over plain HTTP. Set `SecurePolicy = Always` and add HSTS.
-- [ ] 🤖 **Keep people signed in across restarts.** Sign-in keys live in the container, so every
-  deploy, and every free-tier sleep, signs everyone out. Store them in the database.
-- [ ] 🤖 **Patch vulnerable packages.** Indirect dependencies resolve to Npgsql,
-  System.Text.Json and Microsoft.Extensions.Caching.Memory 8.0.0, each with a high-severity
-  advisory. Move to the latest 8.0.x patches.
+- [x] 🤖 **Brute-force protection on login.** Five wrong passwords in a row lock an account for
+  15 minutes; asking for the password to delete an account counts too. Per-address limits: 10
+  sign-ins per 5 minutes and 5 sign-ups an hour. **On deploy:** set `ForwardedHeaders__Enabled=true`
+  so limits see the visitor's address rather than the proxy's, and set
+  `ForwardedHeaders__ForwardLimit` to the number of proxies in front of the API (1 when the
+  browser reaches the API host directly; 2 when the website's host forwards `/api` to it).
+- [x] 🤖 **Stronger passwords.** At least 10 characters for new accounts and password changes.
+- [x] 🤖 **Secure login cookie.** Sent over HTTPS only outside development, plus HSTS. One
+  lifetime: two weeks, renewed while the app is in use.
+- [x] 🤖 **Keep people signed in across restarts.** Sign-in keys are stored in the
+  `DataProtectionKeys` table. Switching over signs everyone out once.
+- [x] 🤖 **Patch vulnerable packages.** EF Core, Identity and the rest are on 8.0.34, and Npgsql
+  on 8.0.11. `dotnet list package --vulnerable --include-transitive` reports none.
 - [ ] 🤖 **Password reset and email verification.** Neither exists, so a user who forgets their
   password is locked out for good.
-- [ ] 🤖👤 **Delete account and export data.** A user can't delete their account or download
-  their data. Deletion must also remove their photo files and private titles, which the
-  database alone wouldn't. Kris picks an email sender (a free tier is fine), which this item
-  and the one above both need.
+- [x] 🤖 **Delete account and export data.** The Account page (menu → Account) downloads a zip
+  of the person's details, collection, wishlist and photos. Deleting asks for the password,
+  then removes the account, collection, wishlist, hand-typed titles and photo files.
+- [ ] 👤 **Pick an email sender** (a free tier is fine). Password reset and email
+  verification need it.
 - [ ] 🤖👤 **Privacy policy and terms.** Neither page exists. The app collects email, name,
   purchase prices, stores and photos. Claude drafts them from what the code actually does;
   **Kris reviews, ideally with a lawyer.** Link them from the footer and sign-up, and state a
@@ -71,8 +73,6 @@ These protect real people's accounts and data.
   today the browser does it.
 - [ ] 🤖 Log barcodes and searches at Debug level in production.
 - [ ] 🤖 `npm audit fix` for a react-router advisory. It affects a mode the app doesn't use.
-- [ ] 🤖 One deliberate login-cookie lifetime (today it's 7 days in one setting and 24 hours in
-  another).
 - [ ] 👤 Change the old local Postgres password that sits in early git history, anywhere it's
   reused.
 - [ ] 👤 Cover-art decision for Open Library and Cover Art Archive covers (DATA_SOURCES.md).

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
@@ -28,18 +29,34 @@ namespace ShelfLifeAPI.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("login")]
         public async Task<IActionResult> Login([FromHeader(Name = "Authorization")] string? authHeader)
         {
             if (!TryParseBasicAuth(authHeader, out var email, out var password))
                 return Unauthorized("Invalid email or password");
 
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, password))
+            if (user == null)
                 return Unauthorized("Invalid email or password");
 
+            // A locked account says so even when the password is right; otherwise a guesser
+            // could keep going and spot the right one by its different answer.
+            if (await _userManager.IsLockedOutAsync(user))
+                return LockedOut();
+
+            if (!await _userManager.CheckPasswordAsync(user, password))
+            {
+                await _userManager.AccessFailedAsync(user);
+                return await _userManager.IsLockedOutAsync(user) ? LockedOut() : Unauthorized("Invalid email or password");
+            }
+
+            await _userManager.ResetAccessFailedCountAsync(user);
             await SignInAsync(user);
             return Ok();
         }
+
+        private ObjectResult LockedOut() =>
+            Problem(statusCode: StatusCodes.Status429TooManyRequests, detail: "Too many wrong passwords. Try again in 15 minutes.");
 
         [HttpPost("logout")]
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
@@ -73,6 +90,7 @@ namespace ShelfLifeAPI.Controllers
         }
 
         [HttpPost("register")]
+        [EnableRateLimiting("register")]
         public async Task<IActionResult> Register([FromBody] RegistrationDto registration)
         {
             string password;

@@ -54,7 +54,7 @@ function AuthLayout({ title, subtitle, children, footer }: { title: string; subt
   )
 }
 
-function PasswordInput({ id, invalid, describedBy, value, onChange, autoComplete }: {
+export function PasswordInput({ id, invalid, describedBy, value, onChange, autoComplete }: {
   id: string
   invalid: boolean
   describedBy?: string
@@ -187,7 +187,7 @@ export function RegisterPage() {
     if (!form.firstName.trim()) found.firstName = 'Tell us your first name.'
     if (!form.userName.trim()) found.userName = 'Pick a username.'
     if (!/^\S+@\S+\.\S+$/.test(form.email)) found.email = 'Enter a valid email.'
-    if (form.password.length < 6) found.password = 'Use at least 6 characters.'
+    if (form.password.length < 10) found.password = 'Use at least 10 characters.'
     setErrors(found)
     return Object.keys(found).length === 0
   }
@@ -254,7 +254,7 @@ export function RegisterPage() {
         </div>
         {text('userName', 'Username', { autoComplete: 'username' })}
         {text('email', 'Email', { type: 'email', autoComplete: 'email' })}
-        <Field label="Password" error={errors.password} hint="At least 6 characters.">
+        <Field label="Password" error={errors.password} hint="At least 10 characters. A few random words work well.">
           {({ id, invalid, describedBy }) => (
             <PasswordInput id={id} invalid={invalid} describedBy={describedBy} value={form.password} onChange={set('password')} autoComplete="new-password" />
           )}

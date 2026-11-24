@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ShelfLifeAPI.Models;
@@ -5,7 +6,7 @@ using ShelfLifeAPI.Services;
 
 namespace ShelfLifeAPI.Data
 {
-    public class ShelfLifeDbContext : IdentityDbContext<ApplicationUser>
+    public class ShelfLifeDbContext : IdentityDbContext<ApplicationUser>, IDataProtectionKeyContext
     {
         public DbSet<Item> Items { get; set; }
         public DbSet<Format> Formats { get; set; }
@@ -18,6 +19,9 @@ namespace ShelfLifeAPI.Data
         public DbSet<CatalogEntry> CatalogEntries { get; set; }
         public DbSet<ComicSeries> ComicSeries { get; set; }
         public DbSet<ComicIssue> ComicIssues { get; set; }
+        // The keys that sign login cookies. Kept here rather than on the server's disk, so
+        // a redeploy or a free-tier sleep doesn't sign everyone out.
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
         public ShelfLifeDbContext(DbContextOptions<ShelfLifeDbContext> options) : base(options)
         {
         }

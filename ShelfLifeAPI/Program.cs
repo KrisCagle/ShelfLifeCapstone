@@ -2,6 +2,8 @@ using System.Security.Claims;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShelfLifeAPI.Data;
@@ -76,10 +78,44 @@ builder.Services.AddSingleton<IPhotoStorage, LocalPhotoStorage>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = (context, cancellationToken) =>
+        new ValueTask(context.HttpContext.Response.WriteAsJsonAsync(
+            new { detail = "Too many tries. Wait a few minutes and try again." }, cancellationToken));
     options.AddPolicy("photos", context => RateLimitPartition.GetFixedWindowLimiter(
         context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 200, Window = TimeSpan.FromHours(1) }));
+    // Per network address, on top of each account's own lockout: slows down someone trying
+    // many accounts, or many passwords, from one place.
+    options.AddPolicy("login", context => RateLimitPartition.GetSlidingWindowLimiter(
+        ClientAddress(context),
+        _ => new SlidingWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(5), SegmentsPerWindow = 5 }));
+    options.AddPolicy("register", context => RateLimitPartition.GetFixedWindowLimiter(
+        ClientAddress(context),
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromHours(1) }));
+    // Deleting an account or exporting it asks for the password again, so it's a login too.
+    options.AddPolicy("account", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ClientAddress(context),
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromHours(1) }));
 });
+
+static string ClientAddress(HttpContext context) => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+// In production the API sits behind the host's proxy, so the connection comes from the proxy,
+// not the visitor. Turn this on there (ForwardedHeaders:Enabled) so rate limits see the
+// visitor's address and HTTPS is recognised. ForwardLimit is how many proxies to trust,
+// counted from the API outwards: an address the visitor adds themselves is never trusted.
+var forwarded = builder.Configuration.GetSection("ForwardedHeaders");
+if (forwarded.GetValue<bool>("Enabled"))
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.ForwardLimit = forwarded.GetValue<int?>("ForwardLimit") ?? 1;
+        // The host's proxy addresses aren't fixed, so trust by position instead of address.
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
 
 // The React app reaches the API through a same-origin proxy (Vite in dev, Vercel
 // rewrites in production), so browsers normally never make cross-origin calls.
@@ -105,9 +141,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "ShelfLifeLoginCookie";
         options.Cookie.SameSite = SameSiteMode.Strict;
         options.Cookie.HttpOnly = true;
-        options.Cookie.MaxAge = new TimeSpan(7, 0, 0, 0);
+        // Only ever sent over HTTPS. Local development runs on plain http://localhost.
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
+        // Signed in for two weeks, renewed while the app is in use.
+        options.Cookie.MaxAge = TimeSpan.FromDays(14);
+        options.ExpireTimeSpan = TimeSpan.FromDays(14);
         options.SlidingExpiration = true;
-        options.ExpireTimeSpan = new TimeSpan(24, 0, 0);
         options.Events.OnRedirectToLogin = (context) =>
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -123,11 +164,16 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddIdentityCore<ApplicationUser>(config =>
 {
     config.Password.RequireDigit = false;
-    config.Password.RequiredLength = 6;
+    // Length matters far more than character rules, which mostly lead to "Password1!".
+    config.Password.RequiredLength = 10;
     config.Password.RequireLowercase = false;
     config.Password.RequireNonAlphanumeric = false;
     config.Password.RequireUppercase = false;
     config.User.RequireUniqueEmail = true;
+    // Five wrong passwords in a row lock the account for 15 minutes.
+    config.Lockout.AllowedForNewUsers = true;
+    config.Lockout.MaxFailedAccessAttempts = 5;
+    config.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
 })
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ShelfLifeDbContext>();
@@ -152,7 +198,14 @@ if (connectionString != null &&
 
 builder.Services.AddNpgsql<ShelfLifeDbContext>(connectionString);
 
+builder.Services.AddDataProtection()
+    .SetApplicationName("ShelfLife")
+    .PersistKeysToDbContext<ShelfLifeDbContext>();
+
 var app = builder.Build();
+
+if (forwarded.GetValue<bool>("Enabled"))
+    app.UseForwardedHeaders();
 
 // Unhandled exceptions become a generic ProblemDetails 500; the real error is
 // logged server-side instead of being sent to the client.
@@ -162,6 +215,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    // Tells browsers to use HTTPS only for this site from now on.
+    app.UseHsts();
 }
 
 app.UseCors("AllowReact");
