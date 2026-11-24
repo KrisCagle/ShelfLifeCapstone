@@ -154,11 +154,13 @@ Candidates for the next rounds, roughly in order of payoff:
 
 ## Phase 3 — Value engine (≈4 weeks)
 
-- [ ] Price snapshots stored in the database and refreshed by a background job, so we're not calling eBay on page views.
-- [ ] Item price history and collection value over time vs. cost basis.
+- [ ] **Not built on eBay:** its license bans using eBay data to model prices (see DATA_SOURCES.md).
+- [ ] "What collectors paid": price ranges from ShelfLife's own purchase data, shown once enough users have logged a title.
+- [ ] Current eBay listings for a title, linked through the eBay Partner Network. Confirm with eBay first.
+- [ ] Item price history and collection value over time vs. cost basis, from our own data or a licensed source.
 - [ ] Prices by condition tier: loose / CIB / sealed (games), VG+ / NM (vinyl), etc.
 - [ ] Wishlist price alerts by email ("notify me under $X").
-- [ ] Deal finder: listings below market, with affiliate links as a revenue source.
+- [ ] Deal finder: needs a licensed price source (eBay permission or PriceCharting). Affiliate links are the revenue source.
 - [ ] Insurance report PDF.
 
 ## Phase 4 — Monetization & launch (≈3 weeks)
@@ -194,15 +196,15 @@ Consider a limited **Founder lifetime** tier (~$99) at launch.
 
 ## Data sources — free first
 
-| Need | Source | Status |
-|---|---|---|
-| Live listings / asking prices | eBay Browse API | In use. Free, but **active listings only** — not sold prices. |
-| Game metadata + cover art | IGDB (Twitch dev account) | To verify: commercial-use terms. |
-| Music metadata + barcodes | Discogs API | To verify: rate limits, attribution, marketplace stats access. |
-| Movie metadata | TMDB | To verify: commercial-use terms. |
-| Sold-price data | eBay Marketplace Insights, PriceCharting | **Later / paid** — revisit once there's user demand. |
+The full plan is in [DATA_SOURCES.md](DATA_SOURCES.md): which sources a paid app may use, and
+how to switch the rest to free ones without workarounds. In short:
 
-Check every source's license before launch. Some free APIs prohibit commercial use or require attribution.
+- **Keep:** MusicBrainz (CC0), Open Library, and GCD through its data download.
+- **Replace:** TMDB and IGDB with Wikidata (CC0), and ask both for a price.
+- **Before going public:** remove the eBay-based value estimate. eBay's license bans using its
+  data to model prices. Replace it with current listings plus ShelfLife's own "what collectors
+  paid".
+- **Build our own:** a barcode memory from users' scans, and a comic database from GCD's dump.
 
 ---
 
