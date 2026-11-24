@@ -41,6 +41,7 @@ function PaidSection({ item }: { item: Item }) {
         <p className="mt-1 text-sm text-zinc-400">
           Not enough ShelfLife collectors have logged a price yet ({data?.collectors ?? 0} of {data?.needed ?? 5}). It appears once enough have, so
           no one’s price can be picked out.
+          {item.purchasePrice <= 0 && ' Your copy is logged at $0, so it isn’t counted. Add what you paid to include it.'}
         </p>
       ) : (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-4 space-y-4">
