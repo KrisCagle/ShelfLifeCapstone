@@ -62,6 +62,8 @@ export default function CoverSessionPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const media = MEDIA_TYPES.find((m) => m === params.get('media')) ?? null
+  // By default, only titles with no cover at all. "all" also replaces stock covers with your own photos.
+  const replaceStock = params.get('all') === '1'
   const home = collectionPath(media)
   const { data: items } = useItems()
   const { videoRef, status } = useCamera()
@@ -96,16 +98,21 @@ export default function CoverSessionPage() {
     const onShelf = (i: Item) => (media ? i.format?.mediaType === media : !separateCollection(i.format?.mediaType as MediaType))
     setQueue(
       items
-        .filter((i) => !i.photoUrl && onShelf(i))
+        .filter((i) => onShelf(i) && (replaceStock ? !i.photoUrl : !i.imageUrl))
         // Grouped by format, the order a shelf is usually sorted in.
         .sort((a, b) => (a.format?.name ?? '').localeCompare(b.format?.name ?? '') || a.title.localeCompare(b.title)),
     )
-  }, [items, queue, media])
+  }, [items, queue, media, replaceStock])
 
   // Photos show up on the shelf when you leave, whichever way you leave.
   useEffect(() => () => void queryClient.invalidateQueries({ queryKey: keys.items }), [queryClient])
 
   const current = queue?.[index]
+  // Titles with a stock cover but no photo of your own, offered once the bare ones are done.
+  const stockOnly = useMemo(
+    () => (replaceStock || !items ? 0 : items.filter((i) => !i.photoUrl && i.imageUrl && (media ? i.format?.mediaType === media : !separateCollection(i.format?.mediaType as MediaType))).length),
+    [items, media, replaceStock],
+  )
   const finished = queue != null && index >= queue.length
 
   /** Saves in the background; a failure puts the title back at the end of the line. */
@@ -246,12 +253,19 @@ export default function CoverSessionPage() {
               <p className="font-display text-3xl tracking-[0.08em]">{queue!.length === 0 ? 'Every cover’s done' : 'Shelf’s done'}</p>
               <p className="text-zinc-400">
                 {queue!.length === 0
-                  ? 'Everything on this shelf already has a photo.'
+                  ? replaceStock
+                    ? 'Everything on this shelf already has a photo of your own.'
+                    : 'Everything on this shelf already has a cover.'
                   : `${saved} ${saved === 1 ? 'cover' : 'covers'} saved${saving > 0 ? `, ${saving} still uploading` : ''}. Skipped titles will be here next time.`}
               </p>
               <ButtonLink to={home} size="lg">
                 See your shelf
               </ButtonLink>
+              {stockOnly > 0 && (
+                <a href={`/covers?${new URLSearchParams({ ...(media ? { media } : {}), all: '1' })}`} className="block font-mono text-sm text-neon-cyan hover:underline">
+                  Swap the {stockOnly} stock {stockOnly === 1 ? 'cover' : 'covers'} for your own photos too
+                </a>
+              )}
             </motion.div>
           </div>
         )}

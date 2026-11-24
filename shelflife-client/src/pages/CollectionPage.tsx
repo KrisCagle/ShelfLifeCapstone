@@ -132,7 +132,10 @@ export default function CollectionPage({ collection }: { collection?: MediaType 
 
   const filtersActive = !!(q || format || genre)
   const invested = shelf?.reduce((sum, i) => sum + (i.purchasePrice || 0), 0) ?? 0
-  const needCovers = shelf?.filter((i) => !i.photoUrl).length ?? 0
+  // Titles showing generated case art: no photo of your own and no stock cover.
+  const needCovers = shelf?.filter((i) => !i.imageUrl).length ?? 0
+  // Titles showing a stock cover rather than a photo of your own copy.
+  const stockCovers = shelf?.filter((i) => i.imageUrl && !i.photoUrl).length ?? 0
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -197,6 +200,15 @@ export default function CollectionPage({ collection }: { collection?: MediaType 
           <span className="inline-flex shrink-0 items-center gap-1 font-display text-lg tracking-wider text-neon-cyan">
             Snap covers <ChevronRight className="size-4" />
           </span>
+        </Link>
+      )}
+      {needCovers === 0 && stockCovers > 0 && (
+        <Link
+          to={`/covers?${new URLSearchParams({ ...(media ? { media } : {}), all: '1' })}`}
+          className="mt-3 inline-flex items-center gap-2 font-mono text-sm text-zinc-400 transition hover:text-neon-cyan"
+        >
+          <Camera className="size-4" /> Photograph your own copies instead of stock covers ({stockCovers})
+          <ChevronRight className="size-4" />
         </Link>
       )}
 
