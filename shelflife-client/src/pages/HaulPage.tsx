@@ -251,7 +251,7 @@ export default function HaulPage() {
                     <div className="flex flex-wrap items-center gap-1.5">
                       {locked && c?.formatId && <PlatformBadge name={formatName} />}
                       {c && <OwnershipBadges candidate={c} />}
-                      <PhotoPicker compact value={row.photoUrl ?? null} label={`Photo of ${row.title || row.barcode}`} onChange={(photoUrl) => changeRow(row.key, { photoUrl })} />
+                      <PhotoPicker compact value={row.photoUrl ?? null} label={row.title || row.barcode || undefined} onChange={(photoUrl) => changeRow(row.key, { photoUrl })} />
                       {row.status === 'failed' && (
                         <button type="button" onClick={() => retry(row)} className="inline-flex items-center gap-1 font-mono text-xs text-neon-cyan hover:underline">
                           <RefreshCw className="size-3" /> Retry lookup

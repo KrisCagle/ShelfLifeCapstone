@@ -18,6 +18,7 @@ const WishlistPage = lazy(() => import('@/pages/WishlistPages').then((m) => ({ d
 const WishlistFormPage = lazy(() => import('@/pages/WishlistPages').then((m) => ({ default: m.WishlistFormPage })))
 const AdminNewsPage = lazy(() => import('@/pages/AdminNewsPage'))
 const HaulPage = lazy(() => import('@/pages/HaulPage'))
+const CoverSessionPage = lazy(() => import('@/pages/CoverSessionPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
           { path: '/collection/books', element: <CollectionPage key="books" collection="Books" /> },
           { path: '/collection/comics', element: <CollectionPage key="comics" collection="Comics" /> },
           { path: '/haul', element: <HaulPage /> },
+          { path: '/covers', element: <CoverSessionPage /> },
           { path: '/items/new', element: <ItemFormPage /> },
           { path: '/items/:id', element: <ItemDetailPage /> },
           { path: '/items/:id/edit', element: <ItemFormPage /> },
