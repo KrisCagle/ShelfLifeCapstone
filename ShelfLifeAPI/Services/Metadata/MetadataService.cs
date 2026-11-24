@@ -20,6 +20,7 @@ namespace ShelfLifeAPI.Services.Metadata
         private readonly IMemoryCache _cache;
         private readonly ILogger<MetadataService> _logger;
         private readonly bool _ebayFallback;
+        private readonly IConfiguration _configuration;
 
         public MetadataService(IEnumerable<IMetadataProvider> providers, MusicBrainzProvider musicBrainz, OpenLibraryProvider openLibrary, UpcItemDbProvider upc, EbayBarcodeProvider ebay,
             IMemoryCache cache, ILogger<MetadataService> logger, IConfiguration configuration)
@@ -34,16 +35,33 @@ namespace ShelfLifeAPI.Services.Metadata
             // Using eBay listings as a product database is outside what its license
             // describes, so this is for local testing only (see docs/DATA_SOURCES.md).
             _ebayFallback = configuration.GetValue("Metadata:EbayBarcodeFallback", false);
+            _configuration = configuration;
         }
 
         public IEnumerable<ProviderInfo> Providers =>
             _providers.Select(p => new ProviderInfo(p.Source, p.DisplayName, p.MediaType, p.IsConfigured));
 
-        private IMetadataProvider? ProviderFor(Format format) =>
-            _providers.FirstOrDefault(p => p.MediaType == format.MediaType && p.IsConfigured);
+        // Which source a media type uses comes from Metadata:Providers:<MediaType>, so the public
+        // app can use sources a paid product may use (Wikidata) while IGDB or TMDB stay one
+        // setting away, for local testing or once there's a commercial agreement.
+        private string? PreferredSource(string mediaType) => _configuration[$"Metadata:Providers:{mediaType}"];
 
-        private IMetadataProvider? ProviderFor(string source) =>
-            _providers.FirstOrDefault(p => p.Source == source && p.IsConfigured);
+        private IMetadataProvider? ChosenFor(Format format)
+        {
+            var preferred = PreferredSource(format.MediaType);
+            var forMedia = _providers.Where(p => p.MediaType == format.MediaType);
+            return preferred != null ? forMedia.FirstOrDefault(p => p.Source == preferred) : forMedia.FirstOrDefault();
+        }
+
+        private IMetadataProvider? ProviderFor(Format format) => ChosenFor(format) is { IsConfigured: true } provider ? provider : null;
+
+        /// What a format's search uses, even while it's unavailable, so the app can say so.
+        public ProviderInfo? InfoFor(Format format) =>
+            ChosenFor(format) is { } p ? new ProviderInfo(p.Source, p.DisplayName, p.MediaType, p.IsConfigured) : null;
+
+        // Wikidata serves two media types with one source name, so the format picks between them.
+        private IMetadataProvider? ProviderFor(string source, Format format) =>
+            _providers.FirstOrDefault(p => p.Source == source && p.MediaType == format.MediaType && p.IsConfigured);
 
         public async Task<IReadOnlyList<CatalogCandidate>> SearchAsync(string query, Format format, CancellationToken cancellationToken)
         {
@@ -73,8 +91,8 @@ namespace ShelfLifeAPI.Services.Metadata
         {
             if (_cache.TryGetValue(RecordKey(source, externalId, format.Id), out CatalogCandidate? cached))
                 return cached;
-            var provider = ProviderFor(source);
-            if (provider == null || provider.MediaType != format.MediaType)
+            var provider = ProviderFor(source, format);
+            if (provider == null)
                 return null;
 
             var record = await SafeAsync(() => provider.GetAsync(externalId, format, cancellationToken), provider.DisplayName);

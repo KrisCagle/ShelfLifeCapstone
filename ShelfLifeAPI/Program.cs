@@ -62,6 +62,10 @@ builder.Services.AddHttpClient<GcdProvider>(client =>
     client.Timeout = TimeSpan.FromSeconds(12);
 });
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<GcdProvider>());
+builder.Services.AddHttpClient<WikidataGamesProvider>(Metadata);
+builder.Services.AddHttpClient<WikidataMoviesProvider>(Metadata);
+builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<WikidataGamesProvider>());
+builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<WikidataMoviesProvider>());
 builder.Services.AddScoped<MetadataService>();
 builder.Services.AddHttpClient<EbayAuth>(Metadata);
 builder.Services.AddHttpClient<EbayListings>(Metadata);

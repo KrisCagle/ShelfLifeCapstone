@@ -36,6 +36,7 @@ namespace ShelfLifeAPI.Models
         public const string Tmdb = "tmdb";
         public const string OpenLibrary = "openlibrary";
         public const string Gcd = "gcd";
+        public const string Wikidata = "wikidata";
         public const string Upc = "upc";
     }
 }

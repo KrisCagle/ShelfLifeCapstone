@@ -36,7 +36,7 @@ publisher/studio. It has no barcodes and no usable cover art.
 
 ---
 
-## Phase A: before the app goes public
+## Phase A: before the app goes public ✅ done
 
 Small changes, and each one removes a real risk.
 
@@ -70,11 +70,15 @@ Small changes, and each one removes a real risk.
 
 ## Phase C: Wikidata for games and movies
 
-1. Add a Wikidata provider for title search, year, platforms, publisher, studio and description.
-2. Choose providers per media type in config. The public app uses Wikidata. IGDB and TMDB stay
-   available for local testing, or for production once there's a written OK.
-3. Re-match existing IGDB/TMDB catalog entries to Wikidata by title and year. TMDB data can't be
-   kept more than 6 months anyway.
+1. ✅ A Wikidata provider for title search, year, platform, publisher or studio, and a short
+   description. Game results rank titles on the chosen console first, and series or franchise
+   items are skipped.
+2. ✅ Providers are chosen per media type in config, `Metadata:Providers:Games` and
+   `Metadata:Providers:Movies`. Both default to `wikidata`, and setting `igdb` or `tmdb` brings
+   those back for local testing, or once there's a written OK.
+3. ⏳ Re-match existing IGDB/TMDB catalog entries to Wikidata by title and year. TMDB data can't
+   be kept more than 6 months anyway. **Waiting on the cover-art decision below**, because
+   switching an entry's source also means deciding what happens to its IGDB/TMDB cover.
 4. Follow Wikimedia's API etiquette: a descriptive User-Agent with contact info, one request at a
    time, caching, and backing off when throttled.
 
