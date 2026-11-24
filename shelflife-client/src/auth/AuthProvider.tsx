@@ -10,6 +10,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>
   register: (input: RegisterInput) => Promise<void>
   logout: () => Promise<void>
+  deleteAccount: (password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -57,14 +58,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await startSession()
   }
 
-  const logout = async () => {
-    await api.post('/auth/logout')
+  const endSession = () => {
     queryClient.removeQueries({ predicate: (q) => isUserData(q.queryKey) && q.queryKey[0] !== 'me' })
     queryClient.setQueryData(keys.me, null)
   }
 
+  const logout = async () => {
+    await api.post('/auth/logout')
+    endSession()
+  }
+
+  // The server signs the person out as part of deleting the account.
+  const deleteAccount = async (password: string) => {
+    await api.post('/account/delete', { password })
+    endSession()
+  }
+
   return (
-    <AuthContext.Provider value={{ user: data ?? null, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user: data ?? null, isLoading, login, register, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   )
