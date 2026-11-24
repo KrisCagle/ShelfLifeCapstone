@@ -114,6 +114,23 @@ namespace ShelfLifeAPI.Controllers
             return NoContent();
         }
 
+        // PUT: api/items/5/photo — only the photo, so the cover session can't overwrite
+        // anything else with stale values.
+        [HttpPut("{id}/photo")]
+        public async Task<IActionResult> SetPhoto(int id, [FromBody] ItemPhotoDto dto, CancellationToken cancellationToken)
+        {
+            var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == id && i.UserId == GetUserId(), cancellationToken);
+            if (item == null)
+                return NotFound();
+
+            var previousPhoto = item.PhotoUrl;
+            item.PhotoUrl = string.IsNullOrWhiteSpace(dto.PhotoUrl) ? null : dto.PhotoUrl.Trim();
+            await _context.SaveChangesAsync(cancellationToken);
+            if (previousPhoto != item.PhotoUrl)
+                await RemovePhotoIfUnusedAsync(previousPhoto, cancellationToken);
+            return NoContent();
+        }
+
         // DELETE: api/items/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)

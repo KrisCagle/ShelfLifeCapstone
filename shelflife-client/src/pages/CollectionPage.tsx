@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { Link, NavLink, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowLeft, ChevronRight, Grid3x3, Layers, LayoutList, Library, Plus, Rows3, Search, SearchX, X } from 'lucide-react'
+import { ArrowLeft, Camera, ChevronRight, Grid3x3, Layers, LayoutList, Library, Plus, Rows3, Search, SearchX, X } from 'lucide-react'
 import { useAttributeDefinitions, useCollectionPaid, useItems } from '@/hooks/queries'
 import { cardBadges } from '@/components/catalog/AttributeFields'
 import { useElementWidth } from '@/hooks/useElementWidth'
@@ -132,6 +132,7 @@ export default function CollectionPage({ collection }: { collection?: MediaType 
 
   const filtersActive = !!(q || format || genre)
   const invested = shelf?.reduce((sum, i) => sum + (i.purchasePrice || 0), 0) ?? 0
+  const needCovers = shelf?.filter((i) => !i.photoUrl).length ?? 0
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -183,6 +184,21 @@ export default function CollectionPage({ collection }: { collection?: MediaType 
         <Stat label="Invested" color="#f5a623" value={isLoading ? '…' : formatMoney(invested)} />
         <PaidStat items={shelf ?? []} />
       </div>
+
+      {needCovers > 0 && (
+        <Link
+          to={media ? `/covers?media=${media}` : '/covers'}
+          className="mt-3 flex items-center gap-3 rounded-xl border border-neon-cyan/30 bg-neon-cyan/5 px-4 py-3 transition hover:bg-neon-cyan/10 hover:shadow-glow-cyan"
+        >
+          <Camera className="size-5 shrink-0 text-neon-cyan" />
+          <span className="min-w-0 flex-1 text-sm text-zinc-300">
+            <span className="font-semibold text-white">{needCovers}</span> {needCovers === 1 ? 'title needs' : 'titles need'} a cover photo
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1 font-display text-lg tracking-wider text-neon-cyan">
+            Snap covers <ChevronRight className="size-4" />
+          </span>
+        </Link>
+      )}
 
       {/* Toolbar */}
       {/* Sticky on desktop only; on phones it would cover most of the shelf. */}

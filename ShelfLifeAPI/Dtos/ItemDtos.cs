@@ -128,6 +128,12 @@ namespace ShelfLifeAPI.Dtos
         public Dictionary<string, string>? Attributes { get; set; }
     }
 
+    public class ItemPhotoDto
+    {
+        [PhotoUrl, MaxLength(500)]
+        public string? PhotoUrl { get; set; }
+    }
+
     public class ItemBatchDto
     {
         [Required, MinLength(1), MaxLength(100)]
