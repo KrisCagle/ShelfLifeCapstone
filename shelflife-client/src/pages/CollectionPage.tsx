@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Link, NavLink, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowLeft, BadgeDollarSign, ChevronRight, Grid3x3, Layers, LayoutList, Library, Plus, Rows3, Search, SearchX, X } from 'lucide-react'
-import { toast } from 'sonner'
-import { useAttributeDefinitions, useCollectionValue, useItems } from '@/hooks/queries'
+import { ArrowLeft, ChevronRight, Grid3x3, Layers, LayoutList, Library, Plus, Rows3, Search, SearchX, X } from 'lucide-react'
+import { useAttributeDefinitions, useCollectionPaid, useItems } from '@/hooks/queries'
 import { cardBadges } from '@/components/catalog/AttributeFields'
 import { useElementWidth } from '@/hooks/useElementWidth'
 import { cn } from '@/lib/cn'
@@ -182,7 +181,7 @@ export default function CollectionPage({ collection }: { collection?: MediaType 
       <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
         <Stat label="Titles" value={isLoading ? '…' : (shelf?.length ?? 0)} />
         <Stat label="Invested" color="#f5a623" value={isLoading ? '…' : formatMoney(invested)} />
-        <ValueStat key={media ?? 'all'} items={shelf ?? []} invested={invested} />
+        <PaidStat items={shelf ?? []} />
       </div>
 
       {/* Toolbar */}
@@ -414,61 +413,33 @@ function ShelfSkeleton() {
   )
 }
 
-/** "Est. value" tile: runs the eBay estimate on demand with a progress bar. */
-function ValueStat({ items, invested }: { items: Item[]; invested: number }) {
-  const estimate = useCollectionValue()
-  const [progress, setProgress] = useState(0)
+/**
+ * "Collectors paid" tile: what other ShelfLife collectors typically paid for the titles on
+ * this shelf. Our own data, so it's always on, and titles without enough data are left out.
+ */
+function PaidStat({ items }: { items: Item[] }) {
+  const { data } = useCollectionPaid()
+  const typical = new Map(data?.map((t) => [t.itemId, t.typical]))
+  const priced = items.filter((i) => typical.has(i.id))
+  if (priced.length === 0)
+    return <Stat label="Others paid" color="#00ff88" value="—" hint={data ? 'Not enough data yet' : undefined} />
 
-  const run = () => {
-    setProgress(0)
-    // The API prices items one by one (~0.4s each); animate an approximate bar meanwhile.
-    const timer = window.setInterval(() => setProgress((p) => Math.min(p + 1, items.length - 1)), 400)
-    estimate.mutate(
-      items.map((i) => ({ title: i.title, format: i.format?.name ?? '' })),
-      {
-        onSettled: () => window.clearInterval(timer),
-        onError: () => toast.error('Price lookup is unavailable right now.'),
-      },
-    )
-  }
-
-  if (estimate.data) {
-    const diff = estimate.data.totalAverage - invested
-    return (
-      <Stat
-        label="Est. market value"
-        color="#00ff88"
-        value={formatMoney(estimate.data.totalAverage)}
-        hint={
-          <>
-            <span className={diff >= 0 ? 'text-neon-green' : 'text-neon-red'}>
-              {diff >= 0 ? '▲' : '▼'} {formatMoney(Math.abs(diff))}
-            </span>{' '}
-            vs. paid · {estimate.data.itemsFound}/{items.length} priced
-          </>
-        }
-      />
-    )
-  }
-
+  const total = priced.reduce((sum, i) => sum + typical.get(i.id)!, 0)
+  const youPaid = priced.reduce((sum, i) => sum + (i.purchasePrice || 0), 0)
+  const diff = total - youPaid
   return (
-    <div className="glass flex min-w-0 flex-col justify-center gap-2 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3">
-      <p className="truncate font-mono text-[0.6rem] uppercase tracking-[0.2em] text-zinc-500 sm:text-[0.7rem]">Est. value</p>
-      {estimate.isPending ? (
-        <div className="space-y-1.5">
-          <div className="h-2 overflow-hidden rounded-full bg-white/5">
-            <div className="h-full rounded-full bg-neon-green shadow-[0_0_10px_rgba(0,255,136,0.6)] transition-[width] duration-300" style={{ width: `${items.length ? (progress / items.length) * 100 : 0}%` }} />
-          </div>
-          <p className="font-mono text-xs text-zinc-400">
-            Checking {progress}/{items.length}…
-          </p>
-        </div>
-      ) : (
-        <Button variant="subtle" size="sm" className="self-start px-2 sm:px-3" icon={<BadgeDollarSign className="size-4" />} disabled={!items.length} onClick={run}>
-          <span className="sm:hidden">Check</span>
-          <span className="hidden sm:inline">Check value</span>
-        </Button>
-      )}
-    </div>
+    <Stat
+      label="Others paid"
+      color="#00ff88"
+      value={formatMoney(total)}
+      hint={
+        <>
+          {priced.length < items.length ? `for ${priced.length} of ${items.length}` : 'typical'} ·{' '}
+          <span className={diff >= 0 ? 'text-neon-green' : 'text-neon-red'}>
+            you paid {formatMoney(Math.abs(diff))} {diff >= 0 ? 'less' : 'more'}
+          </span>
+        </>
+      }
+    />
   )
 }

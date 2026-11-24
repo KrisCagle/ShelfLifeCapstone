@@ -3,7 +3,6 @@ import { api } from '@/lib/api'
 import type {
   AttributeDefinition,
   Candidate,
-  CollectionValue,
   Format,
   Headline,
   Item,
@@ -13,7 +12,9 @@ import type {
   NewsCategory,
   NewsPost,
   NewsPostInput,
-  PriceCheck,
+  EbayListings,
+  CollectorsPaid,
+  ItemTypical,
   ProviderInfo,
   WishlistInput,
   WishlistItem,
@@ -139,17 +140,27 @@ export function useDeleteItem() {
   })
 }
 
-export const usePriceCheck = () =>
-  useMutation({
-    mutationFn: ({ title, format }: { title: string; format: string }) =>
-      api.get<PriceCheck>(`/ebay/price?title=${encodeURIComponent(title)}&format=${encodeURIComponent(format)}`),
+// ── Market ─────────────────────────────────────────────────────────────────
+
+/** Loads only when `enabled`, so viewing a title doesn't call eBay. */
+export const useEbayListings = (title: string, format: string | null | undefined, enabled: boolean) =>
+  useQuery({
+    queryKey: ['market', 'listings', title, format ?? ''],
+    queryFn: () => api.get<EbayListings>(`/market/listings?title=${encodeURIComponent(title)}&format=${encodeURIComponent(format ?? '')}`),
+    enabled,
+    staleTime: 10 * 60_000,
   })
 
-export const useCollectionValue = () =>
-  useMutation({
-    mutationFn: (items: { title: string; format: string }[]) =>
-      api.post<CollectionValue>('/ebay/collection-value', items),
+export const useCollectorsPaid = (catalogEntryId: number | null) =>
+  useQuery({
+    queryKey: ['market', 'paid', catalogEntryId],
+    queryFn: () => api.get<CollectorsPaid>(`/market/paid/${catalogEntryId}`),
+    enabled: catalogEntryId != null,
+    staleTime: 5 * 60_000,
   })
+
+export const useCollectionPaid = () =>
+  useQuery({ queryKey: ['market', 'paid', 'mine'], queryFn: () => api.get<ItemTypical[]>('/market/paid'), staleTime: 60_000 })
 
 // ── Wishlist ───────────────────────────────────────────────────────────────
 

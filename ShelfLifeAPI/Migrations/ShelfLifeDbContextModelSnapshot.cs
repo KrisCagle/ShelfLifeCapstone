@@ -767,6 +767,8 @@ namespace ShelfLifeAPI.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Barcode");
+
                     b.HasIndex("CatalogEntryId");
 
                     b.HasIndex("ConditionId");

@@ -1,13 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, BadgeDollarSign, Heart, PackageCheck, Pencil, Plus, RefreshCw, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, Heart, PackageCheck, Pencil, Plus, RefreshCw, Save, ShoppingBag, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import { keys, useDeleteWishlistItem, useFormats, usePriceCheck, useSaveWishlistItem, useWishlist, useWishlistItem } from '@/hooks/queries'
+import { keys, useDeleteWishlistItem, useFormats, useSaveWishlistItem, useWishlist, useWishlistItem } from '@/hooks/queries'
 import { api, ApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
-import { formatMoney } from '@/lib/format'
 import { withAlpha } from '@/lib/platforms'
 import type { CatalogRef, Priority, WishlistItem } from '@/lib/types'
 import { Button, ButtonLink } from '@/components/ui/Button'
@@ -16,6 +15,7 @@ import { EmptyState, PageHeader, Panel, PlatformBadge, Skeleton } from '@/compon
 import { PRIORITIES, PriorityPill } from '@/components/collection/PriorityPill'
 import { CoverThumb, SOURCE_LABELS } from '@/components/catalog/CandidateCard'
 import { FormatOptions } from '@/components/catalog/FormatOptions'
+import { ebaySearchUrl, TypicalPaid } from '@/components/market/Market'
 import { CatalogFinder, type FinderPick } from '@/components/catalog/CatalogFinder'
 
 type Filter = 'all' | Priority
@@ -31,7 +31,7 @@ export function WishlistPage() {
       <PageHeader
         eyebrow="The hunt list"
         title="Wishlist"
-        description="The grails you’re still hunting. Check prices before you buy, and mark them found when you score."
+        description="The grails you’re still hunting. See what collectors paid and what’s listed, and mark them found when you score."
         actions={
           <ButtonLink to="/wishlist/new" icon={<Plus className="size-4" />}>
             Add a hunt
@@ -98,7 +98,6 @@ export function WishlistPage() {
 function WishCard({ item }: { item: WishlistItem }) {
   const { color } = PRIORITIES[item.priority] ?? PRIORITIES[1]
   const remove = useDeleteWishlistItem()
-  const price = usePriceCheck()
   const queryClient = useQueryClient()
   const found = `/items/new?fromWishlist=${item.id}`
 
@@ -150,23 +149,15 @@ function WishCard({ item }: { item: WishlistItem }) {
           <ButtonLink to={found} size="sm" variant="primary" icon={<PackageCheck className="size-4" />}>
             Found it
           </ButtonLink>
-          {price.data && 'average' in price.data ? (
-            <span className="font-mono text-sm text-zinc-400">
-              ~<span className="text-neon-green">{formatMoney(price.data.average)}</span> ({formatMoney(price.data.low)}–{formatMoney(price.data.high)})
-            </span>
-          ) : price.data ? (
-            <span className="font-mono text-sm text-zinc-500">No listings right now</span>
-          ) : (
-            <Button
-              size="sm"
-              variant="subtle"
-              loading={price.isPending}
-              icon={<BadgeDollarSign className="size-4" />}
-              onClick={() => price.mutate({ title: item.title, format: item.format?.name ?? '' }, { onError: () => toast.error('Price lookup is unavailable right now.') })}
-            >
-              Check price
-            </Button>
-          )}
+          <a
+            href={ebaySearchUrl(item.title, item.format?.name)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-mono text-sm text-zinc-400 ring-1 ring-white/10 hover:text-neon-cyan hover:ring-neon-cyan/40"
+          >
+            <ShoppingBag className="size-4" /> Find on eBay
+          </a>
+          <TypicalPaid catalogEntryId={item.catalogEntryId ?? null} />
         </div>
       </Panel>
     </motion.div>

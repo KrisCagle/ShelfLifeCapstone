@@ -183,13 +183,35 @@ export interface NewsPostInput {
   publishedAt?: string
 }
 
-export type PriceCheck =
-  | { low: number; high: number; average: number; count: number; searchTerm: string }
-  | { message: string }
+/** An eBay listing, exactly as eBay shows it. */
+export interface EbayListing {
+  title: string
+  price: number
+  currency: string
+  condition: string | null
+  imageUrl: string | null
+  url: string
+}
 
-export interface CollectionValue {
-  totalLow: number
-  totalHigh: number
-  totalAverage: number
-  itemsFound: number
+export interface EbayListings {
+  /** False when eBay couldn't be reached. */
+  available: boolean
+  listings: EbayListing[]
+  searchUrl: string
+  /** Links earn a commission, so the page must say so. */
+  affiliate: boolean
+}
+
+/** From ShelfLife's own purchase data. The range is only set once enough people logged a price. */
+export interface CollectorsPaid {
+  collectors: number
+  needed: number
+  low: number | null
+  typical: number | null
+  high: number | null
+}
+
+export interface ItemTypical {
+  itemId: number
+  typical: number
 }
