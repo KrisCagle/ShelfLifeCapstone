@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using ShelfLifeAPI.Data;
 using ShelfLifeAPI.Models;
 using ShelfLifeAPI.Services;
+using ShelfLifeAPI.Services.Market;
 using ShelfLifeAPI.Services.Metadata;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,8 +30,11 @@ builder.Services.AddHttpClient<NewsFeedService>(client =>
 });
 builder.Services.AddAuthorization(options => options.AddShelfLifePolicies(builder.Configuration));
 
-// Catalog metadata sources. MusicBrainz asks clients to identify themselves.
-var userAgent = builder.Configuration["Metadata:UserAgent"] ?? "ShelfLife/0.1 (https://github.com/KrisCagle/ShelfLifeCapstone)";
+// Catalog metadata sources. MusicBrainz, Open Library and Wikimedia ask apps to identify
+// themselves with a way to reach the developer; set Metadata:Contact to an email address.
+var contact = builder.Configuration["Metadata:Contact"];
+var userAgent = builder.Configuration["Metadata:UserAgent"]
+    ?? $"ShelfLife/0.1 (https://github.com/KrisCagle/ShelfLifeCapstone{(string.IsNullOrWhiteSpace(contact) ? "" : $"; {contact.Trim()}")})";
 void Metadata(HttpClient client)
 {
     client.Timeout = TimeSpan.FromSeconds(8);
@@ -59,6 +63,9 @@ builder.Services.AddHttpClient<GcdProvider>(client =>
 });
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<GcdProvider>());
 builder.Services.AddScoped<MetadataService>();
+builder.Services.AddHttpClient<EbayAuth>(Metadata);
+builder.Services.AddHttpClient<EbayListings>(Metadata);
+builder.Services.AddScoped<CollectorsPaid>();
 builder.Services.AddScoped<CatalogService>();
 
 builder.Services.AddSingleton<IPhotoStorage, LocalPhotoStorage>();

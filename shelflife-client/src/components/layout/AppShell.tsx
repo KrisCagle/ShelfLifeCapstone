@@ -53,7 +53,7 @@ function Footer() {
           <span>© {new Date().getFullYear()} ShelfLife</span>
         </div>
         <p className="max-w-lg text-xs leading-relaxed sm:text-right">
-          Headlines link to and belong to their publishers. Price estimates come from live eBay listings. Music data from
+          Headlines link to and belong to their publishers. “Collectors paid” comes from prices ShelfLife users log. eBay links may earn ShelfLife a commission. Music data from
           MusicBrainz, cover art from the Cover Art Archive, game data from IGDB, book data from{' '}
           <a href="https://openlibrary.org" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
             Open Library

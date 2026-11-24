@@ -89,8 +89,27 @@ namespace ShelfLifeAPI.Controllers
                 .Where(c => c.Barcode == code || c.Items.Any(i => i.UserId == UserId && i.Barcode == code))
                 .Take(6)
                 .ToListAsync(cancellationToken);
+
+            // Barcode memory: shared titles other collectors saved under this barcode. Only
+            // the title is used, never who owns it, and it answers without any outside call.
+            var remembered = await _context.Items
+                .Where(i => i.Barcode == code && i.CatalogEntry.CreatedByUserId == null)
+                .GroupBy(i => i.CatalogEntryId)
+                .Select(g => new { EntryId = g.Key, Collectors = g.Select(i => i.UserId).Distinct().Count() })
+                .OrderByDescending(g => g.Collectors)
+                .Take(3)
+                .ToListAsync(cancellationToken);
+            var rememberedIds = remembered.Select(r => r.EntryId).Where(id => local.All(l => l.Id != id)).ToList();
+            if (rememberedIds.Count > 0)
+            {
+                var entries = await _context.CatalogEntries.Include(c => c.Format).Where(c => rememberedIds.Contains(c.Id)).ToListAsync(cancellationToken);
+                local.AddRange(rememberedIds.Select(id => entries.First(e => e.Id == id)));
+            }
+
             var formats = await _context.Formats.ToListAsync(cancellationToken);
-            var remote = await _metadata.LookupBarcodeAsync(code, formats, cancellationToken);
+            var remote = local.Any(l => l.CreatedByUserId == null)
+                ? []
+                : await _metadata.LookupBarcodeAsync(code, formats, cancellationToken);
 
             var results = await AnnotateAsync(local, remote, cancellationToken);
             return Ok(new { barcode = code, results });

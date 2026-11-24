@@ -29,6 +29,9 @@ namespace ShelfLifeAPI.Data
             modelBuilder.Entity<Item>()
                 .Property(i => i.Attributes)
                 .HasColumnType("jsonb");
+            // Barcode memory looks titles up by barcode on every scan.
+            modelBuilder.Entity<Item>()
+                .HasIndex(i => i.Barcode);
             modelBuilder.Entity<Item>()
                 .HasOne(i => i.CatalogEntry)
                 .WithMany(c => c.Items)

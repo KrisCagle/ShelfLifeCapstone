@@ -19,9 +19,10 @@ namespace ShelfLifeAPI.Services.Metadata
         private readonly EbayBarcodeProvider _ebay;
         private readonly IMemoryCache _cache;
         private readonly ILogger<MetadataService> _logger;
+        private readonly bool _ebayFallback;
 
         public MetadataService(IEnumerable<IMetadataProvider> providers, MusicBrainzProvider musicBrainz, OpenLibraryProvider openLibrary, UpcItemDbProvider upc, EbayBarcodeProvider ebay,
-            IMemoryCache cache, ILogger<MetadataService> logger)
+            IMemoryCache cache, ILogger<MetadataService> logger, IConfiguration configuration)
         {
             _providers = providers;
             _musicBrainz = musicBrainz;
@@ -30,6 +31,9 @@ namespace ShelfLifeAPI.Services.Metadata
             _ebay = ebay;
             _cache = cache;
             _logger = logger;
+            // Using eBay listings as a product database is outside what its license
+            // describes, so this is for local testing only (see docs/DATA_SOURCES.md).
+            _ebayFallback = configuration.GetValue("Metadata:EbayBarcodeFallback", false);
         }
 
         public IEnumerable<ProviderInfo> Providers =>
@@ -99,7 +103,7 @@ namespace ShelfLifeAPI.Services.Metadata
             if (results.Count == 0)
             {
                 var products = await SafeAsync(() => _upc.LookupBarcodeAsync(barcode, formats, cancellationToken), "UPCitemdb") ?? [];
-                if (products.Count == 0)
+                if (products.Count == 0 && _ebayFallback)
                     products = await SafeAsync(() => _ebay.LookupBarcodeAsync(barcode, formats, cancellationToken), "eBay") ?? [];
                 foreach (var product in products)
                 {

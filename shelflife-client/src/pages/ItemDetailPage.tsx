@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowLeft, BadgeDollarSign, Barcode, CalendarDays, Camera, ExternalLink, PackageSearch, Pencil, Store, Tag as TagIcon, Trash2 } from 'lucide-react'
+import { ArrowLeft, BadgeDollarSign, Barcode, CalendarDays, Camera, PackageSearch, Pencil, Store, Tag as TagIcon, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import { keys, useDeleteItem, useItem, usePriceCheck } from '@/hooks/queries'
+import { keys, useDeleteItem, useItem } from '@/hooks/queries'
 import { useAttributesFor } from '@/components/catalog/AttributeFields'
 import { SOURCE_LABELS } from '@/components/catalog/CandidateCard'
 import { api, ApiError } from '@/lib/api'
@@ -15,6 +15,7 @@ import type { Item, ItemSave } from '@/lib/types'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { EmptyState, Panel, PlatformBadge, Skeleton, Tag } from '@/components/ui/Misc'
 import { CaseCard } from '@/components/collection/CaseCard'
+import { MarketPanel } from '@/components/market/Market'
 
 // Everything needed to put the same copy back, pointing at the same catalog entry.
 const toSave = (item: Item): ItemSave => ({
@@ -165,7 +166,7 @@ export default function ItemDetailPage() {
               </Button>
             </div>
 
-            <ValuePanel item={item} />
+            <MarketPanel item={item} />
           </div>
         </div>
       </div>
@@ -197,106 +198,6 @@ function Fact({ icon, label, value, className }: { icon: ReactNode; label: strin
       </p>
       <p className="mt-1 truncate font-mono text-lg text-zinc-100">{value}</p>
     </div>
-  )
-}
-
-function ValuePanel({ item }: { item: Item }) {
-  const check = usePriceCheck()
-  const format = item.format?.name ?? ''
-  const ebayUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`${item.title} ${format}`)}`
-  const result = check.data
-
-  return (
-    <Panel accent="#f5a623" className="p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-display text-2xl tracking-[0.1em] text-white">What’s it worth?</h2>
-          <p className="text-sm text-zinc-400">Live asking prices from eBay listings.</p>
-        </div>
-        <Button variant="amber" icon={<BadgeDollarSign className="size-4" />} loading={check.isPending} onClick={() => check.mutate({ title: item.title, format })}>
-          {result ? 'Check again' : 'Check price'}
-        </Button>
-      </div>
-
-      {check.isError && <p className="mt-4 text-sm text-neon-red">Price lookup is unavailable right now. Try again in a bit.</p>}
-
-      {result && 'message' in result && <p className="mt-4 text-zinc-400">No current listings found for this title.</p>}
-
-      {result && 'average' in result && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-5 space-y-4">
-          <div className="grid grid-cols-3 gap-3 text-center">
-            {[
-              ['Low', result.low, 'text-zinc-300'],
-              ['Average', result.average, 'text-neon-green text-glow-green text-2xl'],
-              ['High', result.high, 'text-zinc-300'],
-            ].map(([label, value, cls]) => (
-              <div key={label as string}>
-                <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-zinc-500">{label}</p>
-                <p className={`font-mono text-lg ${cls}`}>{formatMoney(value as number)}</p>
-              </div>
-            ))}
-          </div>
-          <RangeBar low={result.low} high={result.high} average={result.average} paid={item.purchasePrice} />
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <GainLoss paid={item.purchasePrice} worth={result.average} />
-            <a href={ebayUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-mono text-zinc-400 hover:text-neon-cyan">
-              {result.count} listings <ExternalLink className="size-3.5" />
-            </a>
-          </div>
-        </motion.div>
-      )}
-    </Panel>
-  )
-}
-
-/** Low→high price range with markers for the average and what you paid. */
-function RangeBar({ low, high, average, paid }: { low: number; high: number; average: number; paid: number }) {
-  const min = Math.min(low, paid)
-  const max = Math.max(high, paid)
-  const pos = (v: number) => (max === min ? 50 : ((v - min) / (max - min)) * 100)
-  // "You paid" labels above the bar and "avg" below, so close values never collide.
-  return (
-    <div className="relative py-5">
-      <div className="relative h-2 rounded-full bg-white/5">
-        <div
-          className="absolute inset-y-0 rounded-full bg-gradient-to-r from-neon-amber/40 via-neon-green/60 to-neon-amber/40"
-          style={{ left: `${pos(low)}%`, width: `${pos(high) - pos(low)}%` }}
-        />
-        <Marker at={pos(paid)} color="#00bfff" label="you paid" above />
-        <Marker at={pos(average)} color="#00ff88" label="avg" />
-      </div>
-    </div>
-  )
-}
-
-function Marker({ at, color, label, above }: { at: number; color: string; label: string; above?: boolean }) {
-  return (
-    <motion.div
-      className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-      initial={{ left: '0%' }}
-      animate={{ left: `${at}%` }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <p className={`absolute whitespace-nowrap font-mono text-[0.65rem] uppercase ${above ? 'bottom-full mb-0.5' : 'top-full mt-0.5'}`} style={{ color }}>
-        {label}
-      </p>
-      <div className="h-5 w-1 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }} />
-    </motion.div>
-  )
-}
-
-function GainLoss({ paid, worth }: { paid: number; worth: number }) {
-  const diff = worth - paid
-  const pct = paid > 0 ? Math.round((diff / paid) * 100) : null
-  if (Math.abs(diff) < 1 || pct === 0) return <p className="font-mono text-zinc-400">About even with what you paid</p>
-  return (
-    <p className="font-mono">
-      <span className={diff >= 0 ? 'text-neon-green' : 'text-neon-red'}>
-        {diff >= 0 ? '▲' : '▼'} {formatMoney(Math.abs(diff))}
-        {pct !== null && ` (${diff >= 0 ? '+' : '−'}${Math.abs(pct)}%)`}
-      </span>{' '}
-      <span className="text-zinc-500">vs. what you paid</span>
-    </p>
   )
 }
 

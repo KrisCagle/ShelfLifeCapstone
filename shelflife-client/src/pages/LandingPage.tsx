@@ -117,7 +117,7 @@ function Hero({ user, items, shelves }: { user: Me | null; items?: Item[]; shelv
                 One app for the <span className="text-neon-cyan text-glow-cyan">whole retro shelf.</span>
               </h1>
               <p className="mt-5 max-w-xl text-lg text-zinc-300">
-                Catalog your games, vinyl, tapes, books and comics in one place. See what they’re worth, track what you spent, and never buy a
+                Catalog your games, vinyl, tapes, books and comics in one place. See what other collectors paid, track what you spent, and never buy a
                 duplicate at the flea market again.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -290,7 +290,7 @@ function ShelfSnapshot({ items, wishlist }: { items: Item[]; wishlist: WishlistI
 
 const FEATURES: { icon: ReactNode; title: string; body: string; color: string; soon?: boolean }[] = [
   { icon: <Layers />, title: 'Every format, one shelf', body: 'Cartridges, discs, vinyl and VHS side by side, each styled after its platform.', color: '#00bfff' },
-  { icon: <BadgeDollarSign />, title: 'What’s it worth?', body: 'Check live market prices for a single title or estimate your whole collection.', color: '#f5a623' },
+  { icon: <BadgeDollarSign />, title: 'What did collectors pay?', body: 'See what other ShelfLife collectors paid for a title, and what’s listed on eBay right now.', color: '#f5a623' },
   { icon: <Heart />, title: 'Wishlist hunts', body: 'Prioritize your grails and move them to the shelf the moment you find them.', color: '#ff4444' },
   { icon: <ScanSearch />, title: 'Find it fast', body: 'Search, filter and sort a collection of thousands in a blink.', color: '#00ff88' },
   { icon: <Barcode />, title: 'Barcode scanning', body: 'Point your phone at a case and it’s on your shelf. Got a stack? Scan them all in a row.', color: '#8a3cff' },
@@ -332,7 +332,7 @@ function Features() {
 function HowItWorks() {
   const steps = [
     { n: '01', title: 'Stock the shelf', body: 'Add titles with their format, condition, price and where you found them.' },
-    { n: '02', title: 'Know your value', body: 'Check market prices and watch what your collection is worth.' },
+    { n: '02', title: 'Know the going rate', body: 'See what other collectors paid, so you know a good deal when you find one.' },
     { n: '03', title: 'Hunt smarter', body: 'Keep a prioritized wishlist and check it before you buy.' },
   ]
   return (
