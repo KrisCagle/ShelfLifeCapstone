@@ -76,9 +76,11 @@ Small changes, and each one removes a real risk.
 2. ✅ Providers are chosen per media type in config, `Metadata:Providers:Games` and
    `Metadata:Providers:Movies`. Both default to `wikidata`, and setting `igdb` or `tmdb` brings
    those back for local testing, or once there's a written OK.
-3. ⏳ Re-match existing IGDB/TMDB catalog entries to Wikidata by title and year. TMDB data can't
-   be kept more than 6 months anyway. **Waiting on the cover-art decision below**, because
-   switching an entry's source also means deciding what happens to its IGDB/TMDB cover.
+3. ✅ Re-match existing IGDB/TMDB catalog entries to Wikidata: `GET /api/admin/catalog/rematch`
+   previews, and `POST` switches the entries listed. A title only switches on an exact match
+   (ignoring case, punctuation and accents) with the same format and a release year within one.
+   Switched entries drop their IGDB/TMDB cover, and owners' own photos aren't touched. Run it on
+   the production database before launch. Locally, all 8 entries switched.
 4. Follow Wikimedia's API etiquette: a descriptive User-Agent with contact info, one request at a
    time, caching, and backing off when throttled.
 

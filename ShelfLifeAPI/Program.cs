@@ -71,6 +71,7 @@ builder.Services.AddHttpClient<EbayAuth>(Metadata);
 builder.Services.AddHttpClient<EbayListings>(Metadata);
 builder.Services.AddScoped<CollectorsPaid>();
 builder.Services.AddScoped<CatalogService>();
+builder.Services.AddScoped<CatalogRematch>();
 
 builder.Services.AddSingleton<IPhotoStorage, LocalPhotoStorage>();
 
