@@ -62,13 +62,13 @@ function Footer() {
           <a href="https://openlibrary.org" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
             Open Library
           </a>
-          . Comic data from the{' '}
+          . Comic data courtesy of the{' '}
           <a href="https://www.comics.org" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
-            Grand Comics Database
-          </a>
-          , licensed under{' '}
+            Grand Comics Database™
+          </a>{' '}
+          under a{' '}
           <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
-            CC BY-SA 4.0
+            Creative Commons Attribution-ShareAlike license
           </a>
           .
         </p>

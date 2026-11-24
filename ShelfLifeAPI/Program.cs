@@ -56,11 +56,8 @@ builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<Igd
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<MusicBrainzProvider>());
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<TmdbProvider>());
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<OpenLibraryProvider>());
-builder.Services.AddHttpClient<GcdProvider>(client =>
-{
-    Metadata(client);
-    client.Timeout = TimeSpan.FromSeconds(12);
-});
+// Comics read ShelfLife's own copy of the GCD (tools/GcdImport), not a web API.
+builder.Services.AddScoped<GcdProvider>();
 builder.Services.AddTransient<IMetadataProvider>(sp => sp.GetRequiredService<GcdProvider>());
 builder.Services.AddHttpClient<WikidataGamesProvider>(Metadata);
 builder.Services.AddHttpClient<WikidataMoviesProvider>(Metadata);

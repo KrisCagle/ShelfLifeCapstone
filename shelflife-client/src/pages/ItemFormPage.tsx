@@ -243,7 +243,7 @@ function DetailsForm({ existing, title, onTitleChange, barcode, onBarcodeChange,
     if (Number.isNaN(price) || price < 0) found.purchasePrice = 'Enter a price of 0 or more.'
     if (!copy.dateAcquired) found.dateAcquired = 'When did you get it?'
     else if (copy.dateAcquired > todayIso()) found.dateAcquired = 'That date is in the future.'
-    if (barcode && !/^\d{8,14}$/.test(barcode)) found.barcode = 'A barcode is 8 to 14 digits.'
+    if (barcode && !/^\d{8,18}$/.test(barcode)) found.barcode = 'A barcode is 8 to 18 digits.'
     return found
   }
 

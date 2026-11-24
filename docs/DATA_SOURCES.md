@@ -20,7 +20,7 @@ Get written confirmation for anything the business depends on.*
 |---|---|---|---|
 | MusicBrainz | Music titles, artists, barcodes | ✅ Core data is CC0 (public domain). Commercial users are asked to become supporters. | Keep. Join the supporter program once there's revenue. |
 | Open Library | Books | ✅ Allowed, but not as a high-traffic backend | Keep. Move to its free monthly data dumps as traffic grows. |
-| Grand Comics Database | Comics | ✅ CC BY-SA 4.0, with credit and share-alike | Import its data download (Phase B) instead of calling the API. |
+| Grand Comics Database | Comics | ✅ CC BY-SA 4.0, with credit and share-alike | ✅ Imported from its data download into our own tables (Phase B). Credit in the footer and a link to GCD for each record. |
 | TMDB | Movies | ❌ Commercial use needs a written agreement, possibly with fees. Data can't be cached for more than 6 months. | Replace with Wikidata (Phase C), and ask TMDB for a price. |
 | IGDB (Twitch) | Games | ⚠️ Unclear. Sources conflict, and newer ones say a partnership is needed. | Replace with Wikidata (Phase C), and ask Twitch. |
 | UPCitemdb | Barcode lookups | ⚠️ Free trial is 100 lookups a day, shared by every user. Commercial terms weren't found. Paid plan is $99/month. | Keep as a fallback behind ShelfLife's own barcode memory (Phase A). |
@@ -58,15 +58,31 @@ Small changes, and each one removes a real risk.
    header, and Open Library allows 3× the requests to identified apps. *Needs a project contact
    address from Kris.*
 
-## Phase B: our own comic database
+## Phase B: our own comic database ✅ done
 
-1. Kris creates a free GCD account and downloads the data dump (about 2 GB, SQLite or MySQL).
-2. An importer tool in the repo loads only what the app needs: series, issue number, year,
-   publisher, variant and barcode. The estimate is 250–350 MB, to confirm on import.
-3. Comic search uses our own copy: no rate limit, faster, and one-word searches like "Saga" work.
-4. Re-import on a schedule to pick up GCD's updates.
-5. Then exact-issue scanning: GCD stores each issue's full barcode, including the 5-digit
-   add-on, so it only needs the scanner to read add-ons.
+1. ✅ Kris downloaded the GCD data dump (SQLite, 6.5 GB unzipped) to his home computer.
+2. ✅ `tools/GcdImport` loads only what the app needs into `ComicSeries` and `ComicIssues`:
+   series name, start year, publisher, language, issue number, variant, title, year, barcode
+   and ISBN. Ids are GCD's own, so every record links back to comics.org.
+   - Run it with `dotnet run --project tools/GcdImport -- <path-to-dump.db>`. Add
+     `--languages en,es` to limit languages, or `--dry-run` to count without writing.
+   - It replaces both tables in one transaction, so a failed import leaves the old data.
+   - Barcodes printed on more than 3 different series are placeholders, not real codes, and
+     are dropped (166 of them).
+   - Result: 231,333 series, 2,472,305 issues, 433,100 barcodes and 237,900 ISBNs, using about
+     406 MB of the database. That fits Neon's free 1 GB.
+3. ✅ Comic search reads our own copy: no rate limit and no outside call, in about 10–30 ms.
+   Names match word by word ignoring punctuation, so "batman/superman" finds "Batman /
+   Superman". An exact name ranks first, then names starting with the search, then English
+   editions, then the longest runs.
+4. ✅ Scanning: a full barcode with its 5-digit add-on finds the exact issue. The main UPC alone
+   lists the series' issues, newest first. An ISBN finds the trade paperback.
+5. ✅ Licence (CC BY-SA 4.0): the site footer credits GCD, each search result has a "GCD" link
+   to its issue page, and an item's page credits GCD with a link. GCD's cover scans aren't
+   part of the licence and aren't imported.
+6. ⏳ Re-import on a schedule (GCD publishes a new dump regularly). For now it's a manual run.
+7. ⏳ The barcode scanner reads only the main code, so scans list the series instead of the
+   exact issue. Reading the add-on needs a scanner library that supports EAN-5.
 
 ## Phase C: Wikidata for games and movies
 
